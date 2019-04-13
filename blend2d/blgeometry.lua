@@ -116,7 +116,6 @@ ffi.cdef[[
 struct BLSizeI {
   int w;
   int h;
-
 };
 ]]
 

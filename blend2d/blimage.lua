@@ -169,35 +169,22 @@ struct BLImageScaleOptions {
 
 
 ffi.cdef[[
-// ============================================================================
-// [BLImage - Core]
-// ============================================================================
 
 //! Image [C Interface - Impl].
 struct BLImageImpl {
-  //! Pixel data.
-  void* pixelData;
-  //! Image stride.
-  intptr_t stride;
-  //! Non-null if the image has a writer.
-  volatile void* writer;
 
-  //! Reference count.
+  void* pixelData;
+  intptr_t stride;
+  volatile void* writer;
   volatile size_t refCount;
-  //! Impl type.
   uint8_t implType;
-  //! Impl traits.
   uint8_t implTraits;
-  //! Memory pool data.
   uint16_t memPoolData;
 
-  //! Image format.
+
   uint8_t format;
-  //! Image flags.
   uint8_t flags;
-  //! Image depth (in bits).
   uint16_t depth;
-  //! Image size.
   BLSizeI size;
 };
 
@@ -207,6 +194,46 @@ struct BLImageCore {
 };
 ]]
 BLImageCore = ffi.typeof("struct BLImageCore")
+BLImageCore_mt = {
+  __gc = function(self)
+      blapi.blImageReset(self)
+  end;
+
+  __new = function(ct, ...)
+      local obj = ffi.new(ct)
+      if select('#', ...) == 3 then
+        blapi.blImageInitAs(obj, select(1,...), select(2,...), select(3,...))
+      elseif select('#',...) == 0 then
+        blapi.blImageInit(obj)
+      end
+
+      return obj
+  end;
+
+  __index = function(self, key)
+    --print("lookup: ", key)
+    local success, info = pcall(function() return self.impl[key] end)
+    if success then
+      return info 
+    end
+
+    return BLImageCore_mt[key]
+  end;
+
+  __tostring = function(self)
+    return string.format("%dx%d", self.size.w, self.size.h)
+  end;
+}
+
+
+function BLImageCore_mt.WriteToFile(self, fileName, codec) 
+    local bResult = blapi.blImageWriteToFile(self, fileName, codec)
+    return bResult == 0 or bResult
+end
+
+ffi.metatype(BLImageCore, BLImageCore_mt)
+
+
 
 ffi.cdef[[
 // ============================================================================

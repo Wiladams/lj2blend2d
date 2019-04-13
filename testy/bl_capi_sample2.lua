@@ -8,12 +8,9 @@ local b2d = require("blend2d.blend2d")
 
 
 local function main() 
-    local img = BLImageCore();
-    local r = b2d.blImageInitAs(img, 256, 256, C.BL_FORMAT_PRGB32);
-    if r ~= C.BL_SUCCESS then
-        return false, "blImageInitAs FAIL";
-    end
-
+    local img = BLImageCore(256, 256, C.BL_FORMAT_PRGB32);
+    print("Image: ", img)
+    
     local ctx = BLContextCore();
     r = b2d.blContextInitAs(ctx, img, nil);
     if (r ~= C.BL_SUCCESS) then
@@ -36,7 +33,6 @@ local function main()
 
     b2d.blContextSetFillStyle(ctx, gradient);
     b2d.blContextFillAll(ctx);
-    --b2d.blGradientReset(gradient);
 
     local circle = BLCircle();
     circle.cx = 128;
@@ -52,10 +48,10 @@ local function main()
     codec = BLImageCodecCore();
 
     b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-    b2d.blImageWriteToFile(img, "bl-capi-sample.bmp", codec);
+    img:WriteToFile("bl-capi-sample2.bmp", codec);
 
 
-    b2d.blImageReset(img);
+    --b2d.blImageReset(img);
 end
 
 main()
