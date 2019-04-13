@@ -15,10 +15,6 @@ require("blend2d.blapi")
 
 
 ffi.cdef[[
-// ============================================================================
-// [Constants]
-// ============================================================================
-
 //! Direction of a geometry used by geometric primitives and paths.
 enum  BLGeometryDirection {
   //! No direction specified.
@@ -90,56 +86,41 @@ enum  BLGeometryType {
 
 //! Fill rule.
 enum  BLFillRule {
-  //! Non-zero fill-rule.
   BL_FILL_RULE_NON_ZERO = 0,
-  //! Even-odd fill-rule.
   BL_FILL_RULE_EVEN_ODD = 1,
 
-  //! Count of fill rule types.
   BL_FILL_RULE_COUNT = 2
 };
 
 //! Hit-test result.
 enum  BLHitTest {
-  //!< Fully in.
   BL_HIT_TEST_IN = 0,
-  //!< Partially in/out.
   BL_HIT_TEST_PART = 1,
-  //!< Fully out.
   BL_HIT_TEST_OUT = 2,
 
-  //!< Hit test failed (invalid argument, NaNs, etc).
-  BL_HIT_TEST_INVALID = 0xFFFFFFFFu
+  BL_HIT_TEST_INVALID = 0xFFFFFFFF
 };
 ]]
 
-ffi.cdef[[
-// ============================================================================
-// [BLPointI]
-// ============================================================================
 
+ffi.cdef[[
 //! Point specified as [x, y] using `int` as a storage type.
 struct BLPointI {
   int x;
   int y;
-
 };
+]]
 
-// ============================================================================
-// [BLSizeI]
-// ============================================================================
-
+ffi.cdef[[
 //! Size specified as [w, h] using `int` as a storage type.
 struct BLSizeI {
   int w;
   int h;
 
 };
+]]
 
-// ============================================================================
-// [BLBoxI]
-// ============================================================================
-
+ffi.cdef[[
 //! Box specified as [x0, y0, x1, y1] using `int` as a storage type.
 struct BLBoxI {
   int x0;
@@ -148,11 +129,9 @@ struct BLBoxI {
   int y1;
 
 };
+]]
 
-// ============================================================================
-// [BLRectI]
-// ============================================================================
-
+ffi.cdef[[
 //! Rectangle specified as [x, y, w, h] using `int` as a storage type.
 struct BLRectI {
   int x;
@@ -161,33 +140,27 @@ struct BLRectI {
   int h;
 
 };
+]]
 
-// ============================================================================
-// [BLPoint]
-// ============================================================================
-
+ffi.cdef[[
 //! Point specified as [x, y] using `double` as a storage type.
 struct BLPoint {
   double x;
   double y;
 
 };
+]]
 
-// ============================================================================
-// [BLSize]
-// ============================================================================
-
+ffi.cdef[[
 //! Size specified as [w, h] using `double` as a storage type.
 struct BLSize {
   double w;
   double h;
 
 };
+]]
 
-// ============================================================================
-// [BLBox]
-// ============================================================================
-
+ffi.cdef[[
 //! Box specified as [x0, y0, x1, y1] using `double` as a storage type.
 struct BLBox {
   double x0;
@@ -196,11 +169,9 @@ struct BLBox {
   double y1;
 
 };
+]]
 
-// ============================================================================
-// [BLRect]
-// ============================================================================
-
+ffi.cdef[[
 //! Rectangle specified as [x, y, w, h] using `double` as a storage type.
 struct BLRect {
   double x;
@@ -209,11 +180,9 @@ struct BLRect {
   double h;
 
 };
+]]
 
-// ============================================================================
-// [BLLine]
-// ============================================================================
-
+ffi.cdef[[
 //! Line specified as [x0, y0, x1, y1] using `double` as a storage type.
 struct BLLine {
   union {
@@ -227,11 +196,10 @@ struct BLLine {
   };
 
 };
+]]
 
-// ============================================================================
-// [BLTriangle]
-// ============================================================================
 
+ffi.cdef[[
 //! Triangle data speciied as [x0, y0, x1, y1, x2, y2] using `double` as a storage type.
 struct BLTriangle {
   union {
@@ -250,11 +218,9 @@ struct BLTriangle {
   };
 
 };
+]]
 
-// ============================================================================
-// [BLRoundRect]
-// ============================================================================
-
+ffi.cdef[[
 //! Rounded rectangle specified as [x, y, w, h, rx, ry] using `double` as a storage type.
 struct BLRoundRect {
   union {
@@ -268,11 +234,9 @@ struct BLRoundRect {
   };
 
 };
+]]
 
-// ============================================================================
-// [BLCircle]
-// ============================================================================
-
+ffi.cdef[[
 //! Circle specified as [cx, cy, r] using `double` as a storage type.
 struct BLCircle {
   union {
@@ -282,11 +246,10 @@ struct BLCircle {
   double r;
 
 };
+]]
+BLCircle = ffi.typeof("struct BLCircle")
 
-// ============================================================================
-// [BLEllipse]
-// ============================================================================
-
+ffi.cdef[[
 //! Ellipse specified as [cx, cy, rx, ry] using `double` as a storage type.
 struct BLEllipse {
   union {
@@ -299,11 +262,9 @@ struct BLEllipse {
   };
 
 };
+]]
 
-// ============================================================================
-// [BLArc]
-// ============================================================================
-
+ffi.cdef[[
 //! Arc specified as [cx, cy, rx, ry, start, sweep[ using `double` as a storage type.
 struct BLArc {
   union {
@@ -316,8 +277,6 @@ struct BLArc {
   };
   double start;
   double sweep;
-
-  
 };
 ]]
 

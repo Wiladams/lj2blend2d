@@ -23,20 +23,20 @@ local function main()
     local gradient = BLGradientCore();
     local values = BLLinearGradientValues({ 0, 0, 256, 256 });
     r = b2d.blGradientInitAs(gradient,
-    C.BL_GRADIENT_TYPE_LINEAR, values,
-    C.BL_EXTEND_MODE_PAD, nil, 0, nil);
+        C.BL_GRADIENT_TYPE_LINEAR, values,
+        C.BL_EXTEND_MODE_PAD, nil, 0, nil);
     
     if r ~= C.BL_SUCCESS then
         return false, "BlGradientInitAs, FAIL";
     end
 
-    b2d.blGradientAddStopRgba32(gradient, 0.0, 0xFFFFFFFF);
-    b2d.blGradientAddStopRgba32(gradient, 0.5, 0xFFFFAF00);
-    b2d.blGradientAddStopRgba32(gradient, 1.0, 0xFFFF0000);
+    gradient:AddStopRgba32(0.0, 0xFFFFFFFF);
+    gradient:AddStopRgba32(0.5, 0xFFFFAF00);
+    gradient:AddStopRgba32(1.0, 0xFFFF0000);
 
     b2d.blContextSetFillStyle(ctx, gradient);
     b2d.blContextFillAll(ctx);
-    b2d.blGradientReset(gradient);
+    --b2d.blGradientReset(gradient);
 
     local circle = BLCircle();
     circle.cx = 128;
@@ -50,10 +50,10 @@ local function main()
     b2d.blContextEnd(ctx);
 
     codec = BLImageCodecCore();
-    --b2d.blImageCodecInit(codec);
+
     b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
     b2d.blImageWriteToFile(img, "bl-capi-sample.bmp", codec);
-    b2d.blImageCodecReset(codec);
+
 
     b2d.blImageReset(img);
 end

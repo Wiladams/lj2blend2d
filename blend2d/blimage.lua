@@ -11,6 +11,8 @@ local ffi = require("ffi")
 if not  BLEND2D_BLIMAGE_H then
 BLEND2D_BLIMAGE_H = true
 
+local blapi = require("blend2d.blapi")
+
 require("blend2d.blarray")
 require("blend2d.blformat")
 require("blend2d.blgeometry")
@@ -204,6 +206,7 @@ struct BLImageCore {
   BLImageImpl* impl;
 };
 ]]
+BLImageCore = ffi.typeof("struct BLImageCore")
 
 ffi.cdef[[
 // ============================================================================
@@ -228,7 +231,7 @@ struct BLImageCodecImpl {
   const char* vendor;
 
   //! Reference count.
-  volatile size_t refCount;
+  size_t refCount;
   //! Impl type.
   uint8_t implType;
   //! Impl traits.
@@ -249,6 +252,23 @@ struct BLImageCodecCore {
   BLImageCodecImpl* impl;
 };
 ]]
+BLImageCodecCore = ffi.typeof("BLImageCodecCore")
+ffi.metatype(BLImageCodecCore, {
+    __gc = function(self)
+      --print("BLImageCodecCore.__gc")
+      blapi.blImageCodecReset(self)
+    end;
+
+    __new = function (ct, ...)
+      --print("BLImageCodecCore.__new")
+      local obj = ffi.new(ct, ...)
+      blapi.blImageCodecInit(obj);
+
+      return obj;
+    end;
+
+})
+
 
 
 ffi.cdef[[

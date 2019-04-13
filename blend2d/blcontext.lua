@@ -381,5 +381,6 @@ struct BLContextCore {
   BLContextImpl* impl;
 };
 ]]
+BLContextCore = ffi.typeof("struct BLContextCore")
 
 end --// BLEND2D_BLCONTEXT_H

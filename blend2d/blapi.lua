@@ -1216,3 +1216,5 @@ bool     __cdecl blVariantEquals(const void* a, const void* b) ;
 
 
 end -- BLEND2D_BLAPI_H
+
+return ffi.load("blend2d")

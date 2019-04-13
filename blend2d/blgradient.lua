@@ -11,6 +11,8 @@ local ffi = require("ffi")
 if not BLEND2D_BLGRADIENT_H then
 BLEND2D_BLGRADIENT_H = true
 
+local blapi = require("blend2d.blapi")
+
 require("blend2d.blgeometry")
 require("blend2d.blmatrix")
 require("blend2d.blrgba")
@@ -65,10 +67,6 @@ struct BLGradientStop {
 
 
 ffi.cdef[[
-// ============================================================================
-// [BLLinearGradientValues]
-// ============================================================================
-
 //! Linear gradient values packed into a structure.
 struct BLLinearGradientValues {
   double x0;
@@ -77,7 +75,7 @@ struct BLLinearGradientValues {
   double y1;
 };
 ]]
-
+BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
 
 ffi.cdef[[
 // ============================================================================
@@ -171,5 +169,18 @@ struct BLGradientCore {
   BLGradientImpl* impl;
 };
 ]]
+BLGradientCore = ffi.typeof("struct BLGradientCore")
+ffi.metatype(BLGradientCore, {
+    __gc = function(self)
+        return blapi.blGradientReset(self);
+    end;
+
+    __index = {
+        AddStopRgba32 = function(self, offset, argb32)
+            return blapi.blGradientAddStopRgba32(self, offset, argb32);
+        end;
+    }
+})
+
 
 end -- BLEND2D_BLGRADIENT_H
