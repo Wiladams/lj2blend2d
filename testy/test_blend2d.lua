@@ -1,3 +1,6 @@
+--[[
+    Just a sanity check to ensure all the ffi bindings at least compile.
+]]
 package.path = "../?.lua;"..package.path;
 
 local ffi = require("ffi")

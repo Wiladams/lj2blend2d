@@ -30,59 +30,8 @@ BL_VERSION = BL_MAKE_VERSION(0, 0, 1)
 --]]
 
 
---[[
-// ============================================================================
-// [Build Options]
-// ============================================================================
-
-// These definitions can be used to enable static library build. Embed is used
-// when Blend2D's source code is embedded directly in another project, implies
-// static build as well.
-//
-// #define BL_BUILD_EMBED           // Blend2D is embedded (implies BL_BUILD_STATIC).
-// #define BL_BUILD_STATIC          // Blend2D is a statically linked library.
-
-// BL_BUILD_EMBED implies BL_BUILD_STATIC.
-#if defined(BL_BUILD_EMBED) && !defined(BL_BUILD_STATIC)
-  #define BL_BUILD_STATIC
-#endif
-
-// These definitions control the build mode and tracing support. The build mode
-// should be auto-detected at compile time, but it's possible to override it in
-// case that the auto-detection fails.
-//
-// Tracing is a feature that is never compiled by default and it's only used to
-// debug Blend2D itself.
-//
-// #define BL_BUILD_DEBUG           // Define to enable debug-mode.
-// #define BL_BUILD_RELEASE         // Define to enable release-mode.
-
-// Detect BL_BUILD_DEBUG and BL_BUILD_RELEASE if not defined.
-#if !defined(BL_BUILD_DEBUG) && !defined(BL_BUILD_RELEASE)
-  #ifndef NDEBUG
-    #define BL_BUILD_DEBUG
-  #else
-    #define BL_BUILD_RELEASE
-  #endif
-#endif
---]]
-
-
-
-
---  #include <stdbool.h>
 
 --[[
-// ============================================================================
-// [Public Macros]
-// ============================================================================
-
-//! \addtogroup blend2d_api_macros
-
-
-//! \name Target Information
-
-
 //! \def BL_BUILD_BYTE_ORDER
 //!
 //! A compile-time constant (macro) that defines byte-order of the target. It
@@ -90,44 +39,17 @@ BL_VERSION = BL_MAKE_VERSION(0, 0, 1)
 //! targets. Blend2D uses this macro internally, but it's also available to
 //! end users as sometimes it could be important for deciding between pixel
 //! formats or other important details.
-#if (defined(__ARMEB__)) || (defined(__MIPSEB__)) || \
-    (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
-  #define BL_BUILD_BYTE_ORDER 4321
-#else
-  #define BL_BUILD_BYTE_ORDER 1234
-#endif
 --]]
+if (__ARMEB__) or (__MIPSEB__) or 
+    (__BYTE_ORDER__ and (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)) then
+BL_BUILD_BYTE_ORDER = 4321
+else
+BL_BUILD_BYTE_ORDER = 1234
+end
 
 
-
-
-
---[[
-//! \def BL_API_C
-//!
-//! A decorator that marks functions and variables exported by Blend2D to use
-//! C linkage. Public API should only use this decorator and not plain ``.
-#if defined(__cplusplus)
-  #define extern "C" 
-#else
-  #define 
-#endif
---]]
 
 --[=[
-
-//! \def BL_INLINE
-//!
-//! Marks functions that should always be inlined.
-
-#if defined(__GNUC__) && !defined(BL_BUILD_DEBUG)
-  #define BL_INLINE inline __attribute__((__always_inline__))
-#elif defined(_MSC_VER) && !defined(BL_BUILD_DEBUG)
-  #define BL_INLINE __forceinline
-#else
-  #define BL_INLINE inline
-#endif
-
 //! \def 
 //!
 //! Function attribute used by functions that never return (that terminate the
@@ -141,30 +63,6 @@ BL_VERSION = BL_MAKE_VERSION(0, 0, 1)
 #else
   #define 
 #endif
-
-//! \def 
-//!
-//! Defined to `noexcept` in C++17 mode an nothing in C mode. The reason this
-//! macro is provided is because Blend2D C API doesn't use exceptions and is
-//! marked as such.
-#if defined(__cplusplus) && __cplusplus >= 201703L
-  // Function typedefs are `noexcept`, however, it's not available until C++17.
-  #define  noexcept
-#else
-  #define 
-#endif
-
-//! \def 
-//!
-//! Defined to `noexcept` in C++11 mode an nothing in C mode. This is used to
-//! mark Blend2D C API, which is `noexcept` by design.
-#if defined(__cplusplus)
-  #define  noexcept
-#else
-  #define 
-#endif
-
-
 
 //! \name Assumptions
 
@@ -192,31 +90,11 @@ BL_VERSION = BL_MAKE_VERSION(0, 0, 1)
 //!
 //! A condition is unlikely.
 
-#if defined(__GNUC__)
-  #define BL_LIKELY(...) __builtin_expect(!!(__VA_ARGS__), 1)
-  #define BL_UNLIKELY(...) __builtin_expect(!!(__VA_ARGS__), 0)
-#else
-  #define BL_LIKELY(...) (__VA_ARGS__)
-  #define BL_UNLIKELY(...) (__VA_ARGS__)
-#endif
 
 
 
 //! \name Debugging and Error Handling
 
-
-//! \def BL_ASSERT(EXP)
-//!
-//! Run-time assertion executed in debug builds.
-#ifdef BL_BUILD_DEBUG
-  #define BL_ASSERT(EXP)                                                      \
-    do {                                                                      \
-      if (BL_UNLIKELY(!(EXP)))                                                \
-        blRuntimeAssertionFailure(__FILE__, __LINE__, #EXP);                  \
-    } while (0)
-#else
-  #define BL_ASSERT(EXP) ((void)0)
-#endif
 
 //! Executes the code within the macro and returns if it returned any value other
 //! than `BL_SUCCESS`. This macro is heavily used across the library for error
