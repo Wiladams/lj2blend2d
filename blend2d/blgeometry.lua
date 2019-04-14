@@ -110,6 +110,7 @@ struct BLPointI {
   int y;
 };
 ]]
+BLPointI = ffi.typeof("struct BLPointI")
 
 ffi.cdef[[
 //! Size specified as [w, h] using `int` as a storage type.
@@ -118,6 +119,8 @@ struct BLSizeI {
   int h;
 };
 ]]
+BLSizeI = ffi.typeof("struct BLSizeI");
+
 
 ffi.cdef[[
 //! Box specified as [x0, y0, x1, y1] using `int` as a storage type.
@@ -129,6 +132,7 @@ struct BLBoxI {
 
 };
 ]]
+BLBoxI = ffi.typeof("struct BLBoxI")
 
 ffi.cdef[[
 //! Rectangle specified as [x, y, w, h] using `int` as a storage type.
@@ -140,6 +144,8 @@ struct BLRectI {
 
 };
 ]]
+BLRectI = ffi.typeof("struct BLRectI")
+
 
 ffi.cdef[[
 //! Point specified as [x, y] using `double` as a storage type.
@@ -149,6 +155,8 @@ struct BLPoint {
 
 };
 ]]
+BLPoint = ffi.typeof("struct BLPoint")
+
 
 ffi.cdef[[
 //! Size specified as [w, h] using `double` as a storage type.
@@ -158,6 +166,8 @@ struct BLSize {
 
 };
 ]]
+BLSize = ffi.typeof("struct BLSize")
+
 
 ffi.cdef[[
 //! Box specified as [x0, y0, x1, y1] using `double` as a storage type.
@@ -169,6 +179,8 @@ struct BLBox {
 
 };
 ]]
+BLBox = ffi.typeof("struct BLBox")
+
 
 ffi.cdef[[
 //! Rectangle specified as [x, y, w, h] using `double` as a storage type.
@@ -180,6 +192,8 @@ struct BLRect {
 
 };
 ]]
+BLRect = ffi.typeof("struct BLRect")
+
 
 ffi.cdef[[
 //! Line specified as [x0, y0, x1, y1] using `double` as a storage type.
@@ -196,6 +210,7 @@ struct BLLine {
 
 };
 ]]
+BLLine = ffi.typeof("struct BLLine")
 
 
 ffi.cdef[[
@@ -218,6 +233,8 @@ struct BLTriangle {
 
 };
 ]]
+BLTriangle = ffi.typeof("struct BLTriangle")
+
 
 ffi.cdef[[
 //! Rounded rectangle specified as [x, y, w, h, rx, ry] using `double` as a storage type.

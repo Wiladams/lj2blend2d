@@ -11,6 +11,8 @@ local ffi = require("ffi")
 if not BLEND2D_BLCONTEXT_H then
 BLEND2D_BLCONTEXT_H = true
 
+local blapi = require("blend2d.blapi")
+
 require("blend2d.blfont");
 require("blend2d.blgeometry");
 require("blend2d.blimage");
@@ -142,10 +144,7 @@ ffi.cdef[[
 
 //! Information that can be used to customize the rendering context.
 struct BLContextCreateOptions {
-  //! Initialization flags.
   uint32_t flags;
-  //! CPU features to use in isolated JIT runtime (if supported), only used
-  //! when `flags` contains `BL_CONTEXT_CREATE_FLAG_OVERRIDE_FEATURES`.
   uint32_t cpuFeatures;
 };
 
@@ -163,12 +162,8 @@ struct BLContextCreateOptions {
 //! functions
 struct BLContextCookie {
   uint64_t data[2];
-
 };
 
-// ============================================================================
-// [BLContext - Hints]
-// ============================================================================
 
 //! Rendering context hints.
 struct BLContextHints {
@@ -261,10 +256,6 @@ struct BLContextState {
 ]]
 
 ffi.cdef[[
-// ============================================================================
-// [BLContext - Core]
-// ============================================================================
-
 //! Rendering context [C Interface - Virtual Function Table].
 struct BLContextVirt {
   BLResult (__cdecl* destroy                 )(BLContextImpl* impl) ;
@@ -382,5 +373,71 @@ struct BLContextCore {
 };
 ]]
 BLContextCore = ffi.typeof("struct BLContextCore")
+
+
+ffi.metatype(BLContextCore, {
+    __gc = function(self)
+      local bResult = blapi.blContextReset(self) ;
+      return bResult == 0 or bResult;
+    end;
+
+    __index = {
+      FillAll = function(self)
+          local bResult = self.impl.virt.fillAll(self.impl);
+          return bResult == 0 or bResult;
+      end;
+    
+      FillGeometry = function(self, geometryType, geometryData)
+        local bResult = self.impl.virt.fillGeometry(self.impl, geometryType, geometryData);
+        return bResult == 0 or bResult;
+      end;
+    
+      SetCompOp = function(self, compOp)
+        local bResult = blapi.blContextSetCompOp(self, compOp);
+        return bResult == 0 or bResult;
+      end;
+    
+      SetFillStyle = function(self, object)
+        local bResult = blapi.blContextSetFillStyle(self, object);
+        return bResult == 0 or bResult;
+      end;
+    
+      SetFillStyleRgba32 = function(self, rgba32)
+        local bResult = blapi.blContextSetFillStyleRgba32(self, rgba32);
+        return bResult == 0 or bResult;
+      end;
+    };
+})
+
+--[=[
+BLContextCore_mt.__index = function(self, key)
+    print("BLContextCore_mt:__index: ", key)
+
+    -- first look in the implemenation for a field
+    local success, info = pcall(function() return self.impl[key] end)
+    if success then
+        return info 
+    end
+
+--[[
+      -- finally look for something in the virtual table
+      -- then look in the virtual table for a function
+      success, info = pcall(function() return self.impl.virt[key] end)
+      if success then
+          return info 
+      end
+--]]
+    -- look for a private implementation
+    local info rawget(BLContextCore_mt, key)
+    print("Info: ", key, info)
+    for k,v in pairs(BLContextCore_mt) do 
+      print(k,v)
+    end
+
+    return info
+end
+--]=]
+
+
 
 end --// BLEND2D_BLCONTEXT_H
