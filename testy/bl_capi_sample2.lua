@@ -10,28 +10,18 @@ local b2d = require("blend2d.blend2d")
 local function main() 
     local img = BLImageCore(256, 256, C.BL_FORMAT_PRGB32);
 
-    local ctx = BLContextCore();
-    r = b2d.blContextInitAs(ctx, img, nil);
-    if (r ~= C.BL_SUCCESS) then
-        return false, "blContextInitAs, FAIL";
-    end
+    local ctx = BLContextCore(img);
 
-    local gradient = BLGradientCore();
     local values = BLLinearGradientValues({ 0, 0, 256, 256 });
-    r = b2d.blGradientInitAs(gradient,
-        C.BL_GRADIENT_TYPE_LINEAR, values,
-        C.BL_EXTEND_MODE_PAD, nil, 0, nil);
-    
-    if r ~= C.BL_SUCCESS then
-        return false, "BlGradientInitAs, FAIL";
-    end
+    local gradient = BLGradientCore(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
 
-    gradient:AddStopRgba32(0.0, 0xFFFFFFFF);
-    gradient:AddStopRgba32(0.5, 0xFFFFAF00);
-    gradient:AddStopRgba32(1.0, 0xFFFF0000);
 
-    print("SetFillStyle: ", ctx:SetFillStyle(gradient));
-    print("FillAll: ", ctx:FillAll());
+    gradient:addStopRgba32(0.0, 0xFFFFFFFF);
+    gradient:addStopRgba32(0.5, 0xFFFFAF00);
+    gradient:addStopRgba32(1.0, 0xFFFF0000);
+
+    ctx:setFillStyle(gradient);
+    ctx:fillAll();
 
 
     local circle = BLCircle();
@@ -39,16 +29,16 @@ local function main()
     circle.cy = 128;
     circle.r = 64;
 
-    print("SetCompOp: ", ctx:SetCompOp(C.BL_COMP_OP_EXCLUSION));
-    print("SetFillStyleRgba32: ", ctx:SetFillStyleRgba32(0xFF00FFFF));
-    print("FillGeometry: ", ctx:FillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle));
+    ctx:setCompOp(C.BL_COMP_OP_EXCLUSION);
+    ctx:setFillStyleRgba32(0xFF00FFFF);
+    ctx:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle);
 
-    b2d.blContextEnd(ctx);
+    ctx:finish();
 
     codec = BLImageCodecCore();
 
     b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-    print("WriteToFile: ", img:WriteToFile("bl-capi-sample2.bmp", codec));
+    img:writeToFile("bl-capi-sample2.bmp", codec);
 
 end
 

@@ -138,33 +138,23 @@ enum BLRenderingQuality {
 ]]
 
 ffi.cdef[[
-// ============================================================================
-// [BLContext - CreateOptions]
-// ============================================================================
-
 //! Information that can be used to customize the rendering context.
 struct BLContextCreateOptions {
   uint32_t flags;
   uint32_t cpuFeatures;
 };
+]]
+BLContextCreateOptions = ffi.new("struct BLContextCreateOptions")
 
-// ============================================================================
-// [BLContext - Cookie]
-// ============================================================================
-
-//! Holds an arbitrary 128-bit value (cookie) that can be used to match other
-//! cookies. Blend2D uses cookies in places where it allows to "lock" some
-//! state that can only be unlocked by a matching cookie. Please don't confuse
-//! cookies with a security of any kind, it's just an arbitrary data that must
-//! match to proceed with a certain operation.
-//!
-//! Cookies can be used with `BLContext::save()` and `BLContext::restore()`
-//! functions
+ffi.cdef[[
 struct BLContextCookie {
   uint64_t data[2];
 };
+]]
+BLContextCookie = ffi.typeof("struct BLContextCookie")
 
 
+ffi.cdef[[
 //! Rendering context hints.
 struct BLContextHints {
   union {
@@ -178,16 +168,9 @@ struct BLContextHints {
   };
 };
 ]]
+BLContextHints = ffi.typeof("struct BLContextHints")
 
 ffi.cdef[[
-// ============================================================================
-// [BLContext - State]
-// ============================================================================
-
-//! Rendering context state.
-//!
-//! This state is not meant to be created by users, it's only provided so users
-//! can access it inline and possibly inspect it.
 struct BLContextState {
   union {
     //! Current context hints.
@@ -254,6 +237,8 @@ struct BLContextState {
   //BL_HAS_TYPED_MEMBERS(BLContextState)
 };
 ]]
+BLContextState = ffi.typeof("struct BLContextState")
+
 
 ffi.cdef[[
 //! Rendering context [C Interface - Virtual Function Table].
@@ -381,33 +366,116 @@ ffi.metatype(BLContextCore, {
       return bResult == 0 or bResult;
     end;
 
+    __new = function(ct, ...)
+        local obj = ffi.new(ct);
+        
+        if select('#', ...) == 2 then
+          blapi.blContextInitAs(obj, select(1,...), select(2,...)) ;
+        elseif select('#',...) == 0 then
+          blapi.blContextInit(obj)
+        end
+
+        return obj;
+    end;
+
     __index = {
-      FillAll = function(self)
+      
+      -- end
+      finish = function(self)
+          local bResult = blapi.blContextEnd(self);
+          return bResult == 0 or bResult;
+      end;
+
+      flush = function(self, flags)
+        local bResult = self.impl.virt.flush(self.impl, flags);
+        return bResult == 0 or bResult;
+      end;
+
+      save = function(self, cookie)
+        local bResult = self.impl.virt.save(self.impl, cookie);
+        return bResult == 0 or bResult;
+      end;
+      
+      restore = function(self, cookie)
+        local bResult = self.impl.virt.restore(self.impl, cookie);
+        return bResult == 0 or bResult;
+      end;
+
+
+      fillAll = function(self)
           local bResult = self.impl.virt.fillAll(self.impl);
           return bResult == 0 or bResult;
       end;
     
-      FillGeometry = function(self, geometryType, geometryData)
+      fillGeometry = function(self, geometryType, geometryData)
         local bResult = self.impl.virt.fillGeometry(self.impl, geometryType, geometryData);
         return bResult == 0 or bResult;
       end;
-    
-      SetCompOp = function(self, compOp)
+      
+      fillRectI = function(self, rect)
+        local bResult = self.impl.virt.fillRectI(self.impl, rect);
+        return bResult == 0 or bResult;
+      end;
+
+
+
+      setCompOp = function(self, compOp)
         local bResult = blapi.blContextSetCompOp(self, compOp);
         return bResult == 0 or bResult;
       end;
     
-      SetFillStyle = function(self, object)
+      setFillStyle = function(self, object)
         local bResult = blapi.blContextSetFillStyle(self, object);
         return bResult == 0 or bResult;
       end;
     
-      SetFillStyleRgba32 = function(self, rgba32)
+      setFillStyleRgba32 = function(self, rgba32)
         local bResult = blapi.blContextSetFillStyleRgba32(self, rgba32);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeRectI = function(self, rect)
+        local bResult = self.impl.virt.strokeRectI(self.impl, rect);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeRectD = function(self, rect)
+        local bResult = self.impl.virt.strokeRectD(self.impl, rect);
+        return bResult == 0 or bResult;
+      end;
+
+      strokePathD = function(self, path)
+        local bResult = self.impl.virt.strokePathD(self.impl, path);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeGeometry = function(self, geometryType, geometryData)
+        local bResult = self.impl.virt.strokeGeometry(self.impl, geometryType, geometryData);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeTextI = function(self, pt, font, text, size, encoding)
+        local bResult = self.impl.virt.strokeTextI(self.impl, pt, font, text, size, encoding);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeTextD = function(self, pt, font, text, size, encoding)
+        local bResult = self.impl.virt.strokeTextD(self.impl, pt, font, text, size, encoding);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeGlyphRunI = function(self, pt, font, glyphRun)
+        local bResult = self.impl.virt.strokeGlyphRunI(self.impl,  pt, font, glyphRun);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeGlyphRunD = function(self, pt, font, glyphRun)
+        local bResult = self.impl.virt.strokeGlyphRunD(self.impl, pt, font, glyphRun);
         return bResult == 0 or bResult;
       end;
     };
 })
+
 
 --[=[
 BLContextCore_mt.__index = function(self, key)

@@ -224,14 +224,14 @@ BLImageCore_mt = {
     return string.format("%dx%d", self.size.w, self.size.h)
   end;
 }
+ffi.metatype(BLImageCore, BLImageCore_mt)
 
-
-function BLImageCore_mt.WriteToFile(self, fileName, codec) 
+function BLImageCore_mt.writeToFile(self, fileName, codec) 
     local bResult = blapi.blImageWriteToFile(self, fileName, codec)
     return bResult == 0 or bResult
 end
 
-ffi.metatype(BLImageCore, BLImageCore_mt)
+
 
 
 

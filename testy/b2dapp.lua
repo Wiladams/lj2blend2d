@@ -424,13 +424,6 @@ function redraw()
     return true;
 end
 
---[[
-    -- Maybe just resize and show existing window
-function createCanvas(width, height)
-    return false;
-end
---]]
-
 
 
 

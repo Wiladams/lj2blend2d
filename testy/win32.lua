@@ -137,6 +137,12 @@ static const int WS_OVERLAPPEDWINDOW = WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_TH
 
 static const int CW_USEDEFAULT      = 0x80000000;
 
+// GDI constants
+static const int BI_RGB       = 0;
+static const int DIB_RGB_COLORS     = 0; /* color table in RGBs */
+
+
+// Types
 typedef HANDLE HDC;
 typedef HANDLE HWND;
 typedef HANDLE HICON;
@@ -144,6 +150,7 @@ typedef HANDLE HCURSOR;
 typedef HANDLE HBRUSH;
 typedef HANDLE HINSTANCE;
 typedef HANDLE HMENU;
+typedef HANDLE HBITMAP;
 
 typedef WORD                ATOM; 
 
@@ -184,6 +191,33 @@ typedef struct tagMSG {
     POINT       pt;
 } MSG, *PMSG, *LPMSG;
 
+typedef struct tagRGBQUAD {
+    BYTE    rgbBlue;
+    BYTE    rgbGreen;
+    BYTE    rgbRed;
+    BYTE    rgbReserved;
+} RGBQUAD;
+
+typedef struct tagBITMAPINFOHEADER{
+    DWORD      biSize;
+    LONG       biWidth;
+    LONG       biHeight;
+    WORD       biPlanes;
+    WORD       biBitCount;
+    DWORD      biCompression;
+    DWORD      biSizeImage;
+    LONG       biXPelsPerMeter;
+    LONG       biYPelsPerMeter;
+    DWORD      biClrUsed;
+    DWORD      biClrImportant;
+} BITMAPINFOHEADER,  *LPBITMAPINFOHEADER, *PBITMAPINFOHEADER;
+
+typedef struct tagBITMAPINFO {
+    BITMAPINFOHEADER    bmiHeader;
+    RGBQUAD             bmiColors[1];
+} BITMAPINFO,  *LPBITMAPINFO, *PBITMAPINFO;
+
+
 
 DWORD __stdcall GetLastError(void);
 
@@ -205,7 +239,11 @@ HDC BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);
 int EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
 
 // wingdi
+HBITMAP CreateDIBSection(HDC hdc, const BITMAPINFO *pbmi, UINT usage, void **ppvBits, HANDLE hSection, DWORD offset);
 int  BitBlt(  HDC hdc,  int x,  int y,  int cx,  int cy,  HDC hdcSrc,  int x1,  int y1,  uint32_t rop);
+int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHeight,  
+    int xSrc,  int ySrc,  int SrcWidth,  int SrcHeight,
+    const void * lpBits,  const BITMAPINFO * lpbmi,  UINT iUsage,  DWORD rop);
 
 ]]
 

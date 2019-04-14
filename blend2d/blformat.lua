@@ -15,18 +15,15 @@ require("blend2d.blapi")
 
 ffi.cdef[[
 enum BLFormat {
-  //! None or invalid pixel format.
+
   BL_FORMAT_NONE = 0,
-  //! 32-bit premultiplied ARGB pixel format (8-bit components).
   BL_FORMAT_PRGB32 = 1,
-  //! 32-bit (X)RGB pixel format (8-bit components, alpha ignored).
   BL_FORMAT_XRGB32 = 2,
-  //! 8-bit alpha-only pixel format.
   BL_FORMAT_A8 = 3,
 
-  //! Count of pixel formats.
+
   BL_FORMAT_COUNT = 4,
-  //! Count of pixel formats (reserved for future use).
+
   BL_FORMAT_RESERVED_COUNT = 8
 };
 ]]

@@ -21,42 +21,28 @@ require("blend2d.blvariant")
 ffi.cdef[[
 //! Gradient type.
 enum BLGradientType {
-  //! Linear gradient type.
   BL_GRADIENT_TYPE_LINEAR = 0,
-  //! Radial gradient type.
   BL_GRADIENT_TYPE_RADIAL = 1,
-  //! Conical gradient type.
   BL_GRADIENT_TYPE_CONICAL = 2,
 
-  //! Count of gradient types.
   BL_GRADIENT_TYPE_COUNT = 3
 };
 
 //! Gradient data index.
 enum BLGradientValue {
-  //! x0 - start 'x' for Linear/Radial and center 'x' for Conical.
+
   BL_GRADIENT_VALUE_COMMON_X0 = 0,
-  //! y0 - start 'y' for Linear/Radial and center 'y' for Conical.
   BL_GRADIENT_VALUE_COMMON_Y0 = 1,
-  //! x1 - end 'x' for Linear/Radial.
   BL_GRADIENT_VALUE_COMMON_X1 = 2,
-  //! y1 - end 'y' for Linear/Radial.
   BL_GRADIENT_VALUE_COMMON_Y1 = 3,
-  //! Radial gradient r0 radius.
   BL_GRADIENT_VALUE_RADIAL_R0 = 4,
-  //! Conical gradient angle.
   BL_GRADIENT_VALUE_CONICAL_ANGLE = 2,
 
-  //! Count of gradient values.
   BL_GRADIENT_VALUE_COUNT = 6
 };
 ]]
 
 ffi.cdef[[
-// ============================================================================
-// [BLGradientStop]
-// ============================================================================
-
 //! Defines an `offset` and `rgba` color that us used by `BLGradient` to define
 //! a linear transition between colors.
 struct BLGradientStop {
@@ -78,10 +64,6 @@ struct BLLinearGradientValues {
 BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
 
 ffi.cdef[[
-// ============================================================================
-// [BLRadialGradientValues]
-// ============================================================================
-
 //! Radial gradient values packed into a structure.
 struct BLRadialGradientValues {
   double x0;
@@ -94,10 +76,6 @@ struct BLRadialGradientValues {
 
 
 ffi.cdef[[
-// ============================================================================
-// [BLConicalGradientValues]
-// ============================================================================
-
 //! Conical gradient values packed into a structure.
 struct BLConicalGradientValues {
   double x0;
@@ -108,10 +86,6 @@ struct BLConicalGradientValues {
 
 
 ffi.cdef[[
-// ============================================================================
-// [BLGradient - Core]
-// ============================================================================
-
 //! Gradient [C Interface - Impl].
 struct BLGradientImpl {
   //! Union of either raw `stops` & `size` members or their `view`.
@@ -125,38 +99,27 @@ struct BLGradientImpl {
 
   };
 
-  //! Stop capacity.
+
   size_t capacity;
 
-  //! Reference count.
+
   volatile size_t refCount;
-  //! Impl type.
   uint8_t implType;
-  //! Impl traits.
   uint8_t implTraits;
-  //! Memory pool data.
   uint16_t memPoolData;
 
-  //! Gradient type, see `BLGradientType`.
   uint8_t gradientType;
-  //! Gradient extend mode, see `BLExtendMode`.
   uint8_t extendMode;
-  //! Type of the transformation matrix.
   uint8_t matrixType;
-  //! Reserved, must be zero.
   uint8_t reserved[1];
 
-  //! Gradient transformation matrix.
+
   BLMatrix2D matrix;
 
   union {
-    //! Gradient values (coordinates, radius, angle).
     double values[BL_GRADIENT_VALUE_COUNT];
-    //! Linear parameters.
     BLLinearGradientValues linear;
-    //! Radial parameters.
     BLRadialGradientValues radial;
-    //! Conical parameters.
     BLConicalGradientValues conical;
   };
 };
@@ -175,11 +138,23 @@ ffi.metatype(BLGradientCore, {
         return blapi.blGradientReset(self);
     end;
 
+    __new = function(ct, ...)
+        local obj = ffi.new(ct);
+
+        if select('#', ...) == 0 then
+            local bResult = blapi.blGradientInit(obj) ;
+        else
+            local bResult = blapi.blGradientInitAs(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...)) ;
+        end
+
+        return obj;
+    end;
+
     __index = {
-        AddStopRgba32 = function(self, offset, argb32)
+        addStopRgba32 = function(self, offset, argb32)
             return blapi.blGradientAddStopRgba32(self, offset, argb32);
         end;
-    }
+    };
 })
 
 
