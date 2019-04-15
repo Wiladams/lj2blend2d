@@ -76,6 +76,7 @@ struct BLRgba64 {
 };
 ]]
 end
+BLRgba64 = ffi.typeof("struct BLRgba64")
 
 --! 128-bit RGBA color stored as 4 32-bit floating point values in [RGBA] order.
 ffi.cdef[[

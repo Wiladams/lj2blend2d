@@ -86,13 +86,13 @@ function BLDIBSection.init(self, params)
     
     -- create the BLImage to go with it
 
-    local stride = 4;
+    local dataPtr = obj.pixelData.data;
+    local stride = obj.bytesPerRow;
     local destroyFunc = nil
     local destroyData = nil;
-    local img, err = BLImageCore(obj.width, obj.height, C.BL_FORMAT_XRGB32, obj.pixelData.data, stride, destroyFunc, destroyData);
+    local img, err = BLImage(obj.width, obj.height, C.BL_FORMAT_XRGB32, dataPtr, stride, destroyFunc, destroyData);
     --print("BLDIBSection.init(), img, err: ", img, err)
-    --img, err = BLImageCore:fromData(obj.width, obj.height, C.BL_FORMAT_XRGB32, obj.pixelData.data, stride, destroyFunc, destroyData)
-    obj.Image = img;
+     obj.Image = img;
 
     setmetatable(obj, BLDIBSection_mt)
     
