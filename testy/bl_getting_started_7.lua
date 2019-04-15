@@ -3,7 +3,6 @@ package.path = "../?.lua;"..package.path;
 local ffi = require("ffi")
 local C = ffi.C 
 
-
 local b2d = require("blend2d.blend2d")
 
 local function main() 
@@ -14,7 +13,7 @@ local function main()
   ctx:fillAll();
 
   local face, err = BLFontFace();
-  local success, err = face:createFromFile("NotoSans-Regular.ttf");
+  local success, err = face:createFromFile("resources/NotoSans-Regular.ttf");
 
   -- We must handle a possible error returned by the loader.
   if (not success) then
@@ -35,11 +34,7 @@ local function main()
 
   ctx:finish();
 
-  local codec = BLImageCodec();
-  --codec.findByName(BLImageCodec::builtInCodecs(), "BMP");
-  b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-  img:writeToFile("bl-getting-started-7.bmp", codec);
-
+  img:writeToFile("output/bl-getting-started-7.bmp", BLImageCodec:findByName("BMP"));
 end
 
 main()

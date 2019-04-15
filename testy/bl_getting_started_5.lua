@@ -34,10 +34,7 @@ local function main()
   ctx:finish();
 
 
-  local codec = BLImageCodec();
-  b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-  img:writeToFile("bl-getting-started-5.bmp", codec);
-
+  img:writeToFile("output/bl-getting-started-5.bmp", BLImageCodec:findByName("BMP"));
 end
 
 main()

@@ -15,7 +15,7 @@ local function main()
 
   -- Read an image from file.
   local texture = BLImage();
-  local success, err = texture:readFromFile("texture.jpeg", b2d.blImageCodecBuiltInCodecs());
+  local success, err = texture:readFromFile("resources/texture.jpeg");
 
   if (not success) then
     print("Failed to load a texture:", err);
@@ -32,10 +32,7 @@ local function main()
 
   ctx:finish();
   
-  local codec = BLImageCodec();
-  b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-  img:writeToFile("output/bl-getting-started-4.bmp", codec);
-
+  img:writeToFile("output/bl-getting-started-4.bmp", BLImageCodec:findByName("BMP"));
 end
 
 main()

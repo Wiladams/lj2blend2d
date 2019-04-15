@@ -490,11 +490,8 @@ struct BLGlyphPlacement {
 ffi.cdef[[
 //! Character to glyph mapping state.
 struct BLGlyphMappingState {
-  //! Number of glyphs or glyph-items on output.
   size_t glyphCount;
-  //! Index of the first undefined glyph (SIZE_MAX if none).
   size_t undefinedFirst;
-  //! Undefined glyph count (chars that have no mapping).
   size_t undefinedCount;
 };
 ]]
@@ -510,21 +507,21 @@ struct BLGlyphOutlineSinkInfo {
 ffi.cdef[[
 //! See `BLGlyphRunPlacement` for placement modes provided by Blend2D.
 struct BLGlyphRun {
-  //! Glyph id array (abstract, incremented by `glyphIdAdvance`).
+
   void* glyphIdData;
-  //! Glyph placement array (abstract, incremented by `placementAdvance`).
+
   void* placementData;
-  //! Size of the glyph-run in glyph units.
+
   size_t size;
-  //! Size of a `glyphId` - must be either 2 (uint16_t) or 4 (uint32_t) bytes.
+
   uint8_t glyphIdSize;
-  //! Type of the placement, see `BLGlyphPlacementType`.
+
   uint8_t placementType;
-  //! Advance of `glyphIdData` array.
+
   int8_t glyphIdAdvance;
-  //! Advance of `placementData` array.
+
   int8_t placementAdvance;
-  //! Glyph-run flags.
+
   uint32_t flags;
 };
 ]]
@@ -532,18 +529,18 @@ struct BLGlyphRun {
 ffi.cdef[[
 //! Information of `BLFontFace`.
 struct BLFontFaceInfo {
-  //! Font-face type, see `BLFontFaceType`.
+
   uint8_t faceType;
-  //! Type of outlines used by the font-face, see `BLFontOutlineType`.
+
   uint8_t outlineType;
-  //! Number of glyphs provided by this font-face.
+
   uint16_t glyphCount;
 
-  //! Face index in a ttf/otf collection (or zero).
+
   uint32_t faceIndex;
-  //! Font-face flags, see `BLFontFaceFlags`
+
   uint32_t faceFlags;
-  //! Font-face diagnostic flags, see`BLFontFaceDiagFlags`.
+
   uint32_t diagFlags;
 };
 ]]
@@ -552,9 +549,9 @@ struct BLFontFaceInfo {
 ffi.cdef[[
 //! A read only data that represents a font table or its sub-table.
 struct BLFontTable {
-  //! Pointer to the beginning of the data interpreted as `uint8_t*`.
+
   const uint8_t* data;
-  //! Size of `data` in bytes.
+
   size_t size;
 };
 ]]
@@ -562,11 +559,8 @@ struct BLFontTable {
 
 ffi.cdef[[
 struct BLFontFeature {
-  //! Feature tag (32-bit).
   BLTag tag;
-  //! Feature value (should not be greater than 65535).
   uint32_t value;
-
 };
 ]]
 
@@ -574,12 +568,8 @@ ffi.cdef[[
 //! Associates a value with a font variation feature where `tag` describes
 //! variation axis and `value` defines its value.
 struct BLFontVariation {
-  //! Variation tag (32-bit).
   BLTag tag;
-  //! Variation value.
   float value;
-
-
 };
 ]]
 
@@ -776,8 +766,6 @@ struct BLFontDesignMetrics {
 struct BLTextMetrics {
   BLPoint advance;
   BLBox boundingBox;
-
-
 };
 ]]
 

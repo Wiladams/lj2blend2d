@@ -9,7 +9,7 @@ local b2d = require("blend2d.blend2d")
 local function main()
   img = BLImage(480, 480, C.BL_FORMAT_PRGB32);
   ctx = BLContext(img);
-  print("0.0")
+
   ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
   ctx:fillAll();
 
@@ -17,11 +17,10 @@ local function main()
    -- Coordinates can be specified now or changed later.
   --local linear = BLGradient(BLLinearGradientValues(0, 0, 0, 480));
   local values = BLLinearGradientValues({ 0, 0, 0, 480 });
-  local linear = BLGradientCore(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
+  local linear = BLGradient(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
 
 
    -- Color stops can be added in any order.
-
    linear:addStop(0.0, BLRgba32(0xFFFFFFFF));
    linear:addStop(0.5, BLRgba32(0xFF5FAFDF));
    linear:addStop(1.0, BLRgba32(0xFF2F5FDF));
@@ -34,10 +33,7 @@ local function main()
   ctx:fillRoundRect(40.0, 40.0, 400.0, 400.0, 45.5);
   ctx:finish();
 
-  local codec = BLImageCodec();
-  b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-  img:writeToFile("bl-getting-started-2.bmp", codec);
-
+  img:writeToFile("output/bl-getting-started-2.bmp", BLImageCodec:findByName("BMP"));
 end
 
 main()

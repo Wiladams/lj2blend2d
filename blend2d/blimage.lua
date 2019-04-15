@@ -228,7 +228,6 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
 
       if nargs == 0 then
         -- default constructor
-        print("BLImage()")
         bResult = blapi.blImageInit(obj)
       elseif nargs == 3 then
         -- width, height, format
@@ -254,11 +253,11 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
         
         -- int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData
         fromData = function(ct, w, h, format, pixelData, stride, destroyFunc, destroyData)
-            print("fromData, ct: ", ct)
+
             local obj = ffi.new(ct)
-            print("fromData, obj: ", obj)
+
             local bResult = blapi.blImageInitAsFromData(obj, w, h, format, pixelData, stride, destroyFunc, destroyData) 
-            print("blImageCreateFromData: ", bResult)
+
             if bResult ~= 0 then
                 return false, bResult
             end
@@ -272,9 +271,9 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
         end;
 
         readFromFile = function(self, fileName, codecs)
-            print("readFromFile - BEGIN: ", self, fileName, codecs)
+            codecs = codecs or blapi.blImageCodecBuiltInCodecs()
             local bResult = blapi.blImageReadFromFile(self, fileName, codecs) ;
-            print("readFromFile - END: ", bResult)
+
             if bResult == C.BL_SUCCESS then
                 return true
             end
@@ -345,13 +344,37 @@ local BLImageCodec_mt = {
   end;
 
   __new = function (ct, ...)
-    --print("BLImageCodecCore.__new")
     local obj = ffi.new(ct, ...)
-    blapi.blImageCodecInit(obj);
+    local bResult = blapi.blImageCodecInit(obj);
+    if bResult ~= C.BL_SUCCESS then
+        return false, bResult;
+    end
 
     return obj;
   end;
+--[[
 
+BLResult __cdecl blImageCodecAssignWeak(BLImageCodecCore* self, const BLImageCodecCore* other) ;
+BLResult __cdecl blImageCodecFindByName(BLImageCodecCore* self, const BLArrayCore* codecs, const char* name) ;
+BLResult __cdecl blImageCodecFindByData(BLImageCodecCore* self, const BLArrayCore* codecs, const void* data, size_t size) ;
+uint32_t __cdecl blImageCodecInspectData(const BLImageCodecCore* self, const void* data, size_t size) ;
+BLResult __cdecl blImageCodecCreateDecoder(const BLImageCodecCore* self, BLImageDecoderCore* dst) ;
+BLResult __cdecl blImageCodecCreateEncoder(const BLImageCodecCore* self, BLImageEncoderCore* dst) ;
+BLArrayCore* __cdecl blImageCodecBuiltInCodecs(void) ;
+]]
+  __index = {
+      findByName = function(self, name, codecs)
+          local obj = BLImageCodec();
+          codecs = codecs or blapi.blImageCodecBuiltInCodecs();
+          local bResult = blapi.blImageCodecFindByName(obj, codecs, name) ;
+
+          if bResult ~= C.BL_SUCCESS then
+              return false, bResult;
+          end
+
+          return obj;
+      end;
+  };
 }
 ffi.metatype(BLImageCodec, BLImageCodec_mt)
 

@@ -2,9 +2,8 @@ package.path = "../?.lua;"..package.path;
 
 local ffi = require("ffi")
 local C = ffi.C 
-
-
 local b2d = require("blend2d.blend2d")
+
 
 local function main()
   local img = BLImage(480, 480, C.BL_FORMAT_PRGB32);
@@ -16,7 +15,7 @@ local function main()
 
    -- Read an image from file.
   local texture = BLImage();
-  local success, err = texture:readFromFile("texture.jpeg", b2d.blImageCodecBuiltInCodecs());
+  local success, err = texture:readFromFile("resources/texture.jpeg");
 
   if not success then
       print("readFromFile failed: ", err)
@@ -33,10 +32,7 @@ local function main()
 
   ctx:finish();
 
-  local codec = BLImageCodec();
-  b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-  img:writeToFile("bl-getting-started-3.bmp", codec);
-
+  img:writeToFile("output/bl-getting-started-3.bmp", BLImageCodec:findByName("BMP"));
 end
 
 main()
