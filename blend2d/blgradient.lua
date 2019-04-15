@@ -51,7 +51,7 @@ struct BLGradientStop {
   BLRgba64 rgba;
 };
 ]]
-
+BLGradientStop = ffi.typeof("BLGradientStop")
 
 ffi.cdef[[
 //! Linear gradient values packed into a structure.
@@ -74,7 +74,7 @@ struct BLRadialGradientValues {
   double r0;
 };
 ]]
-
+BLRadialGradientValues = ffi.typeof("struct BLRadialGradientValues")
 
 ffi.cdef[[
 //! Conical gradient values packed into a structure.
@@ -84,7 +84,7 @@ struct BLConicalGradientValues {
   double angle;
 };
 ]]
-
+BLConicalGradientValues = ffi.typeof("struct BLConicalGradientValues")
 
 ffi.cdef[[
 //! Gradient [C Interface - Impl].
@@ -146,8 +146,32 @@ local BLGradient_mt = {
 
         if nargs == 0 then
             local bResult = blapi.blGradientInit(obj) ;
-        else
+        elseif nargs == 1 then
+          --local values = BLLinearGradientValues({ 0, 0, 256, 256 });
+          --local gradient = BLGradientCore(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
+            local gType = 0
+            local values = select(1,...)
+            if ffi.typeof(values) ==   BLLinearGradientValues then
+                local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
+                if bResult ~= C.BL_SUCCESS then
+                  return false, bResult;
+                end
+            elseif ffi.typeof(values) == BLRadialGradientValues then
+              local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_RADIAL, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
+              if bResult ~= C.BL_SUCCESS then
+                return false, bResult;
+              end
+            elseif ffi.typeof(values) == BLConicalGradientValues then
+              local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_CONICAL, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
+              if bResult ~= C.BL_SUCCESS then
+                return false, bResult;
+              end
+            end
+        elseif nargs == 6 then
             local bResult = blapi.blGradientInitAs(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...)) ;
+            if bResult ~= C.BL_SUCCESS then
+              return false, bResult;
+            end
         end
 
         return obj;
@@ -162,9 +186,10 @@ local BLGradient_mt = {
             return blapi.blGradientAddStopRgba32(self, offset, argb32);
         end;
 
-        addStop = function(self, offset, value)
-          local bResult = blapi.blGradientAddStopRgba32(self, offset, value)
-          return C.BL_SUCCESS or bResult
+        addStop = function(self, offset, obj)
+          if ffi.typeof(obj) == BLRgba32 then
+            return self:addStopRgba32(offset, obj.value)
+          end
         end;
     };
 }

@@ -7,9 +7,12 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLPATTERN_H then
 BLEND2D_BLPATTERN_H = true
+
+local blapi = require("blend2d.blapi")
 
 require("blend2d.blgeometry")
 require("blend2d.blimage")
@@ -24,30 +27,30 @@ struct BLPatternImpl {
   //BL_TYPED_MEMBER(BLImageCore, BLImage, image);
   union {BLImageCore image;};
 
-  //! Reserved, must be null.
+
   void* reservedHeader[2];
 
-  //! Reference count.
+
   volatile size_t refCount;
-  //! Impl type.
+
   uint8_t implType;
-  //! Impl traits.
+
   uint8_t implTraits;
-  //! Memory pool data.
+
   uint16_t memPoolData;
 
-  //! Reserved, must be zero.
+
   uint8_t patternType;
-  //! Pattern extend mode, see `BLExtendMode`.
+
   uint8_t extendMode;
-  //! Type of the transformation matrix.
+
   uint8_t matrixType;
-  //! Reserved, must be zero.
+
   uint8_t reserved[1];
 
-  //! Pattern transformation matrix.
+
   BLMatrix2D matrix;
-  //! Image area to use.
+
   BLRectI area;
 
   //BL_HAS_TYPED_MEMBERS(BLPatternImpl)
@@ -58,6 +61,48 @@ struct BLPatternCore {
   BLPatternImpl* impl;
 };
 ]]
+BLPattern = ffi.typeof("struct BLPatternCore")
+BLPatternCore = BLPattern
+local BLPattern_mt = {
+    __gc = function(self)
+        blapi.blPatternReset(self) ;
+    end;
 
+  --  BLResult __cdecl blPatternInit(BLPatternCore* self) ;
+--BLResult __cdecl blPatternInitAs(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
+
+    __new = function(ct, ...)
+        local nargs = select('#', ...)
+        local obj = ffi.new(ct)
+        if nargs == 0 then
+            blapi.blPatternInit(obj) ;
+        elseif nargs == 1 then
+            blapi.blPatternInitAs(obj, select(1,...), nil, 0, nil);
+        end
+
+        return obj;
+    end;
+
+    __index = {
+
+    };
+}
+ffi.metatype(BLPattern, BLPattern_mt)
+
+
+
+--[[
+BLResult __cdecl blPatternReset(BLPatternCore* self) ;
+BLResult __cdecl blPatternAssignMove(BLPatternCore* self, BLPatternCore* other) ;
+BLResult __cdecl blPatternAssignWeak(BLPatternCore* self, const BLPatternCore* other) ;
+BLResult __cdecl blPatternAssignDeep(BLPatternCore* self, const BLPatternCore* other) ;
+BLResult __cdecl blPatternCreate(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
+BLResult __cdecl blPatternSetImage(BLPatternCore* self, const BLImageCore* image, const BLRectI* area) ;
+BLResult __cdecl blPatternSetArea(BLPatternCore* self, const BLRectI* area) ;
+BLResult __cdecl blPatternSetExtendMode(BLPatternCore* self, uint32_t extendMode) ;
+BLResult __cdecl blPatternApplyMatrixOp(BLPatternCore* self, uint32_t opType, const void* opData) ;
+bool     __cdecl blPatternEquals(const BLPatternCore* a, const BLPatternCore* b) ;
+
+]]
 
 end -- BLEND2D_BLPATTERN_H

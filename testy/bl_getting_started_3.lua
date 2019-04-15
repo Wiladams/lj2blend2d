@@ -1,0 +1,44 @@
+package.path = "../?.lua;"..package.path;
+
+local ffi = require("ffi")
+local C = ffi.C 
+
+
+local b2d = require("blend2d.blend2d")
+
+local function main()
+  local img = BLImage(480, 480, C.BL_FORMAT_PRGB32);
+  local ctx = BLContext(img);
+
+  ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
+  ctx:fillAll();
+
+
+   -- Read an image from file.
+  local texture = BLImage();
+  local err = texture:readFromFile("texture.jpeg", b2d.blImageCodecBuiltInCodecs());
+print("err: ", err)
+--[=[
+  -- Basic error handling is necessary as we need some IO.
+  if (err ~= 0) then
+    --print("failure reading texture from file: ", err)
+    return false, err ;
+  end
+--]=]
+   -- Create a pattern and use it to fill a rounded-rect.
+  local pattern = BLPattern(texture);
+
+
+  ctx:setCompOp(C.BL_COMP_OP_SRC_OVER);
+  --ctx:setFillStyle(pattern);
+  ctx:fillRoundRect(40.0, 40.0, 400.0, 400.0, 45.5);
+
+  ctx:finish();
+
+  local codec = BLImageCodec();
+  b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
+  img:writeToFile("bl-getting-started-3.bmp", codec);
+
+end
+
+main()

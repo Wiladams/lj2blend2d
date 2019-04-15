@@ -388,15 +388,14 @@ function noLoop()
 end
 
 -- Drawing and canvas management
+-- BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
 local function invalidateWindow(lpRect, bErase)
-
-    if berase then
-        berase = 1;
-    else
-        berase = 0;
+    local erase = 1
+    if not bErase then
+        erase = 0
     end
 
-	local res = C.InvalidateRect(appWindowHandle, r, bErase)
+	local res = C.InvalidateRect(appWindowHandle, lpRect, erase)
 end
 
 function refreshWindow()
@@ -604,8 +603,8 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         --print("WindowProc.WM_PAINT:", wparam, lparam)
 
 ---[=[
-        --local ps = ffi.new("PAINTSTRUCT");
-		--local hdc = C.BeginPaint(hwnd, ps);
+        local ps = ffi.new("PAINTSTRUCT");
+		local hdc = C.BeginPaint(hwnd, ps);
         --print("PAINT: ", hdc, ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
 
 ---[=[
@@ -619,10 +618,10 @@ local function WindowProc(hwnd, msg, wparam, lparam)
                 C.SRCCOPY);
 --]]
             --C.Rectangle(appDC, ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom)
-            --C.Rectangle(appDC, 10, 10, 256, 256)
+            C.Rectangle(appDC, 0, 0, width, height)
 
             local imgSize = appImage:size()
-
+--print("image size: ", imgSize.w, imgSize.h)
             local bResult = C.StretchDIBits(appDC,
                 0,0,
                 imgSize.w,imgSize.h,
@@ -630,10 +629,12 @@ local function WindowProc(hwnd, msg, wparam, lparam)
                 imgSize.w, imgSize.h,
                 surface.pixelData.data,surface.info,
                 C.DIB_RGB_COLORS,C.SRCCOPY)
+            -- the bResult is the number of scanlines drawn
+            -- there's a failure, this will be 0
         end
 --]=]
 
-        --C.EndPaint(hwnd, ps);
+        C.EndPaint(hwnd, ps);
         res = 0
     else
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
@@ -823,19 +824,19 @@ local function main(params)
     end
 
     surface, err = BLDIBSection(params)
-print("main 0,0: ", surface, err)
+--print("main 0,0: ", surface, err)
     appImage = surface.Image
-print("main 1.0")
+--print("main 1.0")
     spawn(msgLoop);
-print("main 2.0")
+--print("main 2.0")
     yield();
-print("main 3.0")
+--print("main 3.0")
     appWindowHandle,err = createWindow(params)
-print("main 4.0")
+--print("main 4.0")
     setupUIHandlers();
-print("main 5.0")
-    --yield();
-print("main 6.0")
+--print("main 5.0")
+    yield();
+--print("main 6.0")
 
     EnvironmentReady = true;
 

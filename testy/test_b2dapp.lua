@@ -16,7 +16,7 @@ function setup()
 print("appImage: ", appImage)
 
 
----[=[
+
     local ctx = BLContextCore(appImage);
     local gradient = BLGradientCore();
     local values = BLLinearGradientValues({ 0, 0, 256, 256 });
@@ -34,8 +34,7 @@ print("appImage: ", appImage)
 
     b2d.blContextSetFillStyle(ctx, gradient);
     b2d.blContextFillAll(ctx);
-    --b2d.blGradientReset(gradient);
-    gradient:reset();
+
 
     local circle = BLCircle();
     circle.cx = 128;

@@ -89,7 +89,7 @@ function BLDIBSection.init(self, params)
     local stride = 4;
     local destroyFunc = nil
     local destroyData = nil;
-    local img, err = BLImageCore(obj.width, obj.height, C.BL_FORMAT_PRGB32, obj.pixelData.data, stride, destroyFunc, destroyData);
+    local img, err = BLImageCore(obj.width, obj.height, C.BL_FORMAT_XRGB32, obj.pixelData.data, stride, destroyFunc, destroyData);
     --print("BLDIBSection.init(), img, err: ", img, err)
     --img, err = BLImageCore:fromData(obj.width, obj.height, C.BL_FORMAT_XRGB32, obj.pixelData.data, stride, destroyFunc, destroyData)
     obj.Image = img;

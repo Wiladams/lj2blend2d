@@ -429,6 +429,20 @@ ffi.metatype(BLContextCore, {
           return bResult == 0 or bResult;
       end;
     
+      fillCircle = function(self, ...)
+          local nargs = select('#', ...)
+          if nargs == 1 then
+              local circle = select(1,...)
+              return self:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle);
+          elseif nargs == 3 then
+              local cx = select(1,...)
+              local cy = select(2,...)
+              local r = select(3,...)
+              local circle = BLCircle(cx, cy, r)
+              return self:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle)
+          end
+      end;
+
       fillGeometry = function(self, geometryType, geometryData)
         local bResult = self.impl.virt.fillGeometry(self.impl, geometryType, geometryData);
         return bResult == 0 or bResult;
@@ -494,7 +508,6 @@ ffi.metatype(BLContextCore, {
         end
 
         local bResult = blapi.blContextSetFillStyle(self, obj);
-        --print("setFillStyle, END")
         return bResult == 0 or bResult;
       end;
     
@@ -503,6 +516,43 @@ ffi.metatype(BLContextCore, {
         return bResult == 0 or bResult;
       end;
 
+
+      setStrokeStartCap = function(self, strokeCap)
+        local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
+      end;
+
+      setStrokeEndCap = function(self, strokeCap)
+        local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_END, strokeCap) ;
+      end;
+
+      setStrokeStyle = function(self, obj)
+        local bResult = blapi.blContextSetStrokeStyle(self, obj) ;
+        return bResult == 0 or bResult;
+      end;
+
+      setStrokeWidth = function(self, width)
+        local bResult = blapi.blContextSetStrokeWidth(self, width) ;
+        return bResult == C.BL_SUCCESS or bResult;
+      end;
+
+      --[[
+        BLResult __cdecl 
+BLResult __cdecl blContextSetStrokeMiterLimit(BLContextCore* self, double miterLimit) ;
+BLResult __cdecl blContextSetStrokeCap(BLContextCore* self, uint32_t position, uint32_t strokeCap) ;
+BLResult __cdecl blContextSetStrokeCaps(BLContextCore* self, uint32_t strokeCap) ;
+BLResult __cdecl blContextSetStrokeJoin(BLContextCore* self, uint32_t strokeJoin) ;
+BLResult __cdecl blContextSetStrokeDashOffset(BLContextCore* self, double dashOffset) ;
+BLResult __cdecl blContextSetStrokeDashArray(BLContextCore* self, const BLArrayCore* dashArray) ;
+BLResult __cdecl blContextSetStrokeTransformOrder(BLContextCore* self, uint32_t transformOrder) ;
+BLResult __cdecl blContextSetStrokeOptions(BLContextCore* self, const BLStrokeOptionsCore* options) ;
+BLResult __cdecl blContextSetStrokeAlpha(BLContextCore* self, double alpha) ;
+BLResult __cdecl blContextGetStrokeStyle(const BLContextCore* self, void* object) ;
+BLResult __cdecl blContextGetStrokeStyleRgba32(const BLContextCore* self, uint32_t* rgba32) ;
+BLResult __cdecl blContextGetStrokeStyleRgba64(const BLContextCore* self, uint64_t* rgba64) ;
+
+BLResult __cdecl blContextSetStrokeStyleRgba32(BLContextCore* self, uint32_t rgba32) ;
+BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgba64) ;
+      ]]
       strokeRectI = function(self, rect)
         local bResult = self.impl.virt.strokeRectI(self.impl, rect);
         return bResult == 0 or bResult;
@@ -513,7 +563,7 @@ ffi.metatype(BLContextCore, {
         return bResult == 0 or bResult;
       end;
 
-      strokePathD = function(self, path)
+      strokePath = function(self, path)
         local bResult = self.impl.virt.strokePathD(self.impl, path);
         return bResult == 0 or bResult;
       end;

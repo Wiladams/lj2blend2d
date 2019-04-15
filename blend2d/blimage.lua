@@ -7,6 +7,7 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not  BLEND2D_BLIMAGE_H then
 BLEND2D_BLIMAGE_H = true
@@ -193,9 +194,9 @@ struct BLImageCore {
   BLImageImpl* impl;
 };
 ]]
-BLImageCore = ffi.typeof("struct BLImageCore")
-BLImage = BLImageCore
-BLImageCore_mt = {
+BLImage = ffi.typeof("struct BLImageCore")
+BLImageCore = BLImage
+BLImage_mt = {
   __gc = function(self)
       blapi.blImageReset(self)
   end;
@@ -223,10 +224,11 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
       --print("BLImageCore.__new: ",...)
       local nargs = select('#', ...)
       local obj = ffi.new(ct)
-      local bResult = 0;
+      local bResult = -1;
 
       if nargs == 0 then
         -- default constructor
+        print("BLImage()")
         bResult = blapi.blImageInit(obj)
       elseif nargs == 3 then
         -- width, height, format
@@ -234,6 +236,10 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
       elseif nargs == 7 then
         -- w, h, format, pixelData, stride, destroyFunc, destroyData
         bResult = blapi.blImageInitAsFromData(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...), select(7,...))
+      end
+
+      if bResult ~= C.BL_SUCCESS then
+          return false, bResult;
       end
 
       --print("BLImageCore.__new, constructor: ", nargs, bResult)
@@ -264,6 +270,12 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
           local bResult = blapi.blImageWriteToFile(self, fileName, codec)
           return bResult == 0 or bResult
         end;
+
+        readFromFile = function(self, fileName, codecs)
+          print("readFromFile - BEGIN: ", self, fileName, codecs)
+            local bResult = blapi.blImageReadFromFile(self, fileName, codecs) ;
+            print("readFromFile - END: ", bResult)
+        end;
     };
 --[[
     __tostring = function(self)
@@ -271,7 +283,7 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
     end;
 --]]
 }
-ffi.metatype(BLImageCore, BLImageCore_mt)
+ffi.metatype(BLImage, BLImage_mt)
 
 
 
@@ -280,10 +292,6 @@ ffi.metatype(BLImageCore, BLImageCore_mt)
 
 
 ffi.cdef[[
-// ============================================================================
-// [BLImageCodec - Core]
-// ============================================================================
-
 //! Image codec [C Interface - Virtual Function Table].
 struct BLImageCodecVirt {
   BLResult (__cdecl* destroy)(BLImageCodecImpl* impl) ;
@@ -325,21 +333,22 @@ struct BLImageCodecCore {
 ]]
 BLImageCodec = ffi.typeof("BLImageCodecCore")
 BLImageCodecCore = BLImageCodec
-ffi.metatype(BLImageCodec, {
-    __gc = function(self)
-      --print("BLImageCodecCore.__gc")
-      blapi.blImageCodecReset(self)
-    end;
+local BLImageCodec_mt = {
+  __gc = function(self)
+    --print("BLImageCodecCore.__gc")
+    blapi.blImageCodecReset(self)
+  end;
 
-    __new = function (ct, ...)
-      --print("BLImageCodecCore.__new")
-      local obj = ffi.new(ct, ...)
-      blapi.blImageCodecInit(obj);
+  __new = function (ct, ...)
+    --print("BLImageCodecCore.__new")
+    local obj = ffi.new(ct, ...)
+    blapi.blImageCodecInit(obj);
 
-      return obj;
-    end;
+    return obj;
+  end;
 
-})
+}
+ffi.metatype(BLImageCodec, BLImageCodec_mt)
 
 
 
@@ -353,7 +362,7 @@ struct BLImageDecoderVirt {
 };
 ]]
 
---[=[
+---[=[
     -- BUGBUG, BLImageCodec is only a class, no strict 'C' implementation
 ffi.cdef[[
 //! Image decoder [C Interface - Impl].
@@ -362,7 +371,7 @@ struct BLImageDecoderImpl {
   const BLImageDecoderVirt* virt;
   //! Image codec that created this decoder.
   //BL_TYPED_MEMBER(BLImageCodecCore, BLImageCodec, codec);
-  union {BLImageCodec codec;};
+  union {BLImageCodecCore codec;};
 
   //! Handle in case that this decoder wraps a thirt-party library.
   void* handle;
@@ -412,7 +421,7 @@ struct BLImageEncoderImpl {
   const BLImageEncoderVirt* virt;
   //! Image codec that created this encoder.
   //BL_TYPED_MEMBER(BLImageCodecCore, BLImageCodec, codec);
-  union {BLImageCodec codec };
+  union {BLImageCodecCore codec; };
 
   //! Handle in case that this encoder wraps a thirt-party library.
   void* handle;
@@ -439,6 +448,6 @@ struct BLImageEncoderCore {
   BLImageEncoderImpl* impl;
 };
 ]]
---]=]
+
 
 end -- BLEND2D_BLIMAGE_H
