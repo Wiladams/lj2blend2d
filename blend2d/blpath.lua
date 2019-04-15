@@ -7,9 +7,12 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLPATH_H then
 BLEND2D_BLPATH_H = true
+
+local blapi = require("blend2d.blapi")
 
 require("blend2d.blarray")
 require("blend2d.blgeometry")
@@ -190,7 +193,7 @@ struct BLStrokeOptionsCore {
   double miterLimit;
   double dashOffset;
   //BL_TYPED_MEMBER(BLArrayCore, BLArray<double>, dashArray);
-  // BUGBUG union { BLArray<double> dashArray};
+  union { BLArrayCore dashArray;};
 };
 ]]
 
@@ -210,29 +213,21 @@ struct BLPathImpl {
   //! Union of either raw path-data or their `view`.
   union {
     struct {
-      //! Command data
       uint8_t* commandData;
-      //! Vertex data.
       BLPoint* vertexData;
-      //! Vertex/command count.
       size_t size;
     };
-    //! Path data as view.
+
     BLPathView view;
   };
 
-  //! Reference count.
+
    size_t refCount;
-  //! Impl type.
   uint8_t implType;
-  //! Impl traits.
   uint8_t implTraits;
-  //! Memory pool data.
   uint16_t memPoolData;
 
-  //! Path flags related to caching.
    uint32_t flags;
-  //! Path vertex/command capacity.
   size_t capacity;
 };
 
@@ -241,5 +236,78 @@ struct BLPathCore {
   BLPathImpl* impl;
 };
 ]]
+BLPathCore = ffi.typeof("struct BLPathCore")
+BLPath = BLPathCore
+
+local pathCommands = {
+
+getSize = blapi.blPathGetSize ;
+getCapacity = blapi.blPathGetCapacity ;
+getCommandData = blapi.blPathGetCommandData ;
+getVertexData = blapi.blPathGetVertexdData ;
+clear = blapi.blPathClear ;
+shrink = blapi.blPathShrink ;
+reserve = blapi.blPathReserve ;
+modifyOp = blapi.blPathModifyOp  ;
+assignMove = blapi.blPathAssignMove  ;
+addignWeak = blapi.blPathAssignWeak  ;
+assignDeep = blapi.blPathAssignDeep  ;
+setVertexAt = blapi.blPathSetVertexAt  ;
+moveTo = blapi.blPathMoveTo  ;
+lineTo = blapi.blPathLineTo  ;
+polyTo = blapi.blPathPolyTo  ;
+quadTo = blapi.blPathQuadTo  ;
+cubicTo = blapi.blPathCubicTo  ;
+smoothQuadTo = blapi.blPathSmoothQuadTo  ;
+smoothCubicTo = blapi.blPathSmoothCubicTo  ;
+arcTo = blapi.blPathArcTo  ;
+arcQuadrantTo = blapi.blPathArcQuadrantTo  ;
+ellipticArcTo = blapi.blPathEllipticArcTo  ;
+close = blapi.blPathClose ;
+addGeometry = blapi.blPathAddGeometry  ;
+addBoxI = blapi.blPathAddBoxI  ;
+addBoxD = blapi.blPathAddBoxD  ;
+addRectI = blapi.blPathAddRectI  ;
+addRectD = blapi.blPathAddRectD  ;
+addPath = blapi.blPathAddPath  ;
+addTranslatedPath = blapi.blPathAddTranslatedPath  ;
+addTransformedPath = blapi.blPathAddTransformedPath  ;
+addReversedPath = blapi.blPathAddReversedPath  ;
+strokePath = blapi.blPathAddStrokedPath ;
+translate = blapi.blPathTranslate  ;
+transform = blapi.blPathTransform  ;
+fitTo = blapi.blPathFitTo  ;
+equals = blapi.blPathEquals ;
+getInfoFlags = blapi.blPathGetInfoFlags ;
+getControlBox = blapi.blPathGetControlBox ;
+getBoundingBox = blapi.blPathGetBoundingBox ;
+getFigureRange = blapi.blPathGetFigureRange ;
+getLastVertex = blapi.blPathGetLastVertex ;
+getClosestVertex = blapi.blPathGetClosestVertex ;
+pathHitTest = blapi.blPathHitTest ;
+}
+local BLPathCore_mt = {
+    __gc = function(self)
+        local bResult = blapi.blPathReset(self);
+        return bResult == C.BL_SUCCESS or bResult
+    end;
+
+    __new = function(ct, ...)
+        local obj = ffi.new(ct);
+        local bResult = blapi.blPathInit(obj);
+        if bResult ~= C.BL_SUCCESS then
+          return false, "error with blPathInit: "..tostring(bResult)
+        end
+
+        return obj;
+    end;
+
+    __index = function(self, key)
+        --print("Path.__index: ", self, key)
+        return pathCommands[key]
+    end;
+}
+ffi.metatype(BLPathCore, BLPathCore_mt)
+
 
 end -- BLEND2D_BLPATH_H

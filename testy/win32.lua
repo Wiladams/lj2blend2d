@@ -140,6 +140,7 @@ static const int CW_USEDEFAULT      = 0x80000000;
 // GDI constants
 static const int BI_RGB       = 0;
 static const int DIB_RGB_COLORS     = 0; /* color table in RGBs */
+static const int SRCCOPY           =  0x00CC0020; /* dest = source                   */
 
 
 // Types
@@ -239,12 +240,14 @@ HDC BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);
 int EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
 
 // wingdi
+HDC GetDC(HWND hWnd);
 HBITMAP CreateDIBSection(HDC hdc, const BITMAPINFO *pbmi, UINT usage, void **ppvBits, HANDLE hSection, DWORD offset);
 int  BitBlt(  HDC hdc,  int x,  int y,  int cx,  int cy,  HDC hdcSrc,  int x1,  int y1,  uint32_t rop);
 int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHeight,  
     int xSrc,  int ySrc,  int SrcWidth,  int SrcHeight,
     const void * lpBits,  const BITMAPINFO * lpbmi,  UINT iUsage,  DWORD rop);
 
+BOOL Rectangle( HDC hdc,  int left,  int top,  int right,  int bottom);
 ]]
 
 

@@ -1,24 +1,23 @@
+package.path = "../?.lua;"..package.path;
+
+local ffi = require("ffi")
+local C = ffi.C 
+
 require("b2dapp")
 
 local b2d = require("blend2d.blend2d")
 
 
 function setup()
-    noLoop();
+    --noLoop();
     
     print("SETUP") 
-    local img = BLImageCore();
-    local r = b2d.blImageInitAs(img, 256, 256, C.BL_FORMAT_PRGB32);
-    if r ~= C.BL_SUCCESS then
-        return false, "blImageInitAs FAIL";
-    end
 
-    local ctx = BLContextCore();
-    r = b2d.blContextInitAs(ctx, img, nil);
-    if (r ~= C.BL_SUCCESS) then
-        return false, "blContextInitAs, FAIL";
-    end
+print("appImage: ", appImage)
 
+
+---[=[
+    local ctx = BLContextCore(appImage);
     local gradient = BLGradientCore();
     local values = BLLinearGradientValues({ 0, 0, 256, 256 });
     r = b2d.blGradientInitAs(gradient,
@@ -35,7 +34,8 @@ function setup()
 
     b2d.blContextSetFillStyle(ctx, gradient);
     b2d.blContextFillAll(ctx);
-    b2d.blGradientReset(gradient);
+    --b2d.blGradientReset(gradient);
+    gradient:reset();
 
     local circle = BLCircle();
     circle.cx = 128;
@@ -46,19 +46,23 @@ function setup()
     b2d.blContextSetFillStyleRgba32(ctx, 0xFF00FFFF);
     b2d.blContextFillGeometry(ctx, C.BL_GEOMETRY_TYPE_CIRCLE, circle);
 
-    b2d.blContextEnd(ctx);
+    ctx:finish();
 
 --[[
     local codec = BLImageCodecCore();
     b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-    b2d.blImageWriteToFile(img, "bl-capi-sample.bmp", codec);
+    b2d.blImageWriteToFile(appImage, "test_b2dapp.bmp", codec);
     b2d.blImageCodecReset(codec);
 --]]
+--]=]
 
-    b2d.blImageReset(img);
+
+
+    --b2d.blImageReset(img);
 
     -- now draw the image
 end
 
-go()
+go({width=256, height=256})
+--go()
 

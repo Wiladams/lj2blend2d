@@ -295,7 +295,7 @@ function Task.cancel(self)
 end
 
 function Task.resume(self)
---print("Task, RESUMING: ", unpack(self.params));
+	--print("Task.resume(): ", unpack(self.params));
 	return coroutine.resume(self.routine, unpack(self.params));
 end
 
@@ -770,17 +770,13 @@ local function run(func, ...)
 
 	while (Kernel.ContinueRunning) do
 		Kernel.Scheduler:step();		
-		-- This is a global variable because These routines
-		-- MUST be a singleton within a lua state
-		--Alarm = whenever(alarm_taskReadyToRun, alarm_runTask)
 		local success = alarm_taskReadyToRun()
-		--if alarmTask then
-		--	alarm_runTask(alarmTask)
-		--end
 	end
+	print("run(): broken out of loop")
 end
 
 local function halt(self)
+	print("halt")
 	Kernel.ContinueRunning = false;
 end
 

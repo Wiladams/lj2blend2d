@@ -486,6 +486,7 @@ struct BLGlyphPlacement {
 };
 ]]
 
+
 ffi.cdef[[
 //! Character to glyph mapping state.
 struct BLGlyphMappingState {

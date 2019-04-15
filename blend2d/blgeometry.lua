@@ -251,6 +251,7 @@ struct BLRoundRect {
 
 };
 ]]
+BLRoundRect = ffi.typeof("struct BLRoundRect")
 
 ffi.cdef[[
 //! Circle specified as [cx, cy, r] using `double` as a storage type.

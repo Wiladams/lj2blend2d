@@ -7,6 +7,7 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLCONTEXT_H then
 BLEND2D_BLCONTEXT_H = true
@@ -358,7 +359,7 @@ struct BLContextCore {
 };
 ]]
 BLContextCore = ffi.typeof("struct BLContextCore")
-
+BLContext = BLContextCore
 
 ffi.metatype(BLContextCore, {
     __gc = function(self)
@@ -367,12 +368,25 @@ ffi.metatype(BLContextCore, {
     end;
 
     __new = function(ct, ...)
+        local nargs = select("#", ...)
         local obj = ffi.new(ct);
-        
-        if select('#', ...) == 2 then
-          blapi.blContextInitAs(obj, select(1,...), select(2,...)) ;
-        elseif select('#',...) == 0 then
-          blapi.blContextInit(obj)
+        --print("BLContextCore.__new: ", obj, nargs)
+
+        if nargs == 0 then
+          local bResult = blapi.blContextInit(obj)
+          if bResult ~= C.BL_SUCCESS then
+            return false, bResult
+          end
+        elseif nargs == 1 then
+          local bResult = blapi.blContextInitAs(obj, select(1,...), nil) ;
+          if bResult ~= C.BL_SUCCESS then
+            return false, bResult
+          end
+        elseif nargs == 2 then
+          local bResult = blapi.blContextInitAs(obj, select(1,...), select(2,...)) ;
+          if bResult ~= C.BL_SUCCESS then
+            return false, bResult
+          end
         end
 
         return obj;
@@ -401,9 +415,17 @@ ffi.metatype(BLContextCore, {
         return bResult == 0 or bResult;
       end;
 
+      -- Applies a matrix operation to the current transformation matrix (internal).
+      _applyMatrixOp = function(self, opType, opData)
+        return self.impl.virt.matrixOp(self.impl, opType, opData);
+      end;
+
+      rotate = function(self, angle) 
+          return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",angle));
+      end;
 
       fillAll = function(self)
-          local bResult = self.impl.virt.fillAll(self.impl);
+          local bResult = blapi.blContextFillAll(self);
           return bResult == 0 or bResult;
       end;
     
@@ -412,20 +434,67 @@ ffi.metatype(BLContextCore, {
         return bResult == 0 or bResult;
       end;
       
+      fillPath = function(self, path)
+          local bReasult = blapi.blContextFillPathD(self, path) ;
+          return bResult == 0 or bResult;
+      end;
+
       fillRectI = function(self, rect)
         local bResult = self.impl.virt.fillRectI(self.impl, rect);
         return bResult == 0 or bResult;
       end;
 
+      fillRoundRect = function(self, ...)
+        local nargs = select('#', ...)
+        
+        if nargs < 1 then return false end
 
+        local rrect = select(1,...)
+
+        if nargs == 1 then
+          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+        elseif nargs == 2 then
+          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rr)
+        elseif nargs == 3 then
+          local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(3,...))
+          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+        elseif nargs == 5 then
+          local rrect = BLRoundRect(select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(5,...))
+          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+        end
+      end;
+--[[
+    //! Fills a rounded rectangle.
+  BL_INLINE BLResult fillRoundRect(const BLRoundRect& rr) noexcept { return fillGeometry(BL_GEOMETRY_TYPE_ROUND_RECT, &rr); }
+  //! \overload
+  BL_INLINE BLResult fillRoundRect(const BLRect& rect, double r) noexcept { return fillRoundRect(BLRoundRect(rect.x, rect.y, rect.w, rect.h, r)); }
+  //! \overload
+  BL_INLINE BLResult fillRoundRect(const BLRect& rect, double rx, double ry) noexcept { return fillRoundRect(BLRoundRect(rect.x, rect.y, rect.w, rect.h, rx, ry)); }
+  //! \overload
+  BL_INLINE BLResult fillRoundRect(double x, double y, double w, double h, double r) noexcept { return fillRoundRect(BLRoundRect(x, y, w, h, r)); }
+  //! \overload
+  BL_INLINE BLResult fillRoundRect(double x, double y, double w, double h, double rx, double ry) noexcept { return fillRoundRect(BLRoundRect(x, y, w, h, rx, ry)); }
+
+]]
+      -- Fills the passed UTF-8 text by using the given `font`.
+      fillUtf8Text = function(self, dst, font, text, size)
+          size = size or math.huge
+          return self.impl.virt.fillTextD(self.impl, dst, font, text, size, C.BL_TEXT_ENCODING_UTF8);
+      end;
 
       setCompOp = function(self, compOp)
+        --print("setCompOp: ", self, compOp)
         local bResult = blapi.blContextSetCompOp(self, compOp);
         return bResult == 0 or bResult;
       end;
     
-      setFillStyle = function(self, object)
-        local bResult = blapi.blContextSetFillStyle(self, object);
+      setFillStyle = function(self, obj)
+        if ffi.typeof(obj) == BLRgba32 then
+            return self:setFillStyleRgba32(obj.value)
+        end
+
+        local bResult = blapi.blContextSetFillStyle(self, obj);
+        --print("setFillStyle, END")
         return bResult == 0 or bResult;
       end;
     

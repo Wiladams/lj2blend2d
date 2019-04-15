@@ -7,6 +7,7 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLGRADIENT_H then
 BLEND2D_BLGRADIENT_H = true
@@ -133,15 +134,17 @@ struct BLGradientCore {
 };
 ]]
 BLGradientCore = ffi.typeof("struct BLGradientCore")
-ffi.metatype(BLGradientCore, {
+BLGradient = BLGradientCore
+local BLGradient_mt = {
     __gc = function(self)
         return blapi.blGradientReset(self);
     end;
 
     __new = function(ct, ...)
+        local nargs = select("#", ...)
         local obj = ffi.new(ct);
 
-        if select('#', ...) == 0 then
+        if nargs == 0 then
             local bResult = blapi.blGradientInit(obj) ;
         else
             local bResult = blapi.blGradientInitAs(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...)) ;
@@ -151,11 +154,20 @@ ffi.metatype(BLGradientCore, {
     end;
 
     __index = {
+        addStopRgba64 = function(self, offset, argb64)
+          return blapi.blGradientAddStopRgba64(self, offset, argb64);
+        end;
+        
         addStopRgba32 = function(self, offset, argb32)
             return blapi.blGradientAddStopRgba32(self, offset, argb32);
         end;
-    };
-})
 
+        addStop = function(self, offset, value)
+          local bResult = blapi.blGradientAddStopRgba32(self, offset, value)
+          return C.BL_SUCCESS or bResult
+        end;
+    };
+}
+ffi.metatype(BLGradient, BLGradient_mt )
 
 end -- BLEND2D_BLGRADIENT_H

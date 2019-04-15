@@ -194,42 +194,86 @@ struct BLImageCore {
 };
 ]]
 BLImageCore = ffi.typeof("struct BLImageCore")
+BLImage = BLImageCore
 BLImageCore_mt = {
   __gc = function(self)
       blapi.blImageReset(self)
   end;
+--[[
+BLResult __cdecl blImageInit(BLImageCore* self) ;
+BLResult __cdecl blImageInitAs(BLImageCore* self, int w, int h, uint32_t format) ;
+BLResult __cdecl blImageInitAsFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+BLResult __cdecl blImageReset(BLImageCore* self) ;
+BLResult __cdecl blImageAssignMove(BLImageCore* self, BLImageCore* other) ;
+BLResult __cdecl blImageAssignWeak(BLImageCore* self, const BLImageCore* other) ;
+BLResult __cdecl blImageAssignDeep(BLImageCore* self, const BLImageCore* other) ;
+BLResult __cdecl blImageCreate(BLImageCore* self, int w, int h, uint32_t format) ;
+BLResult __cdecl blImageCreateFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+BLResult __cdecl blImageGetData(const BLImageCore* self, BLImageData* dataOut) ;
+BLResult __cdecl blImageMakeMutable(BLImageCore* self, BLImageData* dataOut) ;
+bool     __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
+BLResult __cdecl blImageScale(BLImageCore* dst, const BLImageCore* src, const BLSizeI* size, uint32_t filter, const BLImageScaleOptions* options) ;
+BLResult __cdecl blImageReadFromFile(BLImageCore* self, const char* fileName, const BLArrayCore* codecs) ;
+BLResult __cdecl blImageReadFromData(BLImageCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
+BLResult __cdecl blImageWriteToFile(const BLImageCore* self, const char* fileName, const BLImageCodecCore* codec) ;
+BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, const BLImageCodecCore* codec) ;
 
-  __new = function(ct, ...)
+--]]
+    __new = function(ct, ...)
+      --print("BLImageCore.__new: ",...)
+      local nargs = select('#', ...)
       local obj = ffi.new(ct)
-      if select('#', ...) == 3 then
-        blapi.blImageInitAs(obj, select(1,...), select(2,...), select(3,...))
-      elseif select('#',...) == 0 then
-        blapi.blImageInit(obj)
+      local bResult = 0;
+
+      if nargs == 0 then
+        -- default constructor
+        bResult = blapi.blImageInit(obj)
+      elseif nargs == 3 then
+        -- width, height, format
+        bResult = blapi.blImageInitAs(obj, select(1,...), select(2,...), select(3,...))
+      elseif nargs == 7 then
+        -- w, h, format, pixelData, stride, destroyFunc, destroyData
+        bResult = blapi.blImageInitAsFromData(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...), select(7,...))
       end
 
+      --print("BLImageCore.__new, constructor: ", nargs, bResult)
       return obj
-  end;
+    end;
 
-  __index = function(self, key)
-    --print("lookup: ", key)
-    local success, info = pcall(function() return self.impl[key] end)
-    if success then
-      return info 
-    end
 
-    return BLImageCore_mt[key]
-  end;
+    __index = {
+        size = function(self)
+          return self.impl.size;
+        end;
+        
+        -- int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData
+        fromData = function(ct, w, h, format, pixelData, stride, destroyFunc, destroyData)
+            print("fromData, ct: ", ct)
+            local obj = ffi.new(ct)
+            print("fromData, obj: ", obj)
+            local bResult = blapi.blImageInitAsFromData(obj, w, h, format, pixelData, stride, destroyFunc, destroyData) 
+            print("blImageCreateFromData: ", bResult)
+            if bResult ~= 0 then
+                return false, bResult
+            end
 
-  __tostring = function(self)
-    return string.format("%dx%d", self.size.w, self.size.h)
-  end;
+            return obj
+        end;
+
+        writeToFile = function(self, fileName, codec) 
+          local bResult = blapi.blImageWriteToFile(self, fileName, codec)
+          return bResult == 0 or bResult
+        end;
+    };
+--[[
+    __tostring = function(self)
+      return string.format("%dx%d", self.impl.size.w, self.impl.size.h)
+    end;
+--]]
 }
 ffi.metatype(BLImageCore, BLImageCore_mt)
 
-function BLImageCore_mt.writeToFile(self, fileName, codec) 
-    local bResult = blapi.blImageWriteToFile(self, fileName, codec)
-    return bResult == 0 or bResult
-end
+
 
 
 
@@ -279,8 +323,9 @@ struct BLImageCodecCore {
   BLImageCodecImpl* impl;
 };
 ]]
-BLImageCodecCore = ffi.typeof("BLImageCodecCore")
-ffi.metatype(BLImageCodecCore, {
+BLImageCodec = ffi.typeof("BLImageCodecCore")
+BLImageCodecCore = BLImageCodec
+ffi.metatype(BLImageCodec, {
     __gc = function(self)
       --print("BLImageCodecCore.__gc")
       blapi.blImageCodecReset(self)

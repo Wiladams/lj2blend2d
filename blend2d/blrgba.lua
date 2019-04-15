@@ -44,6 +44,7 @@ struct BLRgba32 {
 };
 ]]
 end
+BLRgba32 = ffi.typeof("struct BLRgba32")
 
 --! 64-bit RGBA color (16-bit per component) stored as `0xAAAARRRRGGGGBBBB`.
 if BL_BUILD_BYTE_ORDER == 1234 then     -- little endian

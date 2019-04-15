@@ -25,11 +25,7 @@ local rshift, lshift = bit.rshift, bit.lshift;
 
 local win32 = require("win32")
 local sched = require("scheduler")
-
-
---local DeviceContext = require("DeviceContext")
---local GDISurface = require("GDISurface")
-
+local BLDIBSection = require("BLDIBSection")
 
 
 local exports = {}
@@ -145,7 +141,7 @@ RectMode = CORNER;
 EllipseMode = CENTER;
 ShapeMode = POLYGON;
 
-FrameRate = 20;
+FrameRate = 15;
 LoopActive = true;
 EnvironmentReady = false;
 
@@ -415,7 +411,7 @@ function redraw()
     if draw then
         draw();
         if surface then
-        surface.DC:flush();
+            --surface.DC:flush();
         end
     end
 
@@ -592,8 +588,9 @@ end
 
 
 
+local ps = ffi.new("PAINTSTRUCT");
 
-function WindowProc(hwnd, msg, wparam, lparam)
+local function WindowProc(hwnd, msg, wparam, lparam)
     --print(string.format("WindowProc: msg: 0x%x, %s", msg, wmmsgs[msg]), wparam, lparam)
 
     local res = 1;
@@ -603,21 +600,41 @@ function WindowProc(hwnd, msg, wparam, lparam)
         signalAllImmediate('gap_quitting');
         return 0;
     elseif msg == C.WM_PAINT then
-        local ps = ffi.new("PAINTSTRUCT");
-		local hdc = C.BeginPaint(hwnd, ps);
---print("PAINT: ", ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
-		-- bitblt backing store to client area
+        -- bitblt backing store to client area
+        --print("WindowProc.WM_PAINT:", wparam, lparam)
 
+---[=[
+        --local ps = ffi.new("PAINTSTRUCT");
+		--local hdc = C.BeginPaint(hwnd, ps);
+        --print("PAINT: ", hdc, ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
+
+---[=[
         if surface then
+--[[
 			ret = C.BitBlt(hdc,
 				ps.rcPaint.left, ps.rcPaint.top,
 				ps.rcPaint.right - ps.rcPaint.left, ps.rcPaint.bottom - ps.rcPaint.top,
 				surface.DC.Handle,
 				ps.rcPaint.left, ps.rcPaint.top,
-                ffi.C.SRCCOPY);
-        end
+                C.SRCCOPY);
+--]]
+            --C.Rectangle(appDC, ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom)
+            --C.Rectangle(appDC, 10, 10, 256, 256)
 
-        C.EndPaint(hwnd, ps);
+            local imgSize = appImage:size()
+
+            local bResult = C.StretchDIBits(appDC,
+                0,0,
+                imgSize.w,imgSize.h,
+                0,0,
+                imgSize.w, imgSize.h,
+                surface.pixelData.data,surface.info,
+                C.DIB_RGB_COLORS,C.SRCCOPY)
+        end
+--]=]
+
+        --C.EndPaint(hwnd, ps);
+        res = 0
     else
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
@@ -692,7 +709,7 @@ local function msgLoop()
             -- before actually halting.  That will give the app a chance
             -- to do some cleanup
             if msg.message == C.WM_QUIT then
-                --print("msgLoop - QUIT")
+                print("msgLoop - QUIT")
                 halt();
             end
 
@@ -727,21 +744,22 @@ local function createWindow(params)
     end
 
     -- create an instance of a window
-    appWindowHandle, err = win32.CreateWindowHandle(winclassname, 
+    winHandle, err = win32.CreateWindowHandle(winclassname, 
         params.title, 
         params.width, params.height, 
         winstyle, 
         x, y)
     
-    print("appWindowHandle, err: ", appWindowHandle, err)
+    print("appWindowHandle, err: ", winHandle, err)
 
-    if not appWindowHandle then
+    if not winHandle then
         print("TRIPPING")
         return false, err
     end
+    appDC = C.GetDC(winHandle)
+    print("ShowWindow: ", C.ShowWindow(winHandle, C.SW_SHOWNORMAL));
     
-    print("ShowWindow: ", C.ShowWindow(appWindowHandle, C.SW_SHOWNORMAL));
-    return appWindowHandle
+    return winHandle
 end
 
 -- Register UI event handler global functions
@@ -804,15 +822,20 @@ local function main(params)
         lonMessage = onMessage;
     end
 
-	--surface = GDISurface(params)
-
+    surface, err = BLDIBSection(params)
+print("main 0,0: ", surface, err)
+    appImage = surface.Image
+print("main 1.0")
     spawn(msgLoop);
+print("main 2.0")
     yield();
-
-	print("createWindow: ", createWindow(params));
+print("main 3.0")
+    appWindowHandle,err = createWindow(params)
+print("main 4.0")
     setupUIHandlers();
-    yield();
-
+print("main 5.0")
+    --yield();
+print("main 6.0")
 
     EnvironmentReady = true;
 
