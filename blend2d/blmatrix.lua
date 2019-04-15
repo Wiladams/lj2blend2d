@@ -7,6 +7,7 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLMATRIX_H then
 BLEND2D_BLMATRIX_H = true
@@ -92,9 +93,6 @@ enum BLMatrix2DOp {
 
 
 ffi.cdef[[
-// ============================================================================
-// [BLMatrix2D]
-// ============================================================================
 
 //! 2D matrix represents an affine transformation matrix that can be used to
 //! transform geometry and images.
@@ -114,6 +112,7 @@ struct BLMatrix2D {
   };
 };
 ]]
+BLMatrix2D = ffi.typeof("struct BLMatrix2D")
 
 --[[
 //! Array of functions for transforming points indexed by `BLMatrixType`. Each

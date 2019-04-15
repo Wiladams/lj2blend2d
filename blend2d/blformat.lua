@@ -45,11 +45,11 @@ enum BLFormatFlags {
   BL_FORMAT_FLAG_INDEXED = 0x00000010u,
   //! RGB components are premultiplied by alpha component.
   BL_FORMAT_FLAG_PREMULTIPLIED = 0x00000100u,
-  //! Pixel format doesn't use native byte-order (I/O only).
+  //! Pixel format doesnt use native byte-order (I/O only).
   BL_FORMAT_FLAG_BYTE_SWAP = 0x00000200u,
 
   // The following flags are only informative. They are part of `blFormatInfo[]`,
-  // but doesn't have to be passed to `BLPixelConverter` as they can be easily
+  // but doesnt have to be passed to `BLPixelConverter` as they can be easily
   // calculated.
 
   //! Pixel components are byte aligned (all 8bpp).
@@ -58,10 +58,6 @@ enum BLFormatFlags {
 ]]
 
 ffi.cdef[[
-// ============================================================================
-// [BLFormatInfo]
-// ============================================================================
-
 //! Provides a detailed information about a pixel format. Use `blFormatInfo`
 //! array to get an information of Blend2D native pixel formats.
 struct BLFormatInfo {

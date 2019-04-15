@@ -71,18 +71,13 @@ enum  BLPathReverseMode  {
 
 //! Stroke join type.
 enum  BLStrokeJoin  {
-  //! Miter-join possibly clipped at `miterLimit` [default].
+
   BL_STROKE_JOIN_MITER_CLIP = 0,
-  //! Miter-join or bevel-join depending on miterLimit condition.
   BL_STROKE_JOIN_MITER_BEVEL = 1,
-  //! Miter-join or round-join depending on miterLimit condition.
   BL_STROKE_JOIN_MITER_ROUND = 2,
-  //! Bevel-join.
   BL_STROKE_JOIN_BEVEL = 3,
-  //! Round-join.
   BL_STROKE_JOIN_ROUND = 4,
 
-  //! Count of stroke join types.
   BL_STROKE_JOIN_COUNT = 5
 };
 

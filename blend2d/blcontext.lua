@@ -419,9 +419,23 @@ ffi.metatype(BLContextCore, {
       _applyMatrixOp = function(self, opType, opData)
         return self.impl.virt.matrixOp(self.impl, opType, opData);
       end;
+      
+      _applyMatrixOpV = function(self, opType, ...)
+        local opData = ffi.new("double[?]",select('#',...), {...});
+        return self.impl.virt.matrixOp(self.impl, opType, opData);
+      end;
 
-      rotate = function(self, angle) 
-          return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",angle));
+      rotate = function(self, ...)
+          local nargs = select('#', ...)
+          if nargs == 1 then
+              return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",...));
+          elseif nargs == 3 then
+              local angle = select(1, ...)
+              local x = select(2,...)
+              local y = select(3,...)
+              --return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT, angle, x, y);
+              return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,...);
+          end
       end;
 
       fillAll = function(self)

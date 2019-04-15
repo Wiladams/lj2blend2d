@@ -21,13 +21,11 @@ local function main()
 
 
    -- Color stops can be added in any order.
-   print("1.0")
-   linear:addStop(0.0, BLRgba32(0xFFFFFFFF).value);
-   print("2.0")
-   linear:addStop(0.5, BLRgba32(0xFF5FAFDF).value);
-   print("3.0")
-   linear:addStop(1.0, BLRgba32(0xFF2F5FDF).value);
-   print("4.0")
+
+   linear:addStop(0.0, BLRgba32(0xFFFFFFFF));
+   linear:addStop(0.5, BLRgba32(0xFF5FAFDF));
+   linear:addStop(1.0, BLRgba32(0xFF2F5FDF));
+
 
    -- `setFillStyle()` can be used for both colors and styles.
   ctx:setFillStyle(linear);

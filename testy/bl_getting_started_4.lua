@@ -13,29 +13,28 @@ local function main()
   ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
   ctx:fillAll();
 
-
-   -- Read an image from file.
+  -- Read an image from file.
   local texture = BLImage();
   local success, err = texture:readFromFile("texture.jpeg", b2d.blImageCodecBuiltInCodecs());
 
-  if not success then
-      print("readFromFile failed: ", err)
-      return false
+  if (not success) then
+    print("Failed to load a texture:", err);
+    return false;
   end
 
-   -- Create a pattern and use it to fill a rounded-rect.
-  local pattern = BLPattern(texture);
+  -- Rotate by 45 degrees about a point at [240, 240].
+  ctx:rotate(0.785398, 240.0, 240.0);
 
-
+  -- Create a pattern.
   ctx:setCompOp(C.BL_COMP_OP_SRC_OVER);
-  ctx:setFillStyle(pattern);
-  ctx:fillRoundRect(40.0, 40.0, 400.0, 400.0, 45.5);
+  ctx:setFillStyle(BLPattern(texture));
+  ctx:fillRoundRect(50.0, 50.0, 380.0, 380.0, 80.5);
 
   ctx:finish();
-
+  
   local codec = BLImageCodec();
   b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-  img:writeToFile("bl-getting-started-3.bmp", codec);
+  img:writeToFile("output/bl-getting-started-4.bmp", codec);
 
 end
 

@@ -8,6 +8,7 @@
 -- William - nothing here yet, but for completeness
 
 local ffi = require("ffi")
+
 if not BLEND2D_BLBITARRAY_H then
 BLEND2D_BLBITARRAY_H = true
 

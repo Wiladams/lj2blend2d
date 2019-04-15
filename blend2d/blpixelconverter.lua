@@ -7,11 +7,12 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLPIXELCONVERTER_H then
 BLEND2D_BLPIXELCONVERTER_H = true
 
-require("blend2d.blapi")
+local blapi = require("blend2d.blapi")
 require("blend2d.blformat")
 require("blend2d.blgeometry")
 

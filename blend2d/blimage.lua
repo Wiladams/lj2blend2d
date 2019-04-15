@@ -272,9 +272,14 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
         end;
 
         readFromFile = function(self, fileName, codecs)
-          print("readFromFile - BEGIN: ", self, fileName, codecs)
+            print("readFromFile - BEGIN: ", self, fileName, codecs)
             local bResult = blapi.blImageReadFromFile(self, fileName, codecs) ;
             print("readFromFile - END: ", bResult)
+            if bResult == C.BL_SUCCESS then
+                return true
+            end
+
+            return false, bResult
         end;
     };
 --[[

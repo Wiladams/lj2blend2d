@@ -7,35 +7,29 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLFILESYSTEM_H then
 BLEND2D_BLFILESYSTEM_H = true
 
+local blapi = require("blend2d.blapi")
 require("blend2d.blarray")
 
 
 ffi.cdef[[
 enum   BLFileOpenFlags {
-  //! Open file for reading (O_RDONLY).
-  BL_FILE_OPEN_READ = 0x00000001u,
-  //! Open file for writing (O_WRONLY).
-  BL_FILE_OPEN_WRITE = 0x00000002u,
-  //! Open file for reading & writing (O_RDWR).
-  BL_FILE_OPEN_RW = 0x00000003u,
-  //! Create the file if it doesnt exist (O_CREAT).
-  BL_FILE_OPEN_CREATE = 0x00000004u,
-  //! Always create the file, fail if it already exists (O_EXCL).
-  BL_FILE_OPEN_CREATE_ONLY = 0x00000008u,
-  //! Truncate the file (O_TRUNC).
-  BL_FILE_OPEN_TRUNCATE = 0x00000010u,
-  //! Enables FILE_SHARE_READ option (Windows).
-  BL_FILE_OPEN_SHARE_READ = 0x10000000u,
-  //! Enables FILE_SHARE_WRITE option (Windows).
-  BL_FILE_OPEN_SHARE_WRITE = 0x20000000u,
-  //! Enables both FILE_SHARE_READ and FILE_SHARE_WRITE options (Windows).
-  BL_FILE_OPEN_SHARE_RW = 0x30000000u,
-  //! Enables FILE_SHARE_DELETE option (Windows).
-  BL_FILE_OPEN_SHARE_DELETE = 0x40000000u
+  BL_FILE_OPEN_READ = 0x00000001,
+  BL_FILE_OPEN_WRITE = 0x00000002,
+  BL_FILE_OPEN_RW = 0x00000003,
+
+  BL_FILE_OPEN_CREATE = 0x00000004,
+  BL_FILE_OPEN_CREATE_ONLY = 0x00000008,
+  BL_FILE_OPEN_TRUNCATE = 0x00000010,
+
+  BL_FILE_OPEN_SHARE_READ = 0x10000000,
+  BL_FILE_OPEN_SHARE_WRITE = 0x20000000,
+  BL_FILE_OPEN_SHARE_RW = 0x30000000,
+  BL_FILE_OPEN_SHARE_DELETE = 0x40000000
 };
 
 
@@ -53,5 +47,78 @@ struct BLFileCore {
 ]]
 
 
+BLFile = ffi.typeof("struct BLFileCore")
+local BLFile_mt = {
+    __gc = function(self)
+        local bResult = blapi.blFileReset(self);
+    end;
+    
+    __new = function(ct, ...)
+        local obj = ffi.new(ct)
+        local bResult = blapi.blFileInit(obj);
+        return obj
+    end;
+
+    __index = {
+        close = function(self)
+            local bResult = blapi.blFileClose(self) ;
+            return bResult == C.BL_SUCCESS or bResult;
+        end;
+
+        open = function(self, fileName, openFlags)
+            print("open: ", fileName, string.format("0x%x",openFlags))
+
+            openFlags = openFlags or C.BL_FILE_OPEN_READ;
+            local bResult = blapi.blFileOpen(self, fileName, openFlags) ;
+            return bResult == C.BL_SUCCESS or bResult
+        end;
+
+        read = function(self, buffer, size)
+            local bytesTransferred = ffi.new("size_t[1]")
+            local bResult = blapi.blFileRead(self, buffer, size, bytesTransferred) ;
+            if bResult ~= C.BL_SUCCESS then
+              return false, bResult;
+          end
+
+          return bytesTransferred[0]
+        end;
+
+        write = function(self, buffer, size)
+            local bytesTransferred = ffi.new("size_t[1]")
+            local bResult = blapi.blFileWrite(self, buffer, size, bytesTransferred) ;
+            if bResult ~= C.BL_SUCCESS then
+                return false, bResult;
+            end
+
+            return bytesTransferred[0]
+        end;
+
+        seek = function(self, offset, seekType)
+          seekType = seekType or C.BL_FILE_SEEK_SET
+            local pOut = ffi.new("uint64_t[1]")
+            local bResult = blapi.blFileSeek(self, offset, seekType, pOut)
+            if bResult ~= C.BL_SUCCESS then
+                return false, bReasult, pOut[0]
+            end
+            return pOut[0]
+        end;
+
+        size = function(self)
+            local pSize = ffi.new("uint64_t[1]")
+            local bResult = blapi.blFileGetSize(self, pSize)
+            if bResult ~= C.BL_SUCCESS then
+                return false, bResult;
+            end
+
+            return pSize[0]
+        end;
+
+        truncate = function(self, maxSize)
+            local bResult = blapi.blFileTruncate(self, maxSize) ;
+            return bResult == C.BL_SUCCESS;
+        end;
+    }
+}
+ffi.metatype(BLFile, BLFile_mt)
 
 end -- BLEND2D_BLFILESYSTEM_H
