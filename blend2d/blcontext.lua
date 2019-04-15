@@ -425,15 +425,20 @@ ffi.metatype(BLContextCore, {
         return self.impl.virt.matrixOp(self.impl, opType, opData);
       end;
 
+      -- overloaded rotate
+      -- 1 value - an angle (in radians)
+      -- 3 values - an angle, and a point to rotate around
       rotate = function(self, ...)
           local nargs = select('#', ...)
           if nargs == 1 then
               return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",...));
+          elseif nargs == 2 then
+              -- rotate around a PointI, or PointD with an angle
+              error("BLContext.rotate(angle, Point), NYI")
           elseif nargs == 3 then
-              local angle = select(1, ...)
-              local x = select(2,...)
-              local y = select(3,...)
-              --return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT, angle, x, y);
+              --local angle = select(1, ...)
+              --local x = select(2,...)
+              --local y = select(3,...)
               return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,...);
           end
       end;
