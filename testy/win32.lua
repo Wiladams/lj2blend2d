@@ -250,7 +250,52 @@ int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHe
 BOOL Rectangle( HDC hdc,  int left,  int top,  int right,  int bottom);
 ]]
 
+ffi.cdef[[
+static const int MK_LBUTTON         = 0x0001;
+static const int MK_RBUTTON         = 0x0002;
+static const int MK_SHIFT           = 0x0004;
+static const int MK_CONTROL         = 0x0008;
+static const int MK_MBUTTON         = 0x0010;
+static const int MK_XBUTTON1        = 0x0020;
+static const int MK_XBUTTON2        = 0x0040;
+]]
 
+-- Mouse Messages
+ffi.cdef[[
+static const int WM_MOUSEFIRST                   = 0x0200;
+static const int WM_MOUSEMOVE                    = 0x0200;
+static const int WM_LBUTTONDOWN                  = 0x0201;
+static const int WM_LBUTTONUP                    = 0x0202;
+static const int WM_LBUTTONDBLCLK                = 0x0203;
+static const int WM_RBUTTONDOWN                  = 0x0204;
+static const int WM_RBUTTONUP                    = 0x0205;
+static const int WM_RBUTTONDBLCLK                = 0x0206;
+static const int WM_MBUTTONDOWN                  = 0x0207;
+static const int WM_MBUTTONUP                    = 0x0208;
+static const int WM_MBUTTONDBLCLK                = 0x0209;
+static const int WM_MOUSEWHEEL                   = 0x020A;
+static const int WM_XBUTTONDOWN                  = 0x020B;
+static const int WM_XBUTTONUP                    = 0x020C;
+static const int WM_XBUTTONDBLCLK                = 0x020D;
+static const int WM_MOUSEHWHEEL                  = 0x020E;
+static const int WM_MOUSELAST                    = 0x020E;
+]]
+
+-- Keyboard messages
+ffi.cdef[[
+static const int WM_KEYFIRST                     = 0x0100;
+static const int WM_KEYDOWN                      = 0x0100;
+static const int WM_KEYUP                        = 0x0101;
+static const int WM_CHAR                         = 0x0102;
+static const int WM_DEADCHAR                     = 0x0103;
+static const int WM_SYSKEYDOWN                   = 0x0104;
+static const int WM_SYSKEYUP                     = 0x0105;
+static const int WM_SYSCHAR                      = 0x0106;
+static const int WM_SYSDEADCHAR                  = 0x0107;
+
+static const int WM_UNICHAR                      = 0x0109;
+static const int WM_KEYLAST                      = 0x0109;
+]]
 
 -- Convenience functions
 function exports.RegisterWindowClass(wndclassname, msgproc, style)

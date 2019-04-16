@@ -43,21 +43,21 @@ enum  BLGeometryType {
   BL_GEOMETRY_TYPE_RECTI = 3,
   //! BLRect struct.
   BL_GEOMETRY_TYPE_RECTD = 4,
-  //! BLCircle struct.
+
   BL_GEOMETRY_TYPE_CIRCLE = 5,
-  //! BLEllipse struct.
+
   BL_GEOMETRY_TYPE_ELLIPSE = 6,
-  //! BLRoundRect struct.
+
   BL_GEOMETRY_TYPE_ROUND_RECT = 7,
-  //! BLArc struct.
+
   BL_GEOMETRY_TYPE_ARC = 8,
-  //! BLArc struct representing chord.
+
   BL_GEOMETRY_TYPE_CHORD = 9,
-  //! BLArc struct representing pie.
+
   BL_GEOMETRY_TYPE_PIE = 10,
-  //! BLLine struct.
+
   BL_GEOMETRY_TYPE_LINE = 11,
-  //! BLTriangle struct.
+
   BL_GEOMETRY_TYPE_TRIANGLE = 12,
   //! BLArrayView<BLPointI> representing a polyline.
   BL_GEOMETRY_TYPE_POLYLINEI = 13,

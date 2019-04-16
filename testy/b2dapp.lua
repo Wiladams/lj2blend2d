@@ -26,7 +26,7 @@ local rshift, lshift = bit.rshift, bit.lshift;
 local win32 = require("win32")
 local sched = require("scheduler")
 local BLDIBSection = require("BLDIBSection")
-
+require("p5_blend2d")
 
 local exports = {}
 local lonMessage = false;
@@ -85,7 +85,21 @@ TRIANGLES       = 7;
 TRIANGLE_STRIP  = 8;
 TRIANGLE_FAN    = 9;
 
+-- Stroke Attributes
+-- Joint styles
+JOIN_MITER_CLIP = 0;
+JOIN_MITER_BEVEL = 1;
+JOIN_MITER_ROUND = 2;
+JOIN_BEVEL = 3;
+JOIN_ROUND = 4;
 
+-- Endcap style
+CAP_BUTT = 0;
+CAP_SQUARE = 1;
+CAP_ROUND = 2;
+CAP_ROUND_REV = 3;
+CAP_TRIANGLE = 4;
+CAP_TRIANGLE_REV = 5;
 
 
 -- environment
@@ -263,7 +277,6 @@ sqrt = math.sqrt
 ]]
 function color(...)
 	local nargs = select('#', ...)
-    local pix = ffi.new("struct Pixel32")
 
 	-- There can be 1, 2, 3, or 4, arguments
 	--	print("Color.new - ", nargs)
@@ -271,7 +284,7 @@ function color(...)
 	local r = 0
 	local g = 0
 	local b = 0
-	local a = 0
+	local a = 255
 	
 	if (nargs == 1) then
 			r = select(1,...)
@@ -293,38 +306,33 @@ function color(...)
 		g = select(2,...)
 		b = select(3,...)
 		a = select(4,...)
-	end
+    end
+    
+    local pix = BLRgba32()
 --print("r,g,b: ", r,g,b)
-    pix.Red = r
-    pix.Green = g
-    pix.Blue = b 
-    --pix.Alpha = a  
-
-	--self.cref = wingdi.RGB(r,g,b)
-	
-	--self.R = r
-	--self.G = g
-	--self.B = b
-	--self.A = a
+    pix.r = r
+    pix.g = g
+    pix.b = b 
+    pix.a = a
 
 	return pix;
 end
 
 
 function blue(c)
-	return c.B
+	return c.b
 end
 
 function green(c)
-	return c.G
+	return c.g
 end
 
 function red(c)
-	return c.R
+	return c.r
 end
 
 function alpha(c)
-	return c.A
+	return c.a
 end
 
 -- Modes to be honored by various drawing APIs
@@ -410,7 +418,7 @@ function redraw()
     if draw then
         draw();
         if surface then
-            --surface.DC:flush();
+            appContext:flush();
         end
     end
 
@@ -425,7 +433,7 @@ end
 
 
 
---[=[
+
 -- encapsulate a mouse event
 local function wm_mouse_event(hwnd, msg, wparam, lparam)
     -- assign previous mouse position
@@ -439,13 +447,13 @@ local function wm_mouse_event(hwnd, msg, wparam, lparam)
     local event = {
         x = mouseX;
         y = mouseY;
-        control = band(wparam, ffi.C.MK_CONTROL) ~= 0;
-        shift = band(wparam, ffi.C.MK_SHIFT) ~= 0;
-        lbutton = band(wparam, ffi.C.MK_LBUTTON) ~= 0;
-        rbutton = band(wparam, ffi.C.MK_RBUTTON) ~= 0;
-        mbutton = band(wparam, ffi.C.MK_MBUTTON) ~= 0;
-        xbutton1 = band(wparam, ffi.C.MK_XBUTTON1) ~= 0;
-        xbutton2 = band(wparam, ffi.C.MK_XBUTTON2) ~= 0;
+        control = band(wparam, C.MK_CONTROL) ~= 0;
+        shift = band(wparam, C.MK_SHIFT) ~= 0;
+        lbutton = band(wparam, C.MK_LBUTTON) ~= 0;
+        rbutton = band(wparam, C.MK_RBUTTON) ~= 0;
+        mbutton = band(wparam, C.MK_MBUTTON) ~= 0;
+        xbutton1 = band(wparam, C.MK_XBUTTON1) ~= 0;
+        xbutton2 = band(wparam, C.MK_XBUTTON2) ~= 0;
     }
 
     mousePressed = event.lbutton or event.rbutton or event.mbutton;
@@ -484,11 +492,12 @@ function MouseActivity(hwnd, msg, wparam, lparam)
     elseif msg == ffi.C.WM_MOUSELEAVE then
         --print("WM_MOUSELEAVE")
     else
-        res = ffi.C.DefWindowProcA(hwnd, msg, wparam, lparam);
+        res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
 
     return res;
 end
+
 
 -- encapsulate a keyboard event
 local function wm_keyboard_event(hwnd, msg, wparam, lparam)
@@ -527,13 +536,13 @@ function KeyboardActivity(hwnd, msg, wparam, lparam)
         keyChar = wparam
         signalAll("gap_keytyped", event) 
     else 
-        res = ffi.C.DefWindowProcA(hwnd, msg, wparam, lparam);
+        res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
 
     return res;
 end
 
-
+--[=[
 local function wm_joystick_event(hwnd, msg, wParam, lParam)
     local event = {
         Buttons = wParam;
@@ -598,6 +607,8 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         C.PostQuitMessage(0);
         signalAllImmediate('gap_quitting');
         return 0;
+    elseif msg >= C.WM_MOUSEFIRST and msg <= C.WM_MOUSELAST then
+        res = MouseActivity(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_PAINT then
         -- bitblt backing store to client area
         --print("WindowProc.WM_PAINT:", wparam, lparam)
@@ -607,7 +618,7 @@ local function WindowProc(hwnd, msg, wparam, lparam)
 		local hdc = C.BeginPaint(hwnd, ps);
         --print("PAINT: ", hdc, ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
 
----[=[
+
         if surface then
 --[[
 			ret = C.BitBlt(hdc,
@@ -632,7 +643,7 @@ local function WindowProc(hwnd, msg, wparam, lparam)
             -- the bResult is the number of scanlines drawn
             -- there's a failure, this will be 0
         end
---]=]
+
 
         C.EndPaint(hwnd, ps);
         res = 0
@@ -758,7 +769,6 @@ local function createWindow(params)
         return false, err
     end
     appDC = C.GetDC(winHandle)
-    print("ShowWindow: ", C.ShowWindow(winHandle, C.SW_SHOWNORMAL));
     
     return winHandle
 end
@@ -813,6 +823,9 @@ local function handleFrame()
     end
 end
 
+local function showWindow()
+    C.ShowWindow(appWindowHandle, C.SW_SHOWNORMAL);
+end
 
 local function main(params)
 
@@ -823,20 +836,22 @@ local function main(params)
         lonMessage = onMessage;
     end
 
+    -- Setup for Blend2D drawing
     surface, err = BLDIBSection(params)
---print("main 0,0: ", surface, err)
     appImage = surface.Image
---print("main 1.0")
+    appContext = BLContext(appImage)
+
+    -- Start things rolling
     spawn(msgLoop);
---print("main 2.0")
+
     yield();
---print("main 3.0")
+
     appWindowHandle,err = createWindow(params)
---print("main 4.0")
+    showWindow();
+
     setupUIHandlers();
---print("main 5.0")
+
     yield();
---print("main 6.0")
 
     EnvironmentReady = true;
 
@@ -848,8 +863,7 @@ local function main(params)
 
     -- setup the periodic frame calling
     local framePeriod = math.floor(1000/FrameRate)
-    --print("Frame Period: ", framePeriod)
-    --periodic(framePeriod, handleFrame)
+    periodic(framePeriod, handleFrame)
 
     signalAll("gap_ready");
 end

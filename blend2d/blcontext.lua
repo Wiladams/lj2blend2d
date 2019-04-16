@@ -401,6 +401,8 @@ ffi.metatype(BLContextCore, {
       end;
 
       flush = function(self, flags)
+        flags = flags or C.BL_CONTEXT_FLUSH_SYNC;
+
         local bResult = self.impl.virt.flush(self.impl, flags);
         return bResult == 0 or bResult;
       end;
@@ -443,8 +445,13 @@ ffi.metatype(BLContextCore, {
           end
       end;
 
+      translate = function(self, x, y)
+          return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_TRANSLATE, x, y);
+      end;
+
       fillAll = function(self)
-          local bResult = blapi.blContextFillAll(self);
+          local bResult = self.impl.virt.fillAll(self.impl);
+          --local bResult = blapi.blContextFillAll(self);
           return bResult == 0 or bResult;
       end;
     
@@ -475,6 +482,10 @@ ffi.metatype(BLContextCore, {
       fillRectI = function(self, rect)
         local bResult = self.impl.virt.fillRectI(self.impl, rect);
         return bResult == 0 or bResult;
+      end;
+
+      fillRect = function(self, x, y, w, h)
+        return self:fillRectI(BLRectI(x,y,w,h))
       end;
 
       fillRoundRect = function(self, ...)
@@ -544,6 +555,10 @@ ffi.metatype(BLContextCore, {
         local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_END, strokeCap) ;
       end;
 
+      setStrokeJoin = function(self, joinKind)
+        local bResult = blapi.blContextSetStrokeJoin(self, joinKind) ;
+      end;
+
       setStrokeStyle = function(self, obj)
         local bResult = blapi.blContextSetStrokeStyle(self, obj) ;
         return bResult == 0 or bResult;
@@ -553,6 +568,7 @@ ffi.metatype(BLContextCore, {
         local bResult = blapi.blContextSetStrokeWidth(self, width) ;
         return bResult == C.BL_SUCCESS or bResult;
       end;
+
 
       --[[
         BLResult __cdecl 
@@ -590,6 +606,11 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
       strokeGeometry = function(self, geometryType, geometryData)
         local bResult = self.impl.virt.strokeGeometry(self.impl, geometryType, geometryData);
         return bResult == 0 or bResult;
+      end;
+
+      strokeLine = function(self, x1, y1, x2, y2)
+          local aLine = BLLine(x1,y1,x2,y2)
+          self:strokeGeometry(C.BL_GEOMETRY_TYPE_LINE, aLine);
       end;
 
       strokeTextI = function(self, pt, font, text, size, encoding)

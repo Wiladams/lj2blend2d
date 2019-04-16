@@ -33,14 +33,14 @@ setmetatable(BLDIBSection, {
             return self:new(...)
         end;
     
-        __index = DeviceContext;
+        --__index = DeviceContext;
 })
 local BLDIBSection_mt = {
     __index = BLDIBSection;
 }
     
     
-function BLDIBSection.init(self, params)
+function BLDIBSection.new(self, params)
     local obj = params or {}
     
     obj.width = obj.width or 1
@@ -76,13 +76,7 @@ function BLDIBSection.init(self, params)
         data = pixelP[0];
         size = info.bmiHeader.biSizeImage;
     }
-    
-    -- Create a memory device context, either compatible
-    -- with something, or just compatible with DISPLAY
-    --obj.DC = DeviceContext:CreateForMemory(obj.compatDC)
-    
-    -- select the object into the context so we're ready to draw
-    --local selected = obj.DC:SelectObject(obj.DIBHandle)
+
     
     -- create the BLImage to go with it
 
@@ -91,19 +85,19 @@ function BLDIBSection.init(self, params)
     local destroyFunc = nil
     local destroyData = nil;
     local img, err = BLImage(obj.width, obj.height, C.BL_FORMAT_XRGB32, dataPtr, stride, destroyFunc, destroyData);
-    --print("BLDIBSection.init(), img, err: ", img, err)
+
      obj.Image = img;
 
     setmetatable(obj, BLDIBSection_mt)
     
     return obj;
 end
-    
+
+--[[
 function BLDIBSection.new(self, ...)
     return self:init(...)
 end
-    
+--]]
 
-    
 return BLDIBSection
     
