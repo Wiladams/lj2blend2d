@@ -499,6 +499,7 @@ ffi.metatype(BLContextCore, {
         local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_END, strokeCap) ;
       end;
 
+      -- joinKind == BLStrokeJoin
       setStrokeJoin = function(self, joinKind)
         local bResult = blapi.blContextSetStrokeJoin(self, joinKind) ;
       end;

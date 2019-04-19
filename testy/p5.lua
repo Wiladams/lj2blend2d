@@ -85,21 +85,7 @@ TRIANGLES       = 7;
 TRIANGLE_STRIP  = 8;
 TRIANGLE_FAN    = 9;
 
--- Stroke Attributes
--- Joint styles
-JOIN_MITER_CLIP = 0;
-JOIN_MITER_BEVEL = 1;
-JOIN_MITER_ROUND = 2;
-JOIN_BEVEL = 3;
-JOIN_ROUND = 4;
 
--- Endcap style
-CAP_BUTT = 0;
-CAP_SQUARE = 1;
-CAP_ROUND = 2;
-CAP_ROUND_REV = 3;
-CAP_TRIANGLE = 4;
-CAP_TRIANGLE_REV = 5;
 
 
 -- environment
@@ -586,13 +572,13 @@ function JoystickActivity(hwnd, msg, wparam, lparam)
 
     return res;
 end
-
+--]=]
 function CommandActivity(hwnd, msg, wparam, lparam)
     if onCommand then
         onCommand({source = tonumber(HIWORD(wparam)), id=tonumber(LOWORD(wparam))})
     end
 end
---]=]
+
 
 
 
@@ -611,6 +597,21 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         res = MouseActivity(hwnd, msg, wparam, lparam)
     elseif msg >= C.WM_KEYFIRST and msg <= C.WM_KEYLAST then
         res = KeyboardActivity(hwnd, msg, wparam, lparam)
+    elseif msg >= C.MM_JOY1MOVE and msg <= C.MM_JOY2BUTTONUP then
+        res = JoystickActivity(hwnd, msg, wparam, lparam)
+    --elseif msg == C.WM_COMMAND then
+    --    res = CommandActivity(hwnd, msg, wparam, lparam)
+---[[
+    elseif msg == C.WM_ERASEBKGND then
+        local hdc = ffi.cast("HDC", wparam); 
+        --GetClientRect(hwnd, &rc); 
+        --SetMapMode(hdc, MM_ANISOTROPIC); 
+        --SetWindowExtEx(hdc, 100, 100, NULL); 
+        --SetViewportExtEx(hdc, rc.right, rc.bottom, NULL); 
+        --FillRect(hdc, &rc, hbrWhite); 
+        --print("ERASE")
+        res = 1; 
+--]]
     elseif msg == C.WM_PAINT then
         -- bitblt backing store to client area
         --print("WindowProc.WM_PAINT:", wparam, lparam)
@@ -621,19 +622,8 @@ local function WindowProc(hwnd, msg, wparam, lparam)
 
 
         if surface then
---[[
-			ret = C.BitBlt(hdc,
-				ps.rcPaint.left, ps.rcPaint.top,
-				ps.rcPaint.right - ps.rcPaint.left, ps.rcPaint.bottom - ps.rcPaint.top,
-				surface.DC.Handle,
-				ps.rcPaint.left, ps.rcPaint.top,
-                C.SRCCOPY);
---]]
-            --C.Rectangle(appDC, ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom)
-            --C.Rectangle(appDC, 0, 0, width, height)
-
             local imgSize = appImage:size()
---print("image size: ", imgSize.w, imgSize.h)
+
             local bResult = C.StretchDIBits(appDC,
                 0,0,
                 imgSize.w,imgSize.h,
@@ -653,19 +643,13 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     end
 
 --[[
-    -- If the window has been destroyed, then post a quit message
-    if msg == ffi.C.WM_COMMAND then
-        CommandActivity(hwnd, msg, wparam, lparam)
-    elseif msg >= ffi.C.MM_JOY1MOVE and msg <= ffi.C.MM_JOY2BUTTONUP then
-        res = JoystickActivity(hwnd, msg, wparam, lparam)
+
     elseif msg == ffi.C.WM_SETFOCUS then
         --print("WM_SETFOCUS")
         focused = true;
     elseif msg == ffi.C.WM_KILLFOCUS then
         --print("WM_KILLFOCUS")
         focused = false;
-    else
-        res = ffi.C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
 --]]
 

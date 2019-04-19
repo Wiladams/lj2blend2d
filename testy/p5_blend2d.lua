@@ -8,9 +8,27 @@
 ]]
 
 local ffi = require("ffi")
-
+local C = ffi.C
 
 local b2d = require("blend2d.blend2d")
+
+
+-- Stroke Attributes
+-- Joint styles
+JOIN_MITER_CLIP = C.BL_STROKE_JOIN_MITER_CLIP;
+JOIN_MITER_BEVEL = C.BL_STROKE_JOIN_MITER_BEVEL;
+JOIN_MITER_ROUND = C.BL_STROKE_JOIN_MITER_ROUND;
+JOIN_BEVEL = C.BL_STROKE_JOIN_BEVEL;
+JOIN_ROUND = C.BL_STROKE_JOIN_ROUND;
+
+-- Endcap style
+CAP_BUTT = 0;
+CAP_SQUARE = 1;
+CAP_ROUND = 2;
+CAP_ROUND_REV = 3;
+CAP_TRIANGLE = 4;
+CAP_TRIANGLE_REV = 5;
+
 
 local solidBrushes = {}
 local solidPens = {}
@@ -310,27 +328,60 @@ function rect(...)
 	return true;
 end
 
+local function calcEllipseParams(mode, ...)
+	local nargs = select('#',...)
+	if nargs < 4 then return false end
+
+	local a = select(1, ...)
+	local b = select(2, ...)
+	local c = select(3,...)
+	local d = select(4,...)
+
+	local cx = 0;
+	local cy = 0;
+	local rx = 0;
+	local ry = 0;
+
+	if mode == CORNER then
+		rx = c / 2;
+		ry = d / 2;
+		cx = a + rx;
+		cy = b + ry;
+	elseif mode == CORNERS then
+		rx = (c-a)/2;
+		ry = (d-b)/2;
+		cx = a + rx;
+		cy = b + ry;
+	elseif mode == CENTER then
+		rx = c / 2;
+		ry = d / 2;
+		cx = a;
+		cy = b;
+	elseif mode == RADIUS then
+		cx = a;
+		cy = b;
+		rx = c;
+		ry = d;
+	end
+
+	return cx, cy, rx, ry;
+end
+
 function ellipse(...)
 	local nargs = select('#',...)
+	if nargs < 4 then return false; end
+
+	local cx, cy, rx, ry = calcEllipseParams(EllipseMode, ...)
 
 	if FillColor then
-		appContext:fillEllipse(...)
+		appContext:fillEllipse(cx, cy, rx, ry)
 	end
 	
 	if StrokeColor then
-		local bResult, err = appContext:strokeEllipse()
+		local bResult, err = appContext:strokeEllipse(cx, cy, rx, ry)
 	end
---[[
-	local x1, y1, rwidth, rheight = calcModeRect(EllipseMode, ...)
-	local cx = x1 + rwidth / 2;
-	local cy = y1 + rheight/2
-	local xradius = rwidth / 2;
-	local yradius = rheight / 2;
-
-	appContext:fillEllipse(cx, cy, xradius, yradius)
-
-	return true;
---]]
+	
+	return true
 end
 
 --[====================================[
@@ -395,7 +446,7 @@ function strokeCaps(strokeCap)
 end
 
 function strokeJoin(join)
-    appContext:setStrokeJoin(joinKind)
+    appContext:setStrokeJoin(join)
 end
 
 function strokeWeight(weight)

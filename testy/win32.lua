@@ -261,6 +261,11 @@ static const int MK_XBUTTON1        = 0x0020;
 static const int MK_XBUTTON2        = 0x0040;
 ]]
 
+-- Window Messages
+ffi.cdef[[
+    static const int WM_ERASEBKGND                 =  0x0014;
+]]
+
 -- Mouse Messages
 ffi.cdef[[
 static const int WM_MOUSEFIRST                   = 0x0200;
@@ -298,6 +303,18 @@ static const int WM_UNICHAR                      = 0x0109;
 static const int WM_KEYLAST                      = 0x0109;
 ]]
 
+-- Multimedia Extensions Window Messages
+ffi.cdef[[
+static const int MM_JOY1MOVE         = 0x3A0;           /* joystick */
+static const int MM_JOY2MOVE         = 0x3A1;
+static const int MM_JOY1ZMOVE        = 0x3A2;
+static const int MM_JOY2ZMOVE        = 0x3A3;
+static const int MM_JOY1BUTTONDOWN   = 0x3B5;
+static const int MM_JOY2BUTTONDOWN   = 0x3B6;
+static const int MM_JOY1BUTTONUP     = 0x3B7;
+static const int MM_JOY2BUTTONUP     = 0x3B8;
+]]
+
 -- Convenience functions
 function exports.RegisterWindowClass(wndclassname, msgproc, style)
 	msgproc = msgproc or C.DefWindowProcA;
@@ -314,7 +331,7 @@ function exports.RegisterWindowClass(wndclassname, msgproc, style)
     wcex.hInstance      = hInst;
     wcex.hIcon          = nil;		-- LoadIcon(hInst, MAKEINTRESOURCE(IDI_APPLICATION));
     wcex.hCursor        = nil;		-- LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground  = ffi.cast("HBRUSH", C.COLOR_WINDOW+1);;		-- (HBRUSH)(COLOR_WINDOW+1);
+    wcex.hbrBackground  = nil;      -- ffi.cast("HBRUSH", C.COLOR_WINDOW+1);;		-- (HBRUSH)(COLOR_WINDOW+1);
     wcex.lpszMenuName   = nil;		-- NULL;
     wcex.lpszClassName  = wndclassname;
     wcex.hIconSm        = nil;		-- LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
