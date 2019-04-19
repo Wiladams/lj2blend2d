@@ -84,15 +84,22 @@ local BLPattern_mt = {
     end;
 
     __index = {
-
+        _applyMatrixOp = function(self, opType, opData)
+            local bResult = blapi.blPatternApplyMatrixOp(self, opType, opData) ;
+            return bResult == C.BL_SUCCESS or bResult
+        end;
     };
+
+    __eq = function(self, other)
+        return blapi.blPatternEquals(self, other) ;
+    end;
 }
 ffi.metatype(BLPattern, BLPattern_mt)
 
 
 
 --[[
-BLResult __cdecl blPatternReset(BLPatternCore* self) ;
+
 BLResult __cdecl blPatternAssignMove(BLPatternCore* self, BLPatternCore* other) ;
 BLResult __cdecl blPatternAssignWeak(BLPatternCore* self, const BLPatternCore* other) ;
 BLResult __cdecl blPatternAssignDeep(BLPatternCore* self, const BLPatternCore* other) ;
@@ -100,9 +107,7 @@ BLResult __cdecl blPatternCreate(BLPatternCore* self, const BLImageCore* image, 
 BLResult __cdecl blPatternSetImage(BLPatternCore* self, const BLImageCore* image, const BLRectI* area) ;
 BLResult __cdecl blPatternSetArea(BLPatternCore* self, const BLRectI* area) ;
 BLResult __cdecl blPatternSetExtendMode(BLPatternCore* self, uint32_t extendMode) ;
-BLResult __cdecl blPatternApplyMatrixOp(BLPatternCore* self, uint32_t opType, const void* opData) ;
 bool     __cdecl blPatternEquals(const BLPatternCore* a, const BLPatternCore* b) ;
-
 ]]
 
 end -- BLEND2D_BLPATTERN_H

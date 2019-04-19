@@ -609,11 +609,12 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         return 0;
     elseif msg >= C.WM_MOUSEFIRST and msg <= C.WM_MOUSELAST then
         res = MouseActivity(hwnd, msg, wparam, lparam)
+    elseif msg >= C.WM_KEYFIRST and msg <= C.WM_KEYLAST then
+        res = KeyboardActivity(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_PAINT then
         -- bitblt backing store to client area
         --print("WindowProc.WM_PAINT:", wparam, lparam)
 
----[=[
         local ps = ffi.new("PAINTSTRUCT");
 		local hdc = C.BeginPaint(hwnd, ps);
         --print("PAINT: ", hdc, ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
@@ -629,7 +630,7 @@ local function WindowProc(hwnd, msg, wparam, lparam)
                 C.SRCCOPY);
 --]]
             --C.Rectangle(appDC, ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom)
-            C.Rectangle(appDC, 0, 0, width, height)
+            --C.Rectangle(appDC, 0, 0, width, height)
 
             local imgSize = appImage:size()
 --print("image size: ", imgSize.w, imgSize.h)
@@ -655,32 +656,6 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     -- If the window has been destroyed, then post a quit message
     if msg == ffi.C.WM_COMMAND then
         CommandActivity(hwnd, msg, wparam, lparam)
-    elseif msg == ffi.C.WM_DESTROY then
-        ffi.C.PostQuitMessage(0);
-        signalAllImmediate('gap_quitting');
-        return 0;
-    elseif msg == ffi.C.WM_PAINT then
-        local ps = ffi.new("PAINTSTRUCT");
-		local hdc = ffi.C.BeginPaint(hwnd, ps);
---print("PAINT: ", ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
-		-- bitblt backing store to client area
-
-        if (surface  == nil) then
-            print("NO SURFACE YET")
-        else
-			ret = ffi.C.BitBlt(hdc,
-				ps.rcPaint.left, ps.rcPaint.top,
-				ps.rcPaint.right - ps.rcPaint.left, ps.rcPaint.bottom - ps.rcPaint.top,
-				surface.DC.Handle,
-				ps.rcPaint.left, ps.rcPaint.top,
-                ffi.C.SRCCOPY);
-        end
-
-		ffi.C.EndPaint(hwnd, ps);
-    elseif msg >= ffi.C.WM_MOUSEFIRST and msg <= ffi.C.WM_MOUSELAST then
-        res = MouseActivity(hwnd, msg, wparam, lparam)
-    elseif msg >= ffi.C.WM_KEYFIRST and msg <= ffi.C.WM_KEYLAST then
-        res = KeyboardActivity(hwnd, msg, wparam, lparam)
     elseif msg >= ffi.C.MM_JOY1MOVE and msg <= ffi.C.MM_JOY2BUTTONUP then
         res = JoystickActivity(hwnd, msg, wparam, lparam)
     elseif msg == ffi.C.WM_SETFOCUS then

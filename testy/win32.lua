@@ -132,10 +132,11 @@ static const int WM_QUIT    = 0x0012;
 
 static const int PM_REMOVE  =  0x0001;
 
-
+// Window Style
 static const int WS_OVERLAPPEDWINDOW = WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MINIMIZEBOX|WS_MAXIMIZEBOX;
 
 static const int CW_USEDEFAULT      = 0x80000000;
+static const int COLOR_WINDOW          =  5;
 
 // GDI constants
 static const int BI_RGB       = 0;
@@ -313,7 +314,7 @@ function exports.RegisterWindowClass(wndclassname, msgproc, style)
     wcex.hInstance      = hInst;
     wcex.hIcon          = nil;		-- LoadIcon(hInst, MAKEINTRESOURCE(IDI_APPLICATION));
     wcex.hCursor        = nil;		-- LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground  = nil;		-- (HBRUSH)(COLOR_WINDOW+1);
+    wcex.hbrBackground  = ffi.cast("HBRUSH", C.COLOR_WINDOW+1);;		-- (HBRUSH)(COLOR_WINDOW+1);
     wcex.lpszMenuName   = nil;		-- NULL;
     wcex.lpszClassName  = wndclassname;
     wcex.hIconSm        = nil;		-- LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));

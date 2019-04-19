@@ -3,7 +3,7 @@ package.path = "../?.lua;"..package.path;
 local ffi = require("ffi")
 local C = ffi.C 
 
-require("b2dapp")
+require("p5")
 
 local b2d = require("blend2d.blend2d")
 

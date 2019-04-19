@@ -43,7 +43,9 @@ typedef struct BLArrayCore   BLArrayCore;
 typedef struct BLArrayImpl   BLArrayImpl;
 typedef struct BLVariantCore   BLVariantCore;
 typedef struct BLVariantImpl   BLVariantImpl;
+]]
 
+ffi.cdef[[
 typedef struct BLPointI   BLPointI;
 typedef struct BLPoint   BLPoint;
 typedef struct BLSizeI   BLSizeI;
@@ -61,6 +63,8 @@ typedef struct BLArc    BLArc;
 typedef struct BLMatrix2D    BLMatrix2D;
 typedef struct BLPathCore  BLPathCore;
 ]]
+
+
 
 ffi.cdef[[
 typedef struct BLPathImpl  BLPathImpl;

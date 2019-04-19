@@ -51,7 +51,6 @@ struct BLGradientStop {
   BLRgba64 rgba;
 };
 ]]
-BLGradientStop = ffi.typeof("BLGradientStop")
 
 ffi.cdef[[
 //! Linear gradient values packed into a structure.
@@ -62,7 +61,7 @@ struct BLLinearGradientValues {
   double y1;
 };
 ]]
-BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
+
 
 ffi.cdef[[
 //! Radial gradient values packed into a structure.
@@ -74,7 +73,7 @@ struct BLRadialGradientValues {
   double r0;
 };
 ]]
-BLRadialGradientValues = ffi.typeof("struct BLRadialGradientValues")
+
 
 ffi.cdef[[
 //! Conical gradient values packed into a structure.
@@ -84,17 +83,14 @@ struct BLConicalGradientValues {
   double angle;
 };
 ]]
-BLConicalGradientValues = ffi.typeof("struct BLConicalGradientValues")
+
 
 ffi.cdef[[
 //! Gradient [C Interface - Impl].
 struct BLGradientImpl {
-  //! Union of either raw `stops` & `size` members or their `view`.
   union {
     struct {
-      //! Gradient stop data.
       BLGradientStop* stops;
-      //! Gradient stop count.
       size_t size;
     };
 
@@ -133,6 +129,13 @@ struct BLGradientCore {
   BLGradientImpl* impl;
 };
 ]]
+
+
+BLGradientStop = ffi.typeof("BLGradientStop")
+BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
+BLRadialGradientValues = ffi.typeof("struct BLRadialGradientValues")
+BLConicalGradientValues = ffi.typeof("struct BLConicalGradientValues")
+
 BLGradientCore = ffi.typeof("struct BLGradientCore")
 BLGradient = BLGradientCore
 local BLGradient_mt = {
@@ -147,8 +150,6 @@ local BLGradient_mt = {
         if nargs == 0 then
             local bResult = blapi.blGradientInit(obj) ;
         elseif nargs == 1 then
-          --local values = BLLinearGradientValues({ 0, 0, 256, 256 });
-          --local gradient = BLGradientCore(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
             local gType = 0
             local values = select(1,...)
             if ffi.typeof(values) ==   BLLinearGradientValues then

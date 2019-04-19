@@ -1,6 +1,6 @@
 package.path = "../?.lua;"..package.path;
 
-require("b2dapp")
+require("p5")
 
 function setup()
     print("SETUP")

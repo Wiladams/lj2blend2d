@@ -8,9 +8,6 @@
 
 local ffi = require("ffi")
 
---if not BLEND2D_BLRANDOM_H then
---BLEND2D_BLRANDOM_H = true
-
 
 
 local blapi = require("blend2d.blapi")
@@ -26,11 +23,7 @@ ffi.metatype(BLRandom, {
         __new = function(ct, ...)
             local obj = ffi.new(ct)
             blapi.blRandomReset(obj, math.random(1, 65535))
-            --[[
-            if select('#', ...) > 0 then
-              blapi.blRandomReset(obj, select(1,...))
-            end
-            --]]
+
             return obj;
         end;
 
@@ -52,6 +45,6 @@ ffi.metatype(BLRandom, {
 
     }
 })
---end -- BLEND2D_BLRANDOM_H
+
 
 return BLRandom

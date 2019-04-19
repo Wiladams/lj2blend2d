@@ -33,33 +33,22 @@ enum  BLGeometryDirection {
 //! requires to pass a matching struct or class to the function that consumes
 //! a `geometryType` and `geometryData` arguments.
 enum  BLGeometryType {
-  //! No geometry provided.
+
   BL_GEOMETRY_TYPE_NONE = 0,
-  //! BLBoxI struct.
+
   BL_GEOMETRY_TYPE_BOXI = 1,
-  //! BLBox struct.
   BL_GEOMETRY_TYPE_BOXD = 2,
-  //! BLRectI struct.
   BL_GEOMETRY_TYPE_RECTI = 3,
-  //! BLRect struct.
   BL_GEOMETRY_TYPE_RECTD = 4,
-
   BL_GEOMETRY_TYPE_CIRCLE = 5,
-
   BL_GEOMETRY_TYPE_ELLIPSE = 6,
-
   BL_GEOMETRY_TYPE_ROUND_RECT = 7,
-
   BL_GEOMETRY_TYPE_ARC = 8,
-
   BL_GEOMETRY_TYPE_CHORD = 9,
-
   BL_GEOMETRY_TYPE_PIE = 10,
-
   BL_GEOMETRY_TYPE_LINE = 11,
-
   BL_GEOMETRY_TYPE_TRIANGLE = 12,
-  //! BLArrayView<BLPointI> representing a polyline.
+
   BL_GEOMETRY_TYPE_POLYLINEI = 13,
   //! BLArrayView<BLPoint> representing a polyline.
   BL_GEOMETRY_TYPE_POLYLINED = 14,
@@ -75,12 +64,10 @@ enum  BLGeometryType {
   BL_GEOMETRY_TYPE_ARRAY_VIEW_RECTI = 19,
   //! BLArrayView<BLRect> struct.
   BL_GEOMETRY_TYPE_ARRAY_VIEW_RECTD = 20,
-  //! BLPath (or BLPathCore).
+
   BL_GEOMETRY_TYPE_PATH = 21,
-  //! BLRegion (or BLRegionCore).
   BL_GEOMETRY_TYPE_REGION = 22,
 
-  //! Count of geometry types.
   BL_GEOMETRY_TYPE_COUNT = 23
 };
 
@@ -110,7 +97,6 @@ struct BLPointI {
   int y;
 };
 ]]
-BLPointI = ffi.typeof("struct BLPointI")
 
 ffi.cdef[[
 //! Size specified as [w, h] using `int` as a storage type.
@@ -119,7 +105,6 @@ struct BLSizeI {
   int h;
 };
 ]]
-BLSizeI = ffi.typeof("struct BLSizeI");
 
 
 ffi.cdef[[
@@ -132,7 +117,6 @@ struct BLBoxI {
 
 };
 ]]
-BLBoxI = ffi.typeof("struct BLBoxI")
 
 ffi.cdef[[
 //! Rectangle specified as [x, y, w, h] using `int` as a storage type.
@@ -144,7 +128,6 @@ struct BLRectI {
 
 };
 ]]
-BLRectI = ffi.typeof("struct BLRectI")
 
 
 ffi.cdef[[
@@ -155,7 +138,7 @@ struct BLPoint {
 
 };
 ]]
-BLPoint = ffi.typeof("struct BLPoint")
+
 
 
 ffi.cdef[[
@@ -166,7 +149,7 @@ struct BLSize {
 
 };
 ]]
-BLSize = ffi.typeof("struct BLSize")
+
 
 
 ffi.cdef[[
@@ -179,7 +162,7 @@ struct BLBox {
 
 };
 ]]
-BLBox = ffi.typeof("struct BLBox")
+
 
 
 ffi.cdef[[
@@ -192,7 +175,7 @@ struct BLRect {
 
 };
 ]]
-BLRect = ffi.typeof("struct BLRect")
+
 
 
 ffi.cdef[[
@@ -210,7 +193,8 @@ struct BLLine {
 
 };
 ]]
-BLLine = ffi.typeof("struct BLLine")
+
+
 
 
 ffi.cdef[[
@@ -233,7 +217,7 @@ struct BLTriangle {
 
 };
 ]]
-BLTriangle = ffi.typeof("struct BLTriangle")
+
 
 
 ffi.cdef[[
@@ -251,7 +235,7 @@ struct BLRoundRect {
 
 };
 ]]
-BLRoundRect = ffi.typeof("struct BLRoundRect")
+
 
 ffi.cdef[[
 //! Circle specified as [cx, cy, r] using `double` as a storage type.
@@ -264,7 +248,7 @@ struct BLCircle {
 
 };
 ]]
-BLCircle = ffi.typeof("struct BLCircle")
+
 
 ffi.cdef[[
 //! Ellipse specified as [cx, cy, rx, ry] using `double` as a storage type.
@@ -296,5 +280,21 @@ struct BLArc {
   double sweep;
 };
 ]]
+
+-- LUA Convenience
+BLPointI = ffi.typeof("struct BLPointI")
+BLSizeI = ffi.typeof("struct BLSizeI");
+BLSize = ffi.typeof("struct BLSize")
+BLBoxI = ffi.typeof("struct BLBoxI")
+BLBox = ffi.typeof("struct BLBox")
+BLRectI = ffi.typeof("struct BLRectI")
+BLPoint = ffi.typeof("struct BLPoint")
+BLRect = ffi.typeof("struct BLRect")
+BLLine = ffi.typeof("struct BLLine")
+BLTriangle = ffi.typeof("struct BLTriangle")
+BLRoundRect = ffi.typeof("struct BLRoundRect")
+BLCircle = ffi.typeof("struct BLCircle")
+BLEllipse = ffi.typeof("struct BLEllipse")
+BLArc = ffi.typeof("struct BLArc")
 
 end -- BLEND2D_BLGEOMETRY_H

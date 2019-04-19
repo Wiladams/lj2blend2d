@@ -16,6 +16,11 @@ local solidBrushes = {}
 local solidPens = {}
 local fontCache ={}			-- cache of fonts
 
+local GlobalPath = nil
+
+local FillColor = BLRgba32({255,255,255,255})
+local StrokeColor = BLRgba32({0,0,0,255})
+
 --[==================================================[
 		LANGUAGE COMMANDS
 --]==================================================]
@@ -140,8 +145,6 @@ function background(...)
     clear();
 end
 
-
-
 function fill(...)
 	local c = select(1,...)
 
@@ -156,30 +159,38 @@ function fill(...)
 end
 
 function noFill()
-    FillColor = BLRgba32(0,0,0,0)
+    FillColor = BLRgba32({0,0,0,0})
     appContext:setFillStyle(FillColor)
 
 	return true;
 end
 
-function noStroke()
-    StrokeColor = BLRgba(0,0,0,0)
-    appContext:setStrokeStyle(StrokeColor)
 
-	return true;
-end
 
 function stroke(...)
+	local c = select(1, ...)
 
-	local pen, c = solidPen(...);
+	if type(c) ~= "cdata" then
+		c = color(...)
+	end
+
 	StrokeColor = c;
     appContext:setStrokeStyle(StrokeColor)
 
 	return true;
 end
 
+function noStroke()
+	StrokeColor = BLRgba32({0,0,0,0})
+    appContext:setStrokeStyle(StrokeColor)
+
+	return true;
+end
 
 
+--[[
+	Actual drawing
+]]
 function point(x,y,z)
     -- depending on the stroke width
     -- draw the piont as a circle
@@ -191,7 +202,6 @@ function line(...)
 	-- We either have 4, or 6 parameters
 	local nargs = select('#',...)
 	local x1, y1, z1, x2, y2, z2
-
 
 	if nargs == 4 then
 		x1 = select(1, ...)
@@ -213,29 +223,34 @@ function line(...)
 end
 
 function angleArc(x,y,r,startAt, endAt)
-	--surface.DC:AngleArc(x,y,r,startAt, endAt);
+	
 end
 
-function triangle(x1, y1, x2, y2, x3, y3)
-	--local pts = ffi.new("POINT[3]", {{x1,y1},{x2,y2},{x3,y3}})
-	--surface.DC:Polygon(pts, 3)
+function triangle(...)
+	if FillColor then
+		appContext:fillTriangle(...)
+	end
+
+	if StrokeColor then
+		appContext:strokeTriangle(...)
+	end
 end
 
 function polygon(pts)
 	local npts = #pts
 	local apts = ffi.new("POINT[?]", npts,pts)
-	local res = surface.DC:Polygon(apts, npts)
+	--local res = surface.DC:Polygon(apts, npts)
 end
 
 function polyline(pts)
 	local npts = #pts
 	local apts = ffi.new("POINT[?]", npts,pts)
-	local res = surface.DC:Polyline(apts, npts)
+	--local res = surface.DC:Polyline(apts, npts)
 end
 
 function quad(x1, y1, x2, y2, x3, y3, x4, y4)
 	local pts = ffi.new("POINT[4]", {{x1,y1},{x2,y2},{x3,y3},{x4,y4}})
-	--surface.DC:Polygon(pts, 4)
+	polygon(pts)
 end
 
 local function calcModeRect(mode, ...)
@@ -287,7 +302,7 @@ function rect(...)
 	local x1, y1, rwidth, rheight = calcModeRect(RectMode, ...)
 
     if nargs == 4 then
-        appContext:fillRect(x1, y1, rwidth, rheight)
+        appContext:fillRectD(x1, y1, rwidth, rheight)
     elseif nargs == 5 then
         -- do rounded rect
 	end
@@ -298,14 +313,24 @@ end
 function ellipse(...)
 	local nargs = select('#',...)
 
-	local x1, y1, rwidth, rheight = calcModeRect(EllipseMode, ...)
+	if FillColor then
+		appContext:fillEllipse(...)
+	end
 	
+	if StrokeColor then
+		local bResult, err = appContext:strokeEllipse()
+	end
+--[[
+	local x1, y1, rwidth, rheight = calcModeRect(EllipseMode, ...)
+	local cx = x1 + rwidth / 2;
+	local cy = y1 + rheight/2
 	local xradius = rwidth / 2;
 	local yradius = rheight / 2;
 
-	surface.DC:Ellipse(x1,y1,x1+rwidth-1,y1+rheight-1)
+	appContext:fillEllipse(cx, cy, xradius, yradius)
 
 	return true;
+--]]
 end
 
 --[====================================[
