@@ -7,11 +7,8 @@ local C = ffi.C
 local b2d = require("blend2d.blend2d")
 
 local function main()
-  local img = BLImage(480, 480);
-
-  -- Attach a rendering context into `img`.
-  local ctx, err = BLContext(img);
-
+  local img = BLImage(480, 480)
+  local ctx, err = BLContext(img)
 
   -- Clear the image.
   ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);

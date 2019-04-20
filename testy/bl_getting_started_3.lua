@@ -12,14 +12,11 @@ local function main()
   ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
   ctx:fillAll();
 
-
    -- Read an image from file.
-  local texture = BLImage();
-  local success, err = texture:readFromFile("resources/texture.jpeg");
+  local texture, err = BLImageCodec:readImageFromFile("resources/texture.jpeg")
 
-  if not success then
-      print("readFromFile failed: ", err)
-      return false
+  if not texture then
+      return false, "error reading texture.jpeg: ", err 
   end
 
    -- Create a pattern and use it to fill a rounded-rect.
@@ -37,4 +34,4 @@ local function main()
 
 end
 
-main()
+print(main())

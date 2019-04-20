@@ -392,6 +392,19 @@ BLArrayCore* __cdecl blImageCodecBuiltInCodecs(void) ;
         return bResult == 0 or bResult
       end;
 
+      readImageFromFile = function(ct, fileName, codecs)
+        --print("readImageFromFile: ", tc, fileName, codecs)
+
+          local img = BLImage();
+          codecs = codecs or blapi.blImageCodecBuiltInCodecs()
+          local bResult = blapi.blImageReadFromFile(img, fileName, codecs) ;
+
+          if bResult ~= C.BL_SUCCESS then
+              return false, bResult
+          end
+
+          return img
+      end;
   };
 }
 ffi.metatype(BLImageCodec, BLImageCodec_mt)

@@ -370,23 +370,35 @@ ffi.metatype(BLContextCore, {
     __new = function(ct, ...)
         local nargs = select("#", ...)
         local obj = ffi.new(ct);
-        --print("BLContextCore.__new: ", obj, nargs)
+
+        --BLResult __cdecl blContextInitAs(BLContextCore* self, BLImageCore* image, const BLContextCreateOptions* options) ;
 
         if nargs == 0 then
           local bResult = blapi.blContextInit(obj)
           if bResult ~= C.BL_SUCCESS then
-            return false, bResult
+            return nil, bResult
           end
         elseif nargs == 1 then
           local bResult = blapi.blContextInitAs(obj, select(1,...), nil) ;
           if bResult ~= C.BL_SUCCESS then
-            return false, bResult
+            return nil, bResult
           end
         elseif nargs == 2 then
-          local bResult = blapi.blContextInitAs(obj, select(1,...), select(2,...)) ;
-          if bResult ~= C.BL_SUCCESS then
-            return false, bResult
+          -- it could be two numbers indicating size
+          -- or it could be an image and creation options
+          if ffi.typeof(select(1,...)) == BLImage then
+            local bResult = blapi.blContextInitAs(obj, select(1,...), select(2,...)) ;
+            if bResult ~= C.BL_SUCCESS then
+              return nil, bResult
+            end
+          elseif type(select(1,...)) == "number" and type(select(2,...)) == "number" then
+            local img = BLImage(select(1, ...), select(2,...))
+            local bResult = blapi.blContextInitAs(obj, img, nil)
+            if bResult ~= C.BL_SUCCESS then
+              return nil, bResult;
+            end
           end
+
         end
 
         return obj;
