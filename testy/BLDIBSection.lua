@@ -3,7 +3,7 @@
 
         The BLDIBSection is a bridge between blend2d and GDI.  A GDI 
         DIBSection is created, and the data pointer and format are 
-        used to create a shadow BLImageCore object, which can be
+        used to create a BLImageCore object, which can be
         used by blend2d.
 
         This allows us to draw into the DIB section using either 
@@ -84,7 +84,9 @@ function BLDIBSection.new(self, params)
     local stride = obj.bytesPerRow;
     local destroyFunc = nil
     local destroyData = nil;
-    local img, err = BLImage(obj.width, obj.height, C.BL_FORMAT_XRGB32, dataPtr, stride, destroyFunc, destroyData);
+    -- MUST use the PRGB32 in order for SRC_OVER operations to work correctly
+    local img, err = BLImage(obj.width, obj.height, C.BL_FORMAT_PRGB32, dataPtr, stride, destroyFunc, destroyData);
+    --local img, err = BLImage(obj.width, obj.height, C.BL_FORMAT_XRGB32, dataPtr, stride, destroyFunc, destroyData);
 
      obj.Image = img;
 
@@ -93,11 +95,6 @@ function BLDIBSection.new(self, params)
     return obj;
 end
 
---[[
-function BLDIBSection.new(self, ...)
-    return self:init(...)
-end
---]]
 
 return BLDIBSection
     

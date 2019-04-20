@@ -380,7 +380,7 @@ function ellipse(...)
 	if StrokeColor then
 		local bResult, err = appContext:strokeEllipse(cx, cy, rx, ry)
 	end
-	
+
 	return true
 end
 
@@ -389,13 +389,7 @@ end
 --]====================================]
 
 function bezier(x1, y1,  x2, y2,  x3, y3,  x4, y4)
---[[
-	Processing.Renderer:DrawBezier(
-		{x1, y1, 0},
-		{x2, y2, 0},
-		{x3, y3, 0},
-		{x4, y4, 0})
---]]
+
 end
 
 function bezierDetail(...)
@@ -406,13 +400,7 @@ end
 
 -- Catmull - Rom curve
 function curve(x1, y1,  x2, y2,  x3, y3,  x4, y4)
---[[
-		Processing.Renderer:DrawCurve(
-		{x1, y1, 0},
-		{x2, y2, 0},
-		{x3, y3, 0},
-		{x4, y4, 0})
---]]
+
 end
 
 function curveDetail(...)
@@ -465,25 +453,16 @@ end
 function endShape(endKind)
 	endKind = endKind or STROKE 
 	local npts = #ShapeVertices
-	local apts = ffi.new("POINT[?]", npts,ShapeVertices)
+	local apts = ffi.new("BLPoint[?]", npts,ShapeVertices)
 
 	if ShapeMode == POLYGON then
-
+		path = BLPath()
 		if endKind == CLOSE then
-			surface.DC:BeginPath();
-			local res = surface.DC:Polygon(apts, npts)
-			surface.DC:EndPath();
-			local success = surface.DC:StrokeAndFillPath();
-		elseif endKind == STROKE then
-			surface.DC:BeginPath();
-			local res = surface.DC:Polyline(apts, npts)
-			surface.DC:EndPath();
-			local success = surface.DC:FillPath();
+			path:polyTo(apts, npts)
 
-			surface.DC:BeginPath();
-			local res = surface.DC:Polyline(apts, npts)
-			surface.DC:EndPath();
-			local success = surface.DC:StrokePath();
+			appContext:fillPath(path)
+		elseif endKind == STROKE then
+			appContext:strokePath(path)
 		end
 	elseif ShapeMode == POINTS then
 		for i, pt in ipairs(ShapeVertices) do
@@ -491,16 +470,17 @@ function endShape(endKind)
 		end
 	elseif ShapeMode == LINES then
 		-- walk the array of points two at a time
+		--[[
 		for i=0, npts-2, 2 do
 			print("endshape: ", apts[i].x, apts[i].y, apts[i+1].x, apts[i+1].y)
 			surface.DC:MoveTo(apts[i].x, apts[i].y)
 			surface.DC:LineTo(apts[i+1].x, apts[i+1].y)
 		end
+		--]]
 	elseif ShapeMode == TRIANGLES then
 		-- draw triangles
 	end
 
-	ShapeVertices = nil;
 end
 
 function vertex(...)

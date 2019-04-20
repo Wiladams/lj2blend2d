@@ -295,8 +295,10 @@ local BLPathCore_mt = {
     end;
 
     __index = function(self, key)
-        --print("Path.__index: ", self, key)
-        return pathCommands[key]
+        local pcmd = pathCommands[key]
+        --print("Path.__index: ", self, key, pcmd)
+
+        return pcmd
     end;
 }
 ffi.metatype(BLPathCore, BLPathCore_mt)

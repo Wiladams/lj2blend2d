@@ -20,8 +20,8 @@ function drawLeaf()
     vertex(ex, ey);
     vertex(fx, fy);
     vertex(gx, gy);
-    --endShape(CLOSE);
-    endShape(STROKE);
+    endShape(CLOSE);
+    --endShape(STROKE);
 end
 
 function setup()

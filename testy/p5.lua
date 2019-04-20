@@ -7,14 +7,17 @@
     Typical usage:
 
     -- This first line MUST come before any user code
-    local graphicApp = require("graphicapp")
+    require("p5")
 
-    function onMouseMove(event)
+    function mouseMoved(event)
         print("MOVE: ", event.x, event.y)
     end
 
     -- This MUST be the last line of the user code
-    graphicApp.run();
+    go {width=700, height=400}
+
+    Reources
+    https://natureofcode.com/
 ]]
 local ffi = require("ffi")
 local C = ffi.C 
@@ -85,6 +88,27 @@ TRIANGLES       = 7;
 TRIANGLE_STRIP  = 8;
 TRIANGLE_FAN    = 9;
 
+-- Useful data types
+ffi.cdef[[
+struct PVector {
+    double x;
+    double y;
+};
+]]
+PVector = ffi.typeof("struct PVector")
+ffi.metatype(PVector, {
+    __index = {
+        add = function(self, other)
+            self.x = self.x + other.x;
+            self.y = self.y + other.y;
+        end;
+
+        sub = function(self, other)
+            self.x = self.x - other.x;
+            self.y = self.y - other.y;
+        end;
+    }
+})
 
 
 
@@ -395,7 +419,7 @@ end
 function refreshWindow()
     --appWindow:redraw(bor(ffi.C.RDW_UPDATENOW, ffi.C.RDW_INTERNALPAINT))
     --appWindow:redraw(bor(ffi.C.RDW_INTERNALPAINT))
-    invalidateWindow(lpRect, true);
+    invalidateWindow(lpRect, false);
 
     return true;
 end

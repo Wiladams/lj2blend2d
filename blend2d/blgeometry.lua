@@ -283,18 +283,37 @@ struct BLArc {
 
 -- LUA Convenience
 BLPointI = ffi.typeof("struct BLPointI")
+BLPoint = ffi.typeof("struct BLPoint")
+ffi.metatype(BLPoint, {
+  -- create a new instance, non-destructive
+  __add = function(self, other)
+    return BLPoint(self.x + other.x, self.y + other.y)
+  end;
+
+  __sub = function(self, other)
+    return BLPoint(self.x - other.x, self.y - other.y)
+  end;
+})
+
 BLSizeI = ffi.typeof("struct BLSizeI");
 BLSize = ffi.typeof("struct BLSize")
+
 BLBoxI = ffi.typeof("struct BLBoxI")
 BLBox = ffi.typeof("struct BLBox")
+
 BLRectI = ffi.typeof("struct BLRectI")
-BLPoint = ffi.typeof("struct BLPoint")
 BLRect = ffi.typeof("struct BLRect")
+
 BLLine = ffi.typeof("struct BLLine")
+
 BLTriangle = ffi.typeof("struct BLTriangle")
+
 BLRoundRect = ffi.typeof("struct BLRoundRect")
+
 BLCircle = ffi.typeof("struct BLCircle")
+
 BLEllipse = ffi.typeof("struct BLEllipse")
+
 BLArc = ffi.typeof("struct BLArc")
 
 end -- BLEND2D_BLGEOMETRY_H
