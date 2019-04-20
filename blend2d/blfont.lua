@@ -108,17 +108,23 @@ BLFontLoader_mt = {
     -- Meant to be called as: BLFontLoader:createFromFile(filename)
     createFromFile = function(ct, filename)
       local obj = ffi.new(ct);
-      local bReasult = blapi.blFontLoaderInit(obj);
+      local bResult = blapi.blFontLoaderInit(obj);
       if bResult ~= C.BL_SUCCESS then
         return nil, bResult
       end
 
-      bReasult = blapi.blFontLoaderCreateFromFile(obj, filename)
+      bResult = blapi.blFontLoaderCreateFromFile(obj, filename)
       if bResult ~= C.BL_SUCCESS then
         return nil, bResult
       end
 
       return obj;
+    end;
+
+    dataByIndex = function(self, faceIndex)
+      --BLFontDataImpl* __cdecl blFontLoaderDataByFaceIndex(BLFontLoaderCore* self, uint32_t faceIndex) ;
+      local impl = blapi.blFontLoaderDataByFaceIndex(self, faceIndex) ;
+
     end;
   };
 }

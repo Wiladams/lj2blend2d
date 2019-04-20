@@ -180,6 +180,12 @@ TextSize = 12;
 StrokeWidth = 0;
 StrokeWeight = 1;
 
+surface = nil;
+appContext = nil;
+appImage = nil;
+
+appFontFace = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
+
 --[[
     These are functions that are globally available, so user code
     can use them.  These functions don't rely specifically on the 
@@ -200,10 +206,16 @@ function mag(x, y)
     return sqrt(x*x +y*y)
 end
 
-function map(x, olow, ohigh, rlow, rhigh)
+function map(x, olow, ohigh, rlow, rhigh, withinBounds)
     rlow = rlow or olow
     rhigh = rhigh or ohigh
-    return rlow + (x-olow)*((rhigh-rlow)/(ohigh-olow))
+    local value = rlow + (x-olow)*((rhigh-rlow)/(ohigh-olow))
+
+    if withinBounds then
+        value = constrain(value, rlow, rhigh)
+    end
+
+    return value;
 end
 
 function noise(x,y,z)

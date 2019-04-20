@@ -394,13 +394,17 @@ end
 
 local function calcEllipseParams(mode, ...)
 	local nargs = select('#',...)
-	if nargs < 4 then return false end
+	--if nargs < 4 then return false end
 
 	local a = select(1, ...)
 	local b = select(2, ...)
 	local c = select(3,...)
 	local d = select(4,...)
 
+	if not d then 
+		d = c;
+	end
+	
 	local cx = 0;
 	local cy = 0;
 	local rx = 0;
@@ -433,8 +437,9 @@ end
 
 function ellipse(...)
 	local nargs = select('#',...)
-	if nargs < 4 then return false; end
+	if nargs < 3 then return false; end
 
+	
 	local cx, cy, rx, ry = calcEllipseParams(EllipseMode, ...)
 
 	if FillColor then
