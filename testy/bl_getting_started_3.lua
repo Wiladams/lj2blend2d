@@ -6,7 +6,7 @@ local b2d = require("blend2d.blend2d")
 
 
 local function main()
-  local img = BLImage(480, 480, C.BL_FORMAT_PRGB32);
+  local img = BLImage(480, 480);
   local ctx = BLContext(img);
 
   ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
@@ -32,7 +32,9 @@ local function main()
 
   ctx:finish();
 
-  img:writeToFile("output/bl-getting-started-3.bmp", BLImageCodec:findByName("BMP"));
+
+  BLImageCodec("BMP"):writeImageToFile(img, "output/bl-getting-started-3.bmp")
+
 end
 
 main()

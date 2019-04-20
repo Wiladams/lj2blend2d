@@ -7,7 +7,7 @@ local C = ffi.C
 local b2d = require("blend2d.blend2d")
 
 local function main()
-  local img = BLImage(480, 480, C.BL_FORMAT_PRGB32);
+  local img = BLImage(480, 480);
 
   -- Attach a rendering context into `img`.
   local ctx, err = BLContext(img);
@@ -33,7 +33,8 @@ local function main()
   -- Detach the rendering context from `img`.
   ctx:finish();
 
-  img:writeToFile("output/bl-getting-started-1.bmp", BLImageCodec:findByName("BMP"));
+
+  BLImageCodec("BMP"):writeImageToFile(img, "output/bl-getting-started-1.bmp")
 
 end
 

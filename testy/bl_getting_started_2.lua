@@ -7,7 +7,7 @@ local C = ffi.C
 local b2d = require("blend2d.blend2d")
 
 local function main()
-  img = BLImage(480, 480, C.BL_FORMAT_PRGB32);
+  img = BLImage(480, 480);
   ctx = BLContext(img);
 
   ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
@@ -33,7 +33,9 @@ local function main()
   ctx:fillRoundRect(40.0, 40.0, 400.0, 400.0, 45.5);
   ctx:finish();
 
-  img:writeToFile("output/bl-getting-started-2.bmp", BLImageCodec:findByName("BMP"));
+
+  BLImageCodec("BMP"):writeImageToFile(img, "output/bl-getting-started-2.bmp")
+
 end
 
 main()

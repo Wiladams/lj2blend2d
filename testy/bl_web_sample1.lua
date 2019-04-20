@@ -6,15 +6,15 @@ local C = ffi.C
 
 local b2d = require("blend2d.blend2d")
 
-local function main(int argc, char* argv[])
-  BLImage img(480, 480, C.BL_FORMAT_PRGB32);
+local function main()
+  local img = BLImage(480, 480);
 
   -- Attach a rendering context into `img`.
   local ctx = BLContext(img);
 
   -- Clear the image.
-  ctx.setCompOp(C.BL_COMP_OP_SRC_COPY);
-  ctx.fillAll();
+  ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
+  ctx:fillAll();
 
   -- Fill some path.
   local path = BLPath();
@@ -27,13 +27,10 @@ local function main(int argc, char* argv[])
   ctx:fillPath(path);
 
   -- Detach the rendering context from `img`.
-  ctx.finish();
+  ctx:finish();
 
   -- Lets use some built-in codecs provided by Blend2D.
-  local codec = BLImageCodec();
-  codec:findByName(b2d.blImageCodecBuiltInCodecs(), "BMP");
-  img:writeToFile("bl-getting-started-1.bmp", codec);
-
+  img:writeToFile("output/web_example1.bmp", BLImageCodec:findByName("BMP"));
 end
 
 main()

@@ -229,6 +229,9 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
       if nargs == 0 then
         -- default constructor
         bResult = blapi.blImageInit(obj)
+      elseif nargs == 2 then
+        -- width, height
+        bResult = blapi.blImageInitAs(obj, select(1,...), select(2,...), C.BL_FORMAT_PRGB32)
       elseif nargs == 3 then
         -- width, height, format
         bResult = blapi.blImageInitAs(obj, select(1,...), select(2,...), select(3,...))
@@ -339,16 +342,25 @@ BLImageCodec = ffi.typeof("BLImageCodecCore")
 BLImageCodecCore = BLImageCodec
 local BLImageCodec_mt = {
   __gc = function(self)
-    --print("BLImageCodecCore.__gc")
     blapi.blImageCodecReset(self)
   end;
 
-  __new = function (ct, ...)
-    local obj = ffi.new(ct, ...)
+  __new = function (ct, moniker, codecs)
+    local obj = ffi.new(ct)
     local bResult = blapi.blImageCodecInit(obj);
     if bResult ~= C.BL_SUCCESS then
         return false, bResult;
     end
+
+    if moniker then
+      codecs = codecs or blapi.blImageCodecBuiltInCodecs();
+      local bResult = blapi.blImageCodecFindByName(obj, codecs, moniker) ;
+      
+      if bResult ~= C.BL_SUCCESS then
+        return false, bResult;
+      end
+    end
+
 
     return obj;
   end;
@@ -374,6 +386,12 @@ BLArrayCore* __cdecl blImageCodecBuiltInCodecs(void) ;
 
           return obj;
       end;
+
+      writeImageToFile = function(self, img, fileName)
+        local bResult = blapi.blImageWriteToFile(img, fileName, self)
+        return bResult == 0 or bResult
+      end;
+
   };
 }
 ffi.metatype(BLImageCodec, BLImageCodec_mt)

@@ -98,7 +98,44 @@ struct BLFontLoaderCore {
 };
 ]]
 
-FontLoader = ffi.typeof
+BLFontLoader = ffi.typeof("struct BLFontLoaderCore")
+BLFontLoader_mt = {
+  __gc = function(self)
+    blapi.blFontLoaderReset(self);
+  end;
+
+  __index = {
+    -- Meant to be called as: BLFontLoader:createFromFile(filename)
+    createFromFile = function(ct, filename)
+      local obj = ffi.new(ct);
+      local bReasult = blapi.blFontLoaderInit(obj);
+      if bResult ~= C.BL_SUCCESS then
+        return nil, bResult
+      end
+
+      bReasult = blapi.blFontLoaderCreateFromFile(obj, filename)
+      if bResult ~= C.BL_SUCCESS then
+        return nil, bResult
+      end
+
+      return obj;
+    end;
+  };
+}
+ffi.metatype(BLFontLoader, BLFontLoader_mt)
+
+--[[
+  BLResult __cdecl blFontLoaderInit(BLFontLoaderCore* self) ;
+BLResult __cdecl blFontLoaderReset(BLFontLoaderCore* self) ;
+BLResult __cdecl blFontLoaderAssignMove(BLFontLoaderCore* self, BLFontLoaderCore* other) ;
+BLResult __cdecl blFontLoaderAssignWeak(BLFontLoaderCore* self, const BLFontLoaderCore* other) ;
+bool     __cdecl blFontLoaderEquals(const BLFontLoaderCore* a, const BLFontLoaderCore* b) ;
+BLResult __cdecl blFontLoaderCreateFromFile(BLFontLoaderCore* self, const char* fileName) ;
+BLResult __cdecl blFontLoaderCreateFromDataArray(BLFontLoaderCore* self, const BLArrayCore* dataArray) ;
+BLResult __cdecl blFontLoaderCreateFromData(BLFontLoaderCore* self, const void* data, size_t size, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+BLFontDataImpl* __cdecl blFontLoaderDataByFaceIndex(BLFontLoaderCore* self, uint32_t faceIndex) ;
+--]]
+
 
 ffi.cdef[[
 //! Font face [C Interface - Virtual Function Table].
@@ -183,6 +220,7 @@ BLFontFace_mt = {
     end;
 
     __new = function(ct, ...)
+        print("BLFontFace.__new")
         local obj = ffi.new(ct)
         local bResult = blapi.blFontFaceInit(obj)
         if bResult ~= C.BL_SUCCESS then
@@ -192,11 +230,44 @@ BLFontFace_mt = {
     end;
 
     __index = {
-        createFromFile = function(self, fileName)
-            --print("createFromFile: ", self, filename)
-            local bResult = blapi.blFontFaceCreateFromFile(self, fileName) ;
-            --print("result: ", bResult)
-            return bResult == C.BL_SUCCESS or bResult;
+        -- Use as; BLFont:createFromFile(filename)
+        createFromFile = function(ct, fileName)
+            --print("BLFontFace.createFromFile: ", ct, fileName)
+            local obj = ffi.new(ct)
+
+            local bResult = blapi.blFontFaceInit(obj)
+            if bResult ~= C.BL_SUCCESS then
+                return nil, "failed blFontFaceInit"
+            end
+
+            local bResult = blapi.blFontFaceCreateFromFile(obj, fileName) ;
+            --print("blFontFaceCreateFromFile: ", bResult)
+
+            if bResult ~= C.BL_SUCCESS then
+              return nil, bResult 
+            end
+
+            return obj;
+        end;
+
+        -- Use like this
+        -- fontFace:createSizedFont(15)
+        createFont = function(self, size)
+            if not tonumber(size) then
+              return false, "size must be a number"
+            end
+
+            local font, err = BLFont();
+            if not font then
+              return nil, err 
+            end
+
+            local bResult = blapi.blFontCreateFromFace(font, self, size) ;
+            if bResult ~= C.BL_SUCCESS then
+              return false;
+            end
+
+            return font;
         end;
     }
 }
