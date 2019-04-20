@@ -417,6 +417,17 @@ local function invalidateWindow(lpRect, bErase)
 end
 
 function refreshWindow()
+    --[[
+    local lprcUpdate = nil;	-- const RECT *
+	local hrgnUpdate = nil; -- HRGN
+	flags = flags or bor(C.RDW_UPDATENOW, C.RDW_INTERNALPAINT);
+
+	local res = C.RedrawWindow(
+  		appWindowHandle,
+  		lprcUpdate,
+   		hrgnUpdate,
+        flags);
+    --]]
     --appWindow:redraw(bor(ffi.C.RDW_UPDATENOW, ffi.C.RDW_INTERNALPAINT))
     --appWindow:redraw(bor(ffi.C.RDW_INTERNALPAINT))
     invalidateWindow(lpRect, false);
@@ -428,7 +439,7 @@ function redraw()
     if draw then
         draw();
         if surface then
-            appContext:flush();
+            --appContext:flush();
         end
     end
 

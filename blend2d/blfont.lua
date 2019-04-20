@@ -98,6 +98,7 @@ struct BLFontLoaderCore {
 };
 ]]
 
+FontLoader = ffi.typeof
 
 ffi.cdef[[
 //! Font face [C Interface - Virtual Function Table].

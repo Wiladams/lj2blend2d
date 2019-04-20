@@ -460,7 +460,7 @@ ffi.metatype(BLContextCore, {
               end
           elseif nargs == 2 then
               x = tonumber(select(1,...))
-              y = tonumber(select(1,...))
+              y = tonumber(select(2,...))
               if x and y then
                   return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
               end

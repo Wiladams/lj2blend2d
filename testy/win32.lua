@@ -124,6 +124,19 @@ static const int SW_HIDE            = 0;
 static const int SW_SHOWNORMAL      = 1;
 static const int SW_NORMAL          = 1;
 
+// Window redrawing
+static const int RDW_INVALIDATE          = 0x0001;
+static const int RDW_INTERNALPAINT       = 0x0002;
+static const int RDW_ERASE               = 0x0004;
+
+static const int RDW_VALIDATE            = 0x0008;
+static const int RDW_NOINTERNALPAINT     = 0x0010;
+static const int RDW_NOERASE             = 0x0020;
+
+
+static const int RDW_UPDATENOW           = 0x0100;
+static const int RDW_ERASENOW            = 0x0200;
+
 
 // Windows messages
 static const int WM_DESTROY = 0x0002;
@@ -153,6 +166,7 @@ typedef HANDLE HBRUSH;
 typedef HANDLE HINSTANCE;
 typedef HANDLE HMENU;
 typedef HANDLE HBITMAP;
+typedef HANDLE HRGN;
 
 typedef WORD                ATOM; 
 
@@ -231,6 +245,7 @@ HWND CreateWindowExA(DWORD dwExStyle, const char * lpClassName, const char * lpW
 BOOL DestroyWindow(HWND hWnd);
 BOOL ShowWindow(HWND hWnd, int nCmdShow);
 BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
+BOOL RedrawWindow(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
 
 void PostQuitMessage(int nExitCode);
 int PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);

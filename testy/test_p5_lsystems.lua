@@ -105,4 +105,4 @@ function drawIt(k)
   ellipse(x, y, radius, radius);
 end
 
-go {width=710, height=400}
+go {width=1280, height=768, frameRate=60}
