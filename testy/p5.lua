@@ -32,7 +32,6 @@ local BLDIBSection = require("BLDIBSection")
 require("p5_blend2d")
 
 local exports = {}
-local lonMessage = false;
 local SWatch = StopWatch();
 
 
@@ -282,68 +281,6 @@ sqrt = math.sqrt
 
 
 
---[[
-    COLOR
-]]
-function color(...)
-	local nargs = select('#', ...)
-
-	-- There can be 1, 2, 3, or 4, arguments
-	--	print("Color.new - ", nargs)
-	
-	local r = 0
-	local g = 0
-	local b = 0
-	local a = 255
-	
-	if (nargs == 1) then
-			r = select(1,...)
-			g = r
-			b = r
-			a = 255;
-	elseif nargs == 2 then
-			r = select(1,...)
-			g = r
-			b = r
-			a = select(2,...)
-	elseif nargs == 3 then
-			r = select(1,...)
-			g = select(2,...)
-			b = select(3,...)
-			a = 255
-	elseif nargs == 4 then
-		r = select(1,...)
-		g = select(2,...)
-		b = select(3,...)
-		a = select(4,...)
-    end
-    
-    local pix = BLRgba32()
---print("r,g,b: ", r,g,b)
-    pix.r = r
-    pix.g = g
-    pix.b = b 
-    pix.a = a
-
-	return pix;
-end
-
-
-function blue(c)
-	return c.b
-end
-
-function green(c)
-	return c.g
-end
-
-function red(c)
-	return c.r
-end
-
-function alpha(c)
-	return c.a
-end
 
 -- Modes to be honored by various drawing APIs
 function angleMode(newMode)
@@ -420,7 +357,7 @@ function refreshWindow()
     --[[
     local lprcUpdate = nil;	-- const RECT *
 	local hrgnUpdate = nil; -- HRGN
-	flags = flags or bor(C.RDW_UPDATENOW, C.RDW_INTERNALPAINT);
+	local flags = flags or bor(C.RDW_UPDATENOW, C.RDW_INTERNALPAINT);
 
 	local res = C.RedrawWindow(
   		appWindowHandle,
@@ -428,8 +365,6 @@ function refreshWindow()
    		hrgnUpdate,
         flags);
     --]]
-    --appWindow:redraw(bor(ffi.C.RDW_UPDATENOW, ffi.C.RDW_INTERNALPAINT))
-    --appWindow:redraw(bor(ffi.C.RDW_INTERNALPAINT))
     invalidateWindow(lpRect, false);
 
     return true;
@@ -563,7 +498,7 @@ function KeyboardActivity(hwnd, msg, wparam, lparam)
     return res;
 end
 
---[=[
+---[=[
 local function wm_joystick_event(hwnd, msg, wParam, lParam)
     local event = {
         Buttons = wParam;
@@ -638,6 +573,7 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     --    res = CommandActivity(hwnd, msg, wparam, lparam)
 ---[[
     elseif msg == C.WM_ERASEBKGND then
+        print("WM_ERASEBKGND")
         local hdc = ffi.cast("HDC", wparam); 
         --GetClientRect(hwnd, &rc); 
         --SetMapMode(hdc, MM_ANISOTROPIC); 
@@ -704,12 +640,9 @@ local function msgLoop()
     while (true) do
         --print("LOOP")
         -- we use peekmessage, so we don't stall on a GetMessage
-        while (C.PeekMessageA(msg, nil, 0, 0, C.PM_REMOVE) ~= 0) do
-            --print(string.format("Loop Message: 0x%x", msg.message), wmmsgs[msg.message])            
-            if lonMessage then
-                lonMessage(msg);
-            end
-            
+        --while (C.PeekMessageA(msg, nil, 0, 0, C.PM_REMOVE) ~= 0) do
+        local haveMessage = C.PeekMessageA(msg, nil, 0, 0, C.PM_REMOVE) ~= 0
+        if haveMessage then
             -- If we see a quit message, it's time to stop the program
             -- ideally we'd call an 'onQuit' and wait for that to return
             -- before actually halting.  That will give the app a chance
@@ -756,7 +689,7 @@ local function createWindow(params)
         winstyle, 
         x, y)
     
-    print("appWindowHandle, err: ", winHandle, err)
+    --print("appWindowHandle, err: ", winHandle, err)
 
     if not winHandle then
         print("TRIPPING")

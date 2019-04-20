@@ -188,7 +188,9 @@ local BLGradient_mt = {
         end;
 
         addStop = function(self, offset, obj)
-          if ffi.typeof(obj) == BLRgba32 then
+          if type(obj) == "number" then
+            return self:addStopRgba32(offset, obj)
+          elseif ffi.typeof(obj) == BLRgba32 then
             return self:addStopRgba32(offset, obj.value)
           end
         end;

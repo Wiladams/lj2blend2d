@@ -1,4 +1,15 @@
+--[[
+    Simple particle system
+    This one uses the mouse location as the origin of the system.
+    So, as you move the mouse around, the continuous stream of 
+    particles will begin from wherever the mouse is currently located.
+
+    Makes for a nice 'streamer' effect.
+
+]]
 package.path = "../?.lua;"..package.path;
+
+
 local ffi = require("ffi")
 
 require("p5")
@@ -92,20 +103,30 @@ function ParticleSystem.run(self)
 end
 
 
+
 local systems = {}
+local currentsystem;
+
 local function addSystem(x, y)
-  local system = ParticleSystem(PVector(x, y))
-  table.insert(systems, system)
+    local system = ParticleSystem(PVector(x, y))
+    table.insert(systems, system)
+    return system
 end
 
 local function reset()
-  systems = {}
-  addSystem(width / 2, 50)
+    systems = {}
+    local x = width/2;
+    local y = 50;
+
+    if mouseX then
+        x = mouseX;
+        y = mouseY;
+    end
+
+    currentsystem = addSystem(x, y)    
 end
 
 function setup()
-    --appContext:setCompOp(ffi.C.BL_COMP_OP_SRC_COPY);
-    --appContext:setCompOp(ffi.C.BL_COMP_OP_SRC_OVER);
     reset()
 end
   
@@ -113,17 +134,24 @@ function draw()
   --print("draw: ", #system.particles)
     background(51);
     for _, system in ipairs(systems) do
-      system:addParticle();
-      system:run();
+        system:addParticle();
+        system:run();
+    end
+end
+
+
+function mouseMoved()
+    if currentsystem then
+        currentsystem.origin = PVector(mouseX, mouseY)
     end
 end
 
 function mousePressed()
-  addSystem(mouseX, mouseY)
+    currentsystem = addSystem(mouseX, mouseY)
 end
 
 function keyPressed()
-  reset()
+    reset();
 end
 
-go {width =1024, height=768, frameRate = 60,}
+go {width =1024, height=768, frameRate = 60, title="Particle Comet"}
