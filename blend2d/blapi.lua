@@ -631,6 +631,11 @@ typedef struct {
     size_t size;                         
 } BLArrayView;
 
+typedef struct {
+    const BLPoint * data;
+    size_t size;
+} BLPointView;
+
 typedef struct {                       
     const char* data;                    
     size_t size;                         
@@ -644,7 +649,10 @@ typedef struct {
 
 typedef BLArrayView BLDataView;
 ]]
-
+BLArrayView = ffi.typeof("BLArrayView")
+BLPointView = ffi.typeof("BLPointView")
+BLStringView = ffi.typeof("BLStringView")
+BLRegionView = ffi.typeof("BLRegionView")
 
 --[[
 // ============================================================================
@@ -882,7 +890,6 @@ BLResult __cdecl blGlyphBufferReset(BLGlyphBufferCore* self) ;
 BLResult __cdecl blGlyphBufferClear(BLGlyphBufferCore* self) ;
 BLResult __cdecl blGlyphBufferSetText(BLGlyphBufferCore* self, const void* data, size_t size, uint32_t encoding) ;
 BLResult __cdecl blGlyphBufferSetGlyphIds(BLGlyphBufferCore* self, const void* data, intptr_t advance, size_t size) ;
-
 ]]
 
 ffi.cdef[[

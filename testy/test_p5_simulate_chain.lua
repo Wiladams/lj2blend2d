@@ -2,6 +2,15 @@ package.path = "../?.lua;"..package.path;
 
 require("p5")
 
+local stats = require("P5Status")()
+
+local function randomColor()
+    local r = random(30,255)
+    local g = random(30,255)
+    local b = random(30,255)
+    return color(r,g,b,126)
+end
+
 local Spring2D = {}
 setmetatable(Spring2D, {
     __call = function(self, ...)
@@ -12,7 +21,7 @@ local Spring2D_mt = {
     __index = Spring2D
 }
 
-function Spring2D.new(self, xpos, ypos, m, g)
+function Spring2D.new(self, xpos, ypos, m, g, c)
     local obj = {
         x = xpos;   -- The x- and y-coordinates
         y = ypos;
@@ -23,6 +32,7 @@ function Spring2D.new(self, xpos, ypos, m, g)
         radius = 30;
         stiffness = 0.2;
         damping = 0.7;
+        color = c or randomColor();
     }
 
     setmetatable(obj, Spring2D_mt)
@@ -44,6 +54,7 @@ end
 
 function Spring2D.display(self, nx, ny)
     noStroke();
+    fill(self.color, 126)
     ellipse(self.x, self.y, self.radius * 2, self.radius * 2);
     stroke(255);
     line(self.x, self.y, nx, ny);
@@ -97,6 +108,8 @@ function draw()
         spring:display(currentSpring.x, currentSpring.y);
         currentSpring = spring
     end
+
+    stats:draw()
 end
 
 local T_SP = string.byte(' ')
@@ -116,4 +129,4 @@ function keyTyped(event)
     end
 end
 
-go {width = 1920, height=1080, frameRate=30}
+go {width = 1024, height=768, frameRate=30}

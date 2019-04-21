@@ -343,6 +343,25 @@ BLFont_mt = {
             return bResult == C.BL_SUCCESS or bResult;
         end;
 
+        measureText = function(self, txt)
+            local gbuf = BLGlyphBuffer()
+            local metrics = BLTextMetrics()
+
+            gbuf:setText(txt)
+            print("BLFont.measureText, glyphBuffer: ", gbuf.data.size)
+            local bResult = blapi.blFontGetTextMetrics(self, gbuf, metrics) ;
+            print("  metrics: ", metrics.boundingBox.x0, metrics.boundingBox.y0, metrics.boundingBox.x1, metrics.boundingBox.y1)
+            if bResult ~= C.BL_SUCCESS then
+                return false, bResult;
+            end
+
+            local w = metrics.boundingBox.x1 - metrics.boundingBox.x0
+            local h = metrics.boundingBox.y1 - metrics.boundingBox.y0
+            
+            return w, h
+        end;
+
+
     }
 --[[
 

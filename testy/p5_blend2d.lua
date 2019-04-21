@@ -30,6 +30,39 @@ CAP_TRIANGLE = 4;
 CAP_TRIANGLE_REV = 5;
 
 
+-- Blend Kinds
+  BLEND 		= C.BL_COMP_OP_SRC_OVER;
+  REPLACE		= C.BL_COMP_OP_SRC_COPY;
+  --= C.BL_COMP_OP_SRC_IN = 2;
+  --= C.BL_COMP_OP_SRC_OUT = 3;
+  --= C.BL_COMP_OP_SRC_ATOP = 4;
+  --= C.BL_COMP_OP_DST_OVER = 5;
+  --= C.BL_COMP_OP_DST_COPY = 6;
+  --= C.BL_COMP_OP_DST_IN = 7;
+  --= C.BL_COMP_OP_DST_OUT = 8;
+  --= C.BL_COMP_OP_DST_ATOP = 9;
+  --= C.BL_COMP_OP_XOR = 10;
+  --= C.BL_COMP_OP_CLEAR = 11;
+  ADD 			= C.BL_COMP_OP_PLUS;
+  DIFFERENCE 	= C.BL_COMP_OP_MINUS;
+  MULTIPLY		= C.BL_COMP_OP_MULTIPLY;
+  SCREEN 		= C.BL_COMP_OP_SCREEN;
+  OVERLAY 		= C.BL_COMP_OP_OVERLAY;
+  --= C.BL_COMP_OP_DARKEN = 17;
+  --= C.BL_COMP_OP_LIGHTEN = 18;
+  DODGE			= C.BL_COMP_OP_COLOR_DODGE;
+  BURN 			= C.BL_COMP_OP_COLOR_BURN;
+  --= C.BL_COMP_OP_LINEAR_BURN = 21;
+  --= C.BL_COMP_OP_LINEAR_LIGHT = 22;
+  --= C.BL_COMP_OP_PIN_LIGHT = 23;
+  HARD_LIGHT 	= C.BL_COMP_OP_HARD_LIGHT;
+  SOFT_LIGHT 	= C.BL_COMP_OP_SOFT_LIGHT;
+  SUBTRACT 		= C.BL_COMP_OP_DIFFERENCE;
+  --= C.BL_COMP_OP_EXCLUSION = 27;
+
+
+
+
 local solidBrushes = {}
 local solidPens = {}
 local fontCache ={}			-- cache of fonts
@@ -133,6 +166,35 @@ local function solidPen(...)
 	return apen, c
 end
 
+-- ATTRIBUTES
+function blendMode(mode)
+	-- set compositing operator
+	appContext:setCompOp(mode)
+end
+
+function smooth()
+
+end
+
+function noSmooth()
+
+end
+
+function pointSize(ptSize)
+	PointSize = ptSize;
+end
+
+function strokeCaps(strokeCap)
+	appContext:setStrokeCaps(strokeCap) ;
+end
+
+function strokeJoin(join)
+    appContext:setStrokeJoin(join)
+end
+
+function strokeWeight(weight)
+    appContext:setStrokeWidth(weight);
+end
 
 function colorMode(amode)
 	-- if it's not valid input, just return
@@ -144,24 +206,7 @@ function colorMode(amode)
 	return true;
 end
 
-function clear()
-    appContext:save()
-    appContext:setFillStyle(BackgroundColor)
-    appContext:fillAll();
-    appContext:restore();
-end
 
-function background(...)
-	local n = select('#', ...)
-	local c = select(1,...)
-	if type(c) ~= "cdata" then
-		c = color(...)
-	end
-
-	BackgroundColor = c;
-
-    clear();
-end
 
 --[[
     COLOR
@@ -236,13 +281,13 @@ function fill(...)
 
 	FillColor = c;
     appContext:setFillStyle(FillColor)
+	useFill = true;
 
 	return true;
 end
 
 function noFill()
-    FillColor = BLRgba32({0,0,0,0})
-    appContext:setFillStyle(FillColor)
+	useFill = false;
 
 	return true;
 end
@@ -258,13 +303,13 @@ function stroke(...)
 
 	StrokeColor = c;
     appContext:setStrokeStyle(StrokeColor)
+	useStroke = true;
 
 	return true;
 end
 
 function noStroke()
-	StrokeColor = BLRgba32({0,0,0,0})
-    appContext:setStrokeStyle(StrokeColor)
+	useStroke = false;
 
 	return true;
 end
@@ -273,6 +318,25 @@ end
 --[[
 	Actual drawing
 ]]
+function clear()
+    appContext:save()
+    appContext:setFillStyle(BackgroundColor)
+    appContext:fillAll();
+    appContext:restore();
+end
+
+function background(...)
+	local n = select('#', ...)
+	local c = select(1,...)
+	if type(c) ~= "cdata" then
+		c = color(...)
+	end
+
+	BackgroundColor = c;
+
+    clear();
+end
+
 function point(x,y,z)
     -- depending on the stroke width
     -- draw the piont as a circle
@@ -319,9 +383,14 @@ function triangle(...)
 end
 
 function polygon(pts)
-	local npts = #pts
-	local apts = ffi.new("POINT[?]", npts,pts)
-	--local res = surface.DC:Polygon(apts, npts)
+	if useFill then
+		appContext:fillPolygon(pts)
+	end
+
+	if useStroke then
+		appContext:strokePolygon(pts)
+	end
+
 end
 
 function polyline(pts)
@@ -442,11 +511,11 @@ function ellipse(...)
 	
 	local cx, cy, rx, ry = calcEllipseParams(EllipseMode, ...)
 
-	if FillColor then
+	if useFill then
 		appContext:fillEllipse(cx, cy, rx, ry)
 	end
 	
-	if StrokeColor then
+	if useStroke then
 		local bResult, err = appContext:strokeEllipse(cx, cy, rx, ry)
 	end
 
@@ -458,7 +527,10 @@ end
 --]====================================]
 
 function bezier(x1, y1,  x2, y2,  x3, y3,  x4, y4)
-
+	local path = BLPath()
+	path:moveTo(x1, y1)
+	path:cubicTo(x2,y2,x3,y3, x4,y4)
+	appContext:strokePath(path)
 end
 
 function bezierDetail(...)
@@ -485,30 +557,7 @@ end
 function curveTightness(...)
 end
 
--- ATTRIBUTES
-function smooth()
 
-end
-
-function noSmooth()
-
-end
-
-function pointSize(ptSize)
-	PointSize = ptSize;
-end
-
-function strokeCaps(strokeCap)
-	appContext:setStrokeCaps(strokeCap) ;
-end
-
-function strokeJoin(join)
-    appContext:setStrokeJoin(join)
-end
-
-function strokeWeight(weight)
-    appContext:setStrokeWidth(weight);
-end
 
 
 -- VERTEX
@@ -680,12 +729,20 @@ end
 function createFont()
 end
 
-function loadFont()
+function loadFont(faceFilename)
+	local fontDir = "c:\\windows\\fonts\\"
+	local fontfile = fontDir..faceFilename;
+
+	aFace, err = BLFontFace:createFromFile(fontfile)
+	if not aFace then
+		return false, err
+	end
+
+	appFontFace = aFace;
 end
 
 function text(txt, x, y)
-	surface.DC:Text(txt, x, y);
-	--surface.DC:ExtTextOutA(  HDC hdc,  int x,  int y,  UINT options,  const RECT * lprect,  LPCSTR lpString,  UINT c,  const INT * lpDx)
+	appContext:fillUtf8Text(BLPoint(x,y), appFont, txt, #txt)
 end
 
 -- Attributes
@@ -693,7 +750,6 @@ end
 function textAlign(halign, valign)
 	TextHAlignment = halign or LEFT
 	TextVAlignment = valign or TOP
-
 end
 
 function textLeading(leading)
@@ -705,16 +761,18 @@ function textMode(mode)
 end
 
 function textSize(asize)
-	TextSize = asize
-	FontName = "SYSTEM_FIXED_FONT"
-	local afont = getFont(FontName, asize)
-	if not afont then
-		return false, 'could not find font'
+	aFont, err = appFontFace:createFont(asize)
+	if not aFont then 
+		return false;
 	end
 
-	surface.DC:SelectObject(afont);
+	appFont = aFont
+	TextSize = asize
+
+	return true;
 end
 
+-- measure how wide a piece of text is
 function textWidth(txt)
 	twidth, theight = Processing.Renderer:MeasureString(txt)
 	return Processing.GetTextWidth(astring)

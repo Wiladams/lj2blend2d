@@ -581,6 +581,18 @@ ffi.metatype(BLContextCore, {
           return bResult == 0 or bResult;
       end;
 
+      fillPolygon = function(self, pts)
+          --print("fillPolygon: ", pts)
+          if type(pts) == "table" then
+            local npts = #pts
+            local polypts = ffi.new("struct BLPoint[?]", npts,pts)
+            local arrview = BLPointView(polypts, npts)
+
+            self:fillGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
+            --print(polypts, arrview.data, arrview.size)
+          end
+      end;
+
       fillRectI = function(self, rect)
         local bResult = self.impl.virt.fillRectI(self.impl, rect);
         return bResult == 0 or bResult;
@@ -666,11 +678,26 @@ BLResult __cdecl blContextSetStrokeStyleRgba32(BLContextCore* self, uint32_t rgb
 BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgba64) ;
       ]]
 
+      strokeGeometry = function(self, geometryType, geometryData)
+        local bResult = self.impl.virt.strokeGeometry(self.impl, geometryType, geometryData);
+        return bResult == 0 or bResult;
+      end;
+      
       strokeEllipse = function(self, ...)
         local nargs = select("#",...)
         if nargs == 4 then
             local geo = BLEllipse(...)
             self:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
+        end
+      end;
+
+      strokePolygon = function(self, pts)
+        if type(pts) == "table" then
+          local npts = #pts
+          local polypts = ffi.new("struct BLPoint[?]", npts,pts)
+          local arrview = BLPointView(polypts, npts)
+
+          self:strokeGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
         end
       end;
 
@@ -689,10 +716,7 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
         return bResult == 0 or bResult;
       end;
 
-      strokeGeometry = function(self, geometryType, geometryData)
-        local bResult = self.impl.virt.strokeGeometry(self.impl, geometryType, geometryData);
-        return bResult == 0 or bResult;
-      end;
+
 
       strokeLine = function(self, x1, y1, x2, y2)
           local aLine = BLLine(x1,y1,x2,y2)

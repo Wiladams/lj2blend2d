@@ -302,6 +302,11 @@ static const int WM_MOUSEHWHEEL                  = 0x020E;
 static const int WM_MOUSELAST                    = 0x020E;
 ]]
 
+ffi.cdef[[
+static const int WM_MOUSEHOVER                   = 0x02A1;
+static const int WM_MOUSELEAVE                   = 0x02A3;
+]]
+
 -- Keyboard messages
 ffi.cdef[[
 static const int WM_KEYFIRST                     = 0x0100;

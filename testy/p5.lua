@@ -34,6 +34,27 @@ require("p5_blend2d")
 local exports = {}
 local SWatch = StopWatch();
 
+-- Useful data types
+ffi.cdef[[
+struct PVector {
+    double x;
+    double y;
+};
+]]
+PVector = ffi.typeof("struct PVector")
+ffi.metatype(PVector, {
+    __index = {
+        add = function(self, other)
+            self.x = self.x + other.x;
+            self.y = self.y + other.y;
+        end;
+
+        sub = function(self, other)
+            self.x = self.x - other.x;
+            self.y = self.y - other.y;
+        end;
+    }
+})
 
 -- Global things
 -- Constants
@@ -87,27 +108,7 @@ TRIANGLES       = 7;
 TRIANGLE_STRIP  = 8;
 TRIANGLE_FAN    = 9;
 
--- Useful data types
-ffi.cdef[[
-struct PVector {
-    double x;
-    double y;
-};
-]]
-PVector = ffi.typeof("struct PVector")
-ffi.metatype(PVector, {
-    __index = {
-        add = function(self, other)
-            self.x = self.x + other.x;
-            self.y = self.y + other.y;
-        end;
 
-        sub = function(self, other)
-            self.x = self.x - other.x;
-            self.y = self.y - other.y;
-        end;
-    }
-})
 
 
 
@@ -157,6 +158,7 @@ touches = false;
 -- touchMoved()
 -- touchEnded()
 
+
 -- Initial State for modes
 AngleMode = RADIANS;
 ColorMode = RGB;
@@ -169,14 +171,19 @@ LoopActive = true;
 EnvironmentReady = false;
 
 -- Typography
-TextSize = 12;
+TextSize = 18;
 TextHAlignment = LEFT;
 TextVAlignment = BASELINE;
 TextLeading = 0;
 TextMode = SCREEN;
-TextSize = 12;
+appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
+print("appFontFace: ", appFontFace, err)
+
+appFont, err = appFontFace:createFont(TextSize)
 
 
+useStroke = true;
+useFill = true;
 StrokeWidth = 0;
 StrokeWeight = 1;
 
@@ -184,7 +191,6 @@ surface = nil;
 appContext = nil;
 appImage = nil;
 
-appFontFace = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
 
 --[[
     These are functions that are globally available, so user code
@@ -585,14 +591,9 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     --    res = CommandActivity(hwnd, msg, wparam, lparam)
 ---[[
     elseif msg == C.WM_ERASEBKGND then
-        print("WM_ERASEBKGND")
+        --print("WM_ERASEBKGND")
         local hdc = ffi.cast("HDC", wparam); 
-        --GetClientRect(hwnd, &rc); 
-        --SetMapMode(hdc, MM_ANISOTROPIC); 
-        --SetWindowExtEx(hdc, 100, 100, NULL); 
-        --SetViewportExtEx(hdc, rc.right, rc.bottom, NULL); 
-        --FillRect(hdc, &rc, hbrWhite); 
-        --print("ERASE")
+
         res = 1; 
 --]]
     elseif msg == C.WM_PAINT then
@@ -755,10 +756,11 @@ end
 
 local function handleFrame()
     if LoopActive and EnvironmentReady then
+        frameCount = frameCount + 1;
+
         if draw then
             redraw();
         end
-        frameCount = frameCount + 1;
     end
 end
 

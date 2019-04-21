@@ -1,6 +1,8 @@
 package.path = "../?.lua;"..package.path;
 
 require("p5")
+local stats = require("P5Status")()
+
 
 --[[
     Torture test for creating pens
@@ -37,6 +39,7 @@ function draw()
         end
     end
 
+    stats:draw()
 end
 
 

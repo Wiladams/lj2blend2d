@@ -7,12 +7,13 @@
 --]]
 
 local ffi = require("ffi")
+local C = ffi.C 
 
 if not BLEND2D_BLGLYPHBUFFER_H then
 BLEND2D_BLGLYPHBUFFER_H = true
 
 require("blend2d.blfontdefs")
-
+local blapi = require("blend2d.blapi")
 
 ffi.cdef[[
 //! Glyph buffer [C Data].
@@ -45,4 +46,43 @@ struct BLGlyphBufferCore {
 };
 ]]
 
+BLGlyphBuffer = ffi.typeof("struct BLGlyphBufferCore")
+local BLGlyphBuffer_mt = {
+    __gc = function(self)
+        blapi.blGlyphBufferReset(self)
+    end;
+
+    __new = function(ct, ...)
+        local obj = ffi.new(ct)
+        local bResult = blapi.blGlyphBufferInit(obj)
+        if bResult ~= C.BL_SUCCESS then
+          return false, bResult;
+        end
+
+        return obj;
+    end;
+
+    __index = {
+        clear = function(self)
+            local bResult = blapi.blGlyphBufferClear(self);
+            if bResult ~= C.BL_SUCCESS then 
+                return false, bResult;
+            end
+
+            return true;
+        end;
+
+        setText = function(self, txt, encoding)
+            encoding = encoding or C.BL_TEXT_ENCODING_UTF8
+            local bResult = blapi.blGlyphBufferSetText(self, ffi.cast("const void*",txt), #txt, encoding)
+        end;
+
+        
+    };
+}
+ffi.metatype(BLGlyphBuffer, BLGlyphBuffer_mt)
+
+--[[
+BLResult __cdecl blGlyphBufferSetGlyphIds(BLGlyphBufferCore* self, const void* data, intptr_t advance, size_t size) ;
+]]
 end -- BLEND2D_BLGLYPHBUFFER_H

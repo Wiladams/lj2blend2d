@@ -2,8 +2,8 @@ local ffi = require("ffi")
 
 ffi.cdef[[
 struct Point {
-    int x;
-    int y;
+    double x;
+    double y;
 }
 ]]
 Point = ffi.typeof("struct Point")
@@ -26,5 +26,25 @@ local function test_struct()
 
 end
 
+local function test_array()
+    local pts = {
+        {200; 320};
+        {80; 160};
+        {220; 200};
+        {300; 40};
+        {380; 200};
+        {520; 160};
+        {400; 320};
+    }
 
-test_struct();
+    local npts = #pts
+    local apts = ffi.new("struct Point[?]", npts,pts)
+
+    for i=0, npts-1 do
+        print(apts[i].x, apts[i].y)
+    end
+
+end
+
+--test_struct();
+test_array();
