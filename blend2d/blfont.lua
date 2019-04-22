@@ -131,12 +131,9 @@ BLFontLoader_mt = {
 ffi.metatype(BLFontLoader, BLFontLoader_mt)
 
 --[[
-  BLResult __cdecl blFontLoaderInit(BLFontLoaderCore* self) ;
-BLResult __cdecl blFontLoaderReset(BLFontLoaderCore* self) ;
 BLResult __cdecl blFontLoaderAssignMove(BLFontLoaderCore* self, BLFontLoaderCore* other) ;
 BLResult __cdecl blFontLoaderAssignWeak(BLFontLoaderCore* self, const BLFontLoaderCore* other) ;
 bool     __cdecl blFontLoaderEquals(const BLFontLoaderCore* a, const BLFontLoaderCore* b) ;
-BLResult __cdecl blFontLoaderCreateFromFile(BLFontLoaderCore* self, const char* fileName) ;
 BLResult __cdecl blFontLoaderCreateFromDataArray(BLFontLoaderCore* self, const BLArrayCore* dataArray) ;
 BLResult __cdecl blFontLoaderCreateFromData(BLFontLoaderCore* self, const void* data, size_t size, BLDestroyImplFunc destroyFunc, void* destroyData) ;
 BLFontDataImpl* __cdecl blFontLoaderDataByFaceIndex(BLFontLoaderCore* self, uint32_t faceIndex) ;

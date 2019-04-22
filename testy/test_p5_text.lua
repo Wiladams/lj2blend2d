@@ -9,11 +9,12 @@ function setup()
 
 end
 
+
 function draw()
     background(0x80)
     
     stroke(0xff, 0,0)
-    
+
     line(width/2 - 20, height/2, width/2 + 20, height/2)
     line(width/2, height/2-20, width/2, height/2+20)
  

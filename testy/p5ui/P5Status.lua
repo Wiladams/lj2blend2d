@@ -26,7 +26,8 @@ function P5Status.draw(self)
     
     -- Draw the text
     fill(0)
-    local frameText = string.format("Set: %d Frame: %d  Rate: %f", frameRate(), frameCount, frameCount/seconds())
+    local frameText = string.format("Set: %d Frame: %d  Rate: %f    Mouse: %d  %d", frameRate(), frameCount, frameCount/seconds(),
+        mouseX or 0, mouseY or 0)
     text(frameText, 10, height-4)
 
 end

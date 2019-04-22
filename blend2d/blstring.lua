@@ -52,5 +52,12 @@ struct BLStringCore {
   BLStringImpl* impl;
 };
 ]]
+BLString = ffi.typeof("struct BLStringCore")
+ffi.metatype(BLString, {
+  -- make easy conversion using tostring()
+  __tostring = function(self)
+    return ffi.string(self.impl.data, self.impl.size)
+  end;
+})
 
 end -- BLEND2D_BLSTRING_H

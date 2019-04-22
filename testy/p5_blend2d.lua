@@ -452,8 +452,14 @@ function rect(...)
 
 	local x1, y1, rwidth, rheight = calcModeRect(RectMode, ...)
 
-    if nargs == 4 then
-        appContext:fillRectD(x1, y1, rwidth, rheight)
+	if nargs == 4 then
+		if useFill then
+		appContext:fillRectD(x1, y1, rwidth, rheight)
+		end
+
+		if useStroke then
+			appContext:strokeRectD(BLRect(x1, y1, rwidth, rheight))
+		end
     elseif nargs == 5 then
         -- do rounded rect
 	end
