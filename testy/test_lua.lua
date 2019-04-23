@@ -46,5 +46,45 @@ local function test_array()
 
 end
 
+local function test_class()
+    local Drawable = {
+        Bounds = {x = 0; y = 0; width = 1; height = 1;};
+    }
+
+    function Drawable.new(self, obj)
+        obj = obj or {}
+        setmetatable(obj, self)
+        self.__index = self;
+        return obj;
+    end
+
+    function Drawable:drawBegin()
+    end
+
+    function Drawable:drawBody()
+        print("Drawable.drawBody")
+    end
+
+    function Drawable:drawEnd()
+    end
+
+    function Drawable:draw()
+        drawBegin()
+        drawBody()
+        drawEnd()
+    end
+
+    local GRectangle = Drawable:new()
+    function GRectangle:drawBody()
+        rect(self.Frame.x, self.Frame.y, self.Frame.width, self.Frame.height)
+    end
+
+    local aRect = GRectangle:new {Frame = {x=10, y=10, width = 100, height=100}}
+end
+
+
+
+
 --test_struct();
-test_array();
+--test_array();
+test_class();

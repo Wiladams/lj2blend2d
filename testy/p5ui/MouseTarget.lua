@@ -1,35 +1,33 @@
-local MouseTarget = {}
-setmetatable(MouseTarget, {
-    __call = function (self, ...)
-        return self:new(...)
-    end;
-})
-local MouseTarget_mt = {
-    __index = MouseTarget;
-}
+local Drawable = require("p5ui.Drawable")
 
-function MouseTarget.new(self, params)
-    params = params or {
-        color = color(0);
+local MouseTarget = Drawable:new()
+--setmetatable(MouseTarget, {
+--    __call = function (self, ...)
+--        return self:new(...)
+--    end;
+--})
+
+function MouseTarget.new(self, obj)
+    print("MouseTarget.new")
+    obj = obj or {
+        color = 0;
         weight = 1;
     }
+    obj.color = obj.color or 0
+    obj.weight = obj.weight or 0.5
 
-
-    local obj = {
-        color = params.color or color(0);
-        weight = params.weight or 1;
-    }
-    setmetatable(obj, MouseTarget_mt)
-
+    setmetatable(obj, self)
+    self.__index = self;
     return obj;
 end
 
-function MouseTarget.draw(self)
+
+function MouseTarget:drawBody(drawingContext)
     if not mouseX then return end
 
     stroke(self.color)
     strokeWeight(self.weight)
-    
+
     -- vertical line
     line(mouseX, 0, mouseX, height-1)
     -- horizontal line

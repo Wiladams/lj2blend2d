@@ -46,19 +46,22 @@ local function displayLabeledData(txt, data, row)
     display {text = tostring(data), x = dataColumn, row = row, color = blue}
 end
 
-
+-- Font specific details
+-- from BLFontMetrics
 local detailArea = {
-    x = 240;
-    y = 80;
-    width = 360;
-    height = 360;
+    Frame = {
+        x = 240;
+        y = 80;
+        width = 360;
+        height = 360;
+    };
 }
 
 function detailArea.drawBegin(self)
     strokeWeight(2)
     stroke(0)
     fill(0xdd)
-    rect(0, 0, self.width, self.height)
+    rect(0, 0, self.Frame.width, self.Frame.height)
 end
 
 function detailArea.drawBody(self)
@@ -73,7 +76,7 @@ end
 
 function detailArea.draw(self)
     push()
-    translate(self.x, self.y)
+    translate(self.Frame.x, self.Frame.y)
 
     self:drawBegin()
     self:drawBody()
@@ -83,7 +86,8 @@ function detailArea.draw(self)
 end
 
 function setup()
-    target = MouseTarget({weight=0.5})
+    --target = MouseTarget:new({color = 0, weight=0.5})
+    target = MouseTarget:new({weight=0.5})
 
     face, err = BLFontFace:createFromFile(fontDir..fontName)
     if not face then
@@ -103,6 +107,7 @@ end
 function draw()
     background(0x70)
 
+    -- Font Face information
     local weight = face.impl.weight;
     local stretch = face.impl.stretch;
     local style = face.impl.style;

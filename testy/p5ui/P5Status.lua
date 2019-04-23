@@ -20,6 +20,7 @@ end
 
 function P5Status.draw(self)
     -- Frame the area
+
     rectMode(CORNER)
     fill(0xCC, 126)
     rect(0,height-20, width, 20)
