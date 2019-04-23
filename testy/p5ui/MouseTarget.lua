@@ -1,6 +1,8 @@
 local Drawable = require("p5ui.Drawable")
 
 local MouseTarget = Drawable:new()
+MouseTracker.__index = MouseTarget
+
 --setmetatable(MouseTarget, {
 --    __call = function (self, ...)
 --        return self:new(...)
@@ -17,7 +19,8 @@ function MouseTarget.new(self, obj)
     obj.weight = obj.weight or 0.5
 
     setmetatable(obj, self)
-    self.__index = self;
+    --self.__index = self;
+    
     return obj;
 end
 

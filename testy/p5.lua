@@ -29,6 +29,7 @@ local rshift, lshift = bit.rshift, bit.lshift;
 local win32 = require("win32")
 local sched = require("scheduler")
 local BLDIBSection = require("BLDIBSection")
+local blerror = require("blerror")
 require("p5_blend2d")
 
 local exports = {}
@@ -123,10 +124,10 @@ width = false;
 height = false;
 
 -- Mouse state changing live
-mouseX = false;
-mouseY = false;
-pMouseX = false;
-pMouseY = false;
+mouseX = 0;
+mouseY = 0;
+pMouseX = 0;
+pMouseY = 0;
 winMouseX = false;
 winMouseY = false;
 pwinMouseX = false;
@@ -176,8 +177,8 @@ TextHAlignment = LEFT;
 TextVAlignment = BASELINE;
 TextLeading = 0;
 TextMode = SCREEN;
-appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
-print("appFontFace: ", appFontFace, err)
+appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\alger.ttf")
+print("appFontFace: ", appFontFace, blerror[err])
 
 appFont, err = appFontFace:createFont(TextSize)
 
@@ -661,7 +662,7 @@ local function msgLoop()
             -- before actually halting.  That will give the app a chance
             -- to do some cleanup
             if msg.message == C.WM_QUIT then
-                print("msgLoop - QUIT")
+                --print("msgLoop - QUIT")
                 halt();
             end
 
@@ -671,8 +672,7 @@ local function msgLoop()
 
         yield();
     end
-
-    --print("msgLoop - END")        
+       
 end
 
 

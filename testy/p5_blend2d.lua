@@ -211,6 +211,7 @@ end
 --[[
     COLOR
 ]]
+
 function color(...)
 	local nargs = select('#', ...)
 
@@ -271,6 +272,14 @@ function alpha(c)
 	return c.a
 end
 
+function lerpColor(from, to, f)
+	local r = lerp(from.r, to.r, f)
+	local g = lerp(from.g, to.g, f)
+	local b = lerp(from.b, to.b, f)
+	local a = lerp(from.a, to.a, f)
+	
+	return color(r,g,b,a)
+end
 
 function fill(...)
 	local c = select(1,...)
@@ -395,13 +404,12 @@ end
 
 function polyline(pts)
 	local npts = #pts
-	local apts = ffi.new("POINT[?]", npts,pts)
+	local apts = ffi.new("BLPoint[?]", npts,pts)
 	--local res = surface.DC:Polyline(apts, npts)
 end
 
 function quad(x1, y1, x2, y2, x3, y3, x4, y4)
-	local pts = ffi.new("POINT[4]", {{x1,y1},{x2,y2},{x3,y3},{x4,y4}})
-	polygon(pts)
+	polygon({{x1,y1},{x2,y2},{x3,y3},{x4,y4}})
 end
 
 local function calcModeRect(mode, ...)
@@ -747,7 +755,34 @@ function loadFont(faceFilename)
 	appFontFace = aFace;
 end
 
+function textSize(asize)
+	aFont, err = appFontFace:createFont(asize)
+	if not aFont then 
+		return false;
+	end
+
+	appFont = aFont
+	TextSize = asize
+
+	return true;
+end
+
+local function calcTextPosition(txt, x, y)
+	if TextHAlignment == LEFT then
+		x = x
+	elseif TextHAlignment == CENTER then
+		local cx = textWidth(txt)
+		x = x - (cx/2)
+	elseif TextHAlignment == RIGHT then
+		local cx = textWidth(txt)
+		x = x - cx;
+	end
+
+	return x, y
+end
+
 function text(txt, x, y)
+	local x, y = calcTextPosition(txt, x, y)
 	appContext:fillUtf8Text(BLPoint(x,y), appFont, txt, #txt)
 end
 
@@ -766,22 +801,11 @@ function textMode(mode)
 	TextMode = mode
 end
 
-function textSize(asize)
-	aFont, err = appFontFace:createFont(asize)
-	if not aFont then 
-		return false;
-	end
 
-	appFont = aFont
-	TextSize = asize
-
-	return true;
-end
 
 -- measure how wide a piece of text is
 function textWidth(txt)
-	twidth, theight = Processing.Renderer:MeasureString(txt)
-	return Processing.GetTextWidth(astring)
+	return appFont:measureText(txt)
 end
 
 function textFont(fontname)

@@ -772,11 +772,11 @@ local function run(func, ...)
 		Kernel.Scheduler:step();		
 		local success = alarm_taskReadyToRun()
 	end
-	print("run(): broken out of loop")
+	--print("run(): broken out of loop")
 end
 
 local function halt(self)
-	print("halt")
+	--print("halt")
 	Kernel.ContinueRunning = false;
 end
 

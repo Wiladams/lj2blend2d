@@ -77,7 +77,26 @@ local BLGlyphBuffer_mt = {
             local bResult = blapi.blGlyphBufferSetText(self, ffi.cast("const void*",txt), #txt, encoding)
         end;
 
-        
+
+
+        glyphPlacements = function(self)
+            local function iter()
+                for i=0, self.data.size do
+                    coroutine.yield(self.data.placementData[i])
+                end
+            end
+
+            return coroutine.wrap(iter)
+        end;
+
+        textAdvance = function(self)
+            local cx = 0;
+            for placement in self:glyphPlacements() do
+              cx = cx + (placement.advance.x/64);
+            end
+
+            return cx
+        end;
     };
 }
 ffi.metatype(BLGlyphBuffer, BLGlyphBuffer_mt)
