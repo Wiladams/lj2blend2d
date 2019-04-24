@@ -335,9 +335,14 @@ BLFont_mt = {
     end;
 
     __index = {
-        createFromFace = function(self, face, size)
-            local bResult = blapi.blFontCreateFromFace(self, face, size) ;
-            return bResult == C.BL_SUCCESS or bResult;
+        getTextMetrics = function(self, glyphBuff, metrics)
+            metrics = metrics or BLTextMetrics();
+            local bResult = blapi.blFontGetTextMetrics(self, glyphBuff, metrics) ;
+            if bResult ~= C.BL_SUCCESS then
+              return false, bResult;
+            end
+
+            return metrics;
         end;
 
         shape = function(self, gbuff)
@@ -350,13 +355,19 @@ BLFont_mt = {
         end;
 
         measureText = function(self, txt)
-            local gbuf = BLGlyphBuffer()
-            local metrics = BLTextMetrics()
+            local gbuff = BLGlyphBuffer()
+            --local metrics = BLTextMetrics()
 
-            gbuf:setText(txt)
-            self:shape(gbuf)
+            gbuff:setText(txt)
+            self:shape(gbuff)
 
-            local cx = gbuf:textAdvance();
+            local metrics, err = self:getTextMetrics(gbuff)
+
+            if not metrics then
+              return false, err;
+            end
+
+            local cx = metrics.boundingBox.x1 - metrics.boundingBox.x0;
             local cy = self.impl.metrics.size;
 
             return cx, cy

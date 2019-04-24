@@ -13,7 +13,7 @@ package.path = "../?.lua;"..package.path;
 local ffi = require("ffi")
 
 require("p5")
-local stats = require("P5Status")()
+local stats = require("p5ui.P5Status")()
 
 
 -- A simple Particle class

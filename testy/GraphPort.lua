@@ -828,8 +828,6 @@ function GraphPort.noTint(self)
 end
 
 -- Pixels
-
-
 function GraphPort.blend(self)
 end
 

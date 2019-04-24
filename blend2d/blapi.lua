@@ -1015,7 +1015,7 @@ BLResult __cdecl blPathReset(BLPathCore* self) ;
 size_t   __cdecl blPathGetSize(const BLPathCore* self) ;
 size_t   __cdecl blPathGetCapacity(const BLPathCore* self) ;
 const uint8_t* __cdecl blPathGetCommandData(const BLPathCore* self) ;
-const BLPoint* __cdecl blPathGetVertexdData(const BLPathCore* self) ;
+const BLPoint* __cdecl blPathGetVertexData(const BLPathCore* self) ;
 BLResult __cdecl blPathClear(BLPathCore* self) ;
 BLResult __cdecl blPathShrink(BLPathCore* self) ;
 BLResult __cdecl blPathReserve(BLPathCore* self, size_t n) ;
