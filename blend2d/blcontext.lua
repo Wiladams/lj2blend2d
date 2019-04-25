@@ -442,18 +442,22 @@ ffi.metatype(BLContextCore, {
       -- overloaded rotate
       -- 1 value - an angle (in radians)
       -- 3 values - an angle, and a point to rotate around
-      rotate = function(self, ...)
-          local nargs = select('#', ...)
-          if nargs == 1 then
-              return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",...));
-          elseif nargs == 2 then
-              -- rotate around a PointI, or PointD with an angle
+      rotate = function(self, rads, x, y)
+          if not y then
+              if not x then
+                  if not rads then
+                    return false, 'invalid arguments'
+                  end
+                  -- single argument specified
+                  return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",rads));
+              end
+              -- there are two parameters
+              -- radians, and hopefully a BLPoint struct
               error("BLContext.rotate(angle, Point), NYI")
-          elseif nargs == 3 then
-              --local angle = select(1, ...)
-              --local x = select(2,...)
-              --local y = select(3,...)
-              return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,...);
+          end
+
+          if rads and x and y then
+              return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
           end
       end;
 
@@ -463,16 +467,19 @@ ffi.metatype(BLContextCore, {
 
       scale = function(self, ...)
           local nargs = select('#',...)
+          --print("nargs: ", nargs)
           local x, y = 1, 1;
           if nargs == 1 then
               if typeof(select(1,...) == "number") then
                   x = select(1,...)
                   y = x;
+                  --print("blcontext.scale: ", x, y)
                   return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
               end
           elseif nargs == 2 then
-              x = tonumber(select(1,...))
-              y = tonumber(select(2,...))
+              x = select(1,...)
+              y = select(2,...)
+
               if x and y then
                   return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
               end
@@ -502,6 +509,17 @@ ffi.metatype(BLContextCore, {
         return bResult == 0 or bResult;
       end;
 
+
+      --[[
+        Actual Drawing
+      ]]
+      blit = function(self, img, pt)
+      --BLResult __cdecl blContextBlitImageD(BLContextCore* self, const BLPoint* pt, const BLImageCore* img, const BLRectI* imgArea) ;
+      end;
+
+      stretchBlt = function(self, dstRect, img, imgArea)
+          local bResult = blapi.blContextBlitScaledImageD(self, dstRect, img, imgArea) ;
+      end;
 
       setStrokeStartCap = function(self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
@@ -632,13 +650,7 @@ ffi.metatype(BLContextCore, {
           end
       end;
 
-      strokeTriangle = function(self, ...)
-          local nargs = select("#",...)
-          if nargs == 6 then
-              local tri = BLTriangle(...)
-              self:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
-          end    
-      end;
+
 --[[
     //! Fills a rounded rectangle.
   BL_INLINE BLResult fillRoundRect(const BLRoundRect& rr) noexcept { return fillGeometry(BL_GEOMETRY_TYPE_ROUND_RECT, &rr); }
@@ -653,6 +665,9 @@ ffi.metatype(BLContextCore, {
 
 ]]
       -- Fills the passed UTF-8 text by using the given `font`.
+      -- the 'size' is the number of characters in the text.
+      -- This is vague, as for utf8 and latin, it's a one to one with 
+      -- the bytes.  With unicode, it's the number of code points.
       fillUtf8Text = function(self, dst, font, text, size)
           size = size or math.huge
           return self.impl.virt.fillTextD(self.impl, dst, font, text, size, C.BL_TEXT_ENCODING_UTF8);
@@ -662,9 +677,7 @@ ffi.metatype(BLContextCore, {
       --[[
         BLResult __cdecl 
 BLResult __cdecl blContextSetStrokeMiterLimit(BLContextCore* self, double miterLimit) ;
-BLResult __cdecl blContextSetStrokeCap(BLContextCore* self, uint32_t position, uint32_t strokeCap) ;
 BLResult __cdecl blContextSetStrokeCaps(BLContextCore* self, uint32_t strokeCap) ;
-BLResult __cdecl blContextSetStrokeJoin(BLContextCore* self, uint32_t strokeJoin) ;
 BLResult __cdecl blContextSetStrokeDashOffset(BLContextCore* self, double dashOffset) ;
 BLResult __cdecl blContextSetStrokeDashArray(BLContextCore* self, const BLArrayCore* dashArray) ;
 BLResult __cdecl blContextSetStrokeTransformOrder(BLContextCore* self, uint32_t transformOrder) ;
@@ -680,6 +693,16 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
 
       strokeGeometry = function(self, geometryType, geometryData)
         local bResult = self.impl.virt.strokeGeometry(self.impl, geometryType, geometryData);
+        return bResult == 0 or bResult;
+      end;
+      
+      strokeGlyphRunI = function(self, pt, font, glyphRun)
+        local bResult = self.impl.virt.strokeGlyphRunI(self.impl,  pt, font, glyphRun);
+        return bResult == 0 or bResult;
+      end;
+
+      strokeGlyphRunD = function(self, pt, font, glyphRun)
+        local bResult = self.impl.virt.strokeGlyphRunD(self.impl, pt, font, glyphRun);
         return bResult == 0 or bResult;
       end;
       
@@ -733,15 +756,15 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
         return bResult == 0 or bResult;
       end;
 
-      strokeGlyphRunI = function(self, pt, font, glyphRun)
-        local bResult = self.impl.virt.strokeGlyphRunI(self.impl,  pt, font, glyphRun);
-        return bResult == 0 or bResult;
+      strokeTriangle = function(self, ...)
+        local nargs = select("#",...)
+        if nargs == 6 then
+            local tri = BLTriangle(...)
+            self:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
+        end    
       end;
 
-      strokeGlyphRunD = function(self, pt, font, glyphRun)
-        local bResult = self.impl.virt.strokeGlyphRunD(self.impl, pt, font, glyphRun);
-        return bResult == 0 or bResult;
-      end;
+
     };
 })
 

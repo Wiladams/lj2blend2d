@@ -711,8 +711,8 @@ function translate(x, y, z)
 	return appContext:translate(x, y);
 end
 
-function rotate(rads)
-	return appContext:rotate(rads)
+function rotate(rads, x, y)
+	return appContext:rotate(rads, x, y)
 end
 
 function rotateX(rad)
@@ -724,8 +724,15 @@ end
 function rotateZ(rad)
 end
 
-function scale(sx, sy, sz)
-	
+function scale(sx, sy)
+	if not sy then
+		if not sx then
+			return false, "no scale specified"
+		end
+		sy = sx
+	end
+
+	appContext:scale(sx, sy)
 end
 
 function shearX()
@@ -856,39 +863,32 @@ end
     copy one pixel buffer to another
     without any blending operation
 
-    need to do clipping
+	need to do clipping
+
+	image(img, x, y, [width], [height])
+	image(img, dx, dy, dWidth, dHeight, sx, sy, [sWidth], [sHeight])
 ]]
-function image(img, dstX, dstY, awidth, aheight)
+function image(img, dx, dy, dWidth, dHeight, sx, sy, sWidth, sHeight)
 	if not img then
 		return false, 'no image specified'
 	end
 
-	--print("image(), img.width, img.height: ", img.Width, img.Height)
-	--print("  width, height: ", width, height)
---	surface.DC:StretchBlt(img, dstX, dstY,awidth,aheight)
----[=[
-	-- need to do some clipping
-	dstX = dstX or 0
-	dstY = dstY or 0
+	local imgSize = img:size()
+	sx = sx or 0
+	sy = sy or 0
+	sWidth = sWidth or imgSize.w;
+	sHeight = sHeight or imgSize.h;
 
-	-- find intersection of two rectangles
-	local r1 = Rectangle(dstX, dstY, img.Width, img.Height)
-	local r2 = Rectangle(0,0, width, height)
-	local visible = r2:intersection(r1)
-	
-	--print("image: ", src.Width, src.Height)
-	local pixelPtr = ffi.cast("struct Pixel32 *", surface.pixelData.data)
-    for y= 0, img.Height-1 do
-		for x=0, img.Width-1 do
-			if visible:contains(x,y) then
-				local c = img:get(x,y)
-            	--set(dstX+x, dstY+y, c)
-				pixelPtr[y*width+x].cref = c.cref
-			end
-        end
-	end
+	dWidth = dWidth or sWidth;
+	dHeight = dHeight or sHeight;
+	dx = dx or 0;
+	dy = dy or 0;
 
---]=]
+	--BLResult __cdecl blContextBlitScaledImageD(BLContextCore* self, const BLRect* rect, const BLImageCore* img, const BLRectI* imgArea) ;
+	local dstRect = BLRect(dx, dy, dWidth, dHeight)
+	local imgArea = BLRectI(sx, sy, sWidth, sHeight)
+	appContext:stretchBlt(dstRect, img, imgArea)
+
 end
 
 function imageMode()

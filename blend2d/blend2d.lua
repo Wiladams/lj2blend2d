@@ -18,8 +18,6 @@
 
 local ffi = require("ffi")
 
-if not BLEND2D_H then
-BLEND2D_H = true
 
 require("blend2d.blapi");
 require("blend2d.blarray");
@@ -44,6 +42,14 @@ require("blend2d.blruntime");
 require("blend2d.blstring");
 require("blend2d.blvariant");
 
-end -- BLEND2D_H
+
+
+-- blcontext types
+BLContextCreateOptions = ffi.new("struct BLContextCreateOptions")
+BLContextCookie = ffi.typeof("struct BLContextCookie")
+BLContextHints = ffi.typeof("struct BLContextHints")
+BLContextState = ffi.typeof("struct BLContextState")
+BLContext = ffi.typeof("struct BLContextCore")
+
 
 return ffi.load("blend2d")

@@ -1,10 +1,19 @@
 --[[
-    This must be required by p5.lua, do not use it directly
-	as it utilizes globals found in there.
-	
-	--transparency and GDI
-	https://parnassus.co/transparent-graphics-with-pure-gdi-part-2-and-introducing-the-ttransparentcanvas-class/
+    GraphPort
 
+    A 2D graphics API which gives a feel like Processing, or P5.
+    A graphport is meant to have a rendering context, which adheres
+    to the rendering context API, which has less convenience, and is
+    more raw like the blend2d api.
+
+    This rendering context must be passed in to the constructor of
+    a graphport.
+
+    The GraphPort is stateful.  It may choose to maintain state within 
+    the object itself, or within the rendering context, depending on what
+    the context is capable of.
+
+    A graphport can be sub-classed for additional functionality.
 ]]
 
 local ffi = require("ffi")
@@ -12,13 +21,13 @@ local C = ffi.C
 
 
 
-local FillColor = BLRgba32({255,255,255,255})
-local StrokeColor = BLRgba32({0,0,0,255})
 
 local GraphPort = {
--- Blend Kinds
-BLEND 		= C.BL_COMP_OP_SRC_OVER;
-REPLACE		= C.BL_COMP_OP_SRC_COPY;
+
+
+    -- Blend Kinds
+    BLEND 		= C.BL_COMP_OP_SRC_OVER;
+    REPLACE		= C.BL_COMP_OP_SRC_COPY;
 --= C.BL_COMP_OP_SRC_IN = 2;
 --= C.BL_COMP_OP_SRC_OUT = 3;
 --= C.BL_COMP_OP_SRC_ATOP = 4;
@@ -54,14 +63,21 @@ JOIN_MITER_ROUND = C.BL_STROKE_JOIN_MITER_ROUND;
 JOIN_BEVEL = C.BL_STROKE_JOIN_BEVEL;
 JOIN_ROUND = C.BL_STROKE_JOIN_ROUND;
 
--- Endcap style
-CAP_BUTT = 0;
-CAP_SQUARE = 1;
-CAP_ROUND = 2;
-CAP_ROUND_REV = 3;
-CAP_TRIANGLE = 4;
-CAP_TRIANGLE_REV = 5;
+    -- Endcap style
+    CAP_BUTT = 0;
+    CAP_SQUARE = 1;
+    CAP_ROUND = 2;
+    CAP_ROUND_REV = 3;
+    CAP_TRIANGLE = 4;
+    CAP_TRIANGLE_REV = 5;
+
+    -- State information
+    FillColor = 255;
+    StrokeColor = 0;
+    useFilll = true;
+    useStroke = true;
 }
+
 --[[
     Expecting obj to have a ctxt object which implements a drawing
     API represented by the BLContext object
@@ -217,13 +233,13 @@ function GraphPort.fill(self, ...)
 
 	FillColor = c;
     renderer:setFillStyle(FillColor)
-	useFill = true;
+	self.useFill = true;
 
 	return true;
 end
 
 function GraphPort.noFill(self)
-	useFill = false;
+	self.useFill = false;
 
 	return true;
 end
@@ -319,11 +335,11 @@ function GraphPort.triangle(self, ...)
 end
 
 function GraphPort.polygon(self, pts)
-	if useFill then
+	if self.useFill then
 		renderer:fillPolygon(pts)
 	end
 
-	if useStroke then
+	if self.useStroke then
 		renderer:strokePolygon(pts)
 	end
 
@@ -386,11 +402,11 @@ function GraphPort.rect(self, ...)
 	local x1, y1, rwidth, rheight = calcModeRect(RectMode, ...)
 
 	if nargs == 4 then
-		if useFill then
+		if self.useFill then
 		renderer:fillRectD(x1, y1, rwidth, rheight)
 		end
 
-		if useStroke then
+		if self.useStroke then
 			renderer:strokeRectD(BLRect(x1, y1, rwidth, rheight))
 		end
     elseif nargs == 5 then
@@ -450,11 +466,11 @@ function GraphPort.ellipse(self, ...)
 	
 	local cx, cy, rx, ry = calcEllipseParams(EllipseMode, ...)
 
-	if useFill then
+	if self.useFill then
 		renderer:fillEllipse(cx, cy, rx, ry)
 	end
 	
-	if useStroke then
+	if self.useStroke then
 		local bResult, err = renderer:strokeEllipse(cx, cy, rx, ry)
 	end
 
@@ -770,7 +786,7 @@ end
 	IMAGE
 --]==============================]
 function GraphPort.createImage(self, awidth, aheight)
-
+    return BLImage(awidth, aheight)
 end
 
 -- Loading and Displaying
@@ -786,32 +802,6 @@ function GraphPort.image(self, img, dstX, dstY, awidth, aheight)
 		return false, 'no image specified'
 	end
 
-	--print("image(), img.width, img.height: ", img.Width, img.Height)
-	--print("  width, height: ", width, height)
---	surface.DC:StretchBlt(img, dstX, dstY,awidth,aheight)
----[=[
-	-- need to do some clipping
-	dstX = dstX or 0
-	dstY = dstY or 0
-
-	-- find intersection of two rectangles
-	local r1 = Rectangle(dstX, dstY, img.Width, img.Height)
-	local r2 = Rectangle(0,0, width, height)
-	local visible = r2:intersection(r1)
-	
-	--print("image: ", src.Width, src.Height)
-	local pixelPtr = ffi.cast("struct Pixel32 *", surface.pixelData.data)
-    for y= 0, img.Height-1 do
-		for x=0, img.Width-1 do
-			if visible:contains(x,y) then
-				local c = img:get(x,y)
-            	--set(dstX+x, dstY+y, c)
-				pixelPtr[y*width+x].cref = c.cref
-			end
-        end
-	end
-
---]=]
 end
 
 function GraphPort.imageMode(self)
@@ -838,12 +828,10 @@ function GraphPort.filter(self)
 end
 
 function GraphPort.get(self, x, y)
-
 	return color(r,g,b)
 end
 
 function GraphPort.set(self, x,y,c)
-
 end
 
 function GraphPort.loadPixels(self)
