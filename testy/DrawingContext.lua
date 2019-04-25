@@ -152,10 +152,18 @@ setmetatable(DrawingContext, {
     end
 })
 
-function DrawingContext.new(self, ...)
+function DrawingContext.new(self, w, h)
     obj = obj or {}
     setmetatable(obj, self)
     self.__index = self;
+
+    obj.DC = ffi.new("struct BLContextCore")
+    obj.image = BLImage(w, h)
+    local bResult = blapi.blContextInitAs(obj.DC, obj.image, nil)
+    if bResult ~= C.BL_SUCCESS then
+      return nil, bResult;
+    end
+
 
     return obj;
 end
@@ -503,3 +511,5 @@ function DrawingContext.strokeTriangle (self, ...)
             self:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
         end    
 end
+
+return DrawingContext
