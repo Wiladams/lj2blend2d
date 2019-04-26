@@ -12,4 +12,4 @@ function draw()
     stats:draw()
 end
 
-go({frameRate=90})
+go({frameRate=100})

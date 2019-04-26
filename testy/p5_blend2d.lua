@@ -12,14 +12,16 @@ local C = ffi.C
 
 local b2d = require("blend2d.blend2d")
 
+local useStroke = true;
+local useFill = true;
 
 -- Stroke Attributes
 -- Joint styles
-JOIN_MITER_CLIP = C.BL_STROKE_JOIN_MITER_CLIP;
-JOIN_MITER_BEVEL = C.BL_STROKE_JOIN_MITER_BEVEL;
-JOIN_MITER_ROUND = C.BL_STROKE_JOIN_MITER_ROUND;
-JOIN_BEVEL = C.BL_STROKE_JOIN_BEVEL;
-JOIN_ROUND = C.BL_STROKE_JOIN_ROUND;
+JOIN_MITER_CLIP = 0;
+JOIN_MITER_BEVEL = 1;
+JOIN_MITER_ROUND = 2;
+JOIN_BEVEL = 3;
+JOIN_ROUND = 4;
 
 -- Endcap style
 CAP_BUTT = 0;
@@ -63,8 +65,8 @@ CAP_TRIANGLE_REV = 5;
 
 
 
-local solidBrushes = {}
-local solidPens = {}
+--local solidBrushes = {}
+--local solidPens = {}
 local fontCache ={}			-- cache of fonts
 
 local GlobalPath = nil
@@ -83,89 +85,6 @@ function pop()
     appContext:restore();
 end
 
-local function getFont(name, size)
---[=[
-	local namecache = fontCache[name];
-	if namecache then
-		local afont = namecache[size]
-		if afont then
-			return afont
-		end
-	else
-		namecache = {}
-		fontCache[name] = namecache
-	end
-
-	-- create a new font of the specified size
-	--[[
-	local afont = ffi.C.CreateFontA(  int cHeight,  int cWidth,  int cEscapement,  int cOrientation,  int cWeight,  DWORD bItalic,
-	DWORD bUnderline,  DWORD bStrikeOut,  DWORD iCharSet,  DWORD iOutPrecision,  DWORD iClipPrecision,
-	DWORD iQuality,  DWORD iPitchAndFamily,  LPCSTR pszFaceName);
---]]
-	local cHeight = size;
-	local cWidth = 0;
-	local cEscapement = 0;
-	local cOrientation = 0;
-	local cWeight = ffi.C.FW_BOLD;
-	local bItalic = 0;
-	local bUnderline = 0;
-	local bStrikeOut = 0;
-	local iCharSet = 0;
-	local iOutPrecision = 0;
-	local iClipPrecision = 0;
-	local iQuality = 2;
-	local iPitchAndFamily = 0;
-	local pszFaceName = name
-	local afont = ffi.C.CreateFontA(cHeight, cWidth, cEscapement, cOrientation,  cWeight,  bItalic,
-	bUnderline,  bStrikeOut,  iCharSet,  iOutPrecision,  iClipPrecision,
-	iQuality,  iPitchAndFamily,  pszFaceName);
-	
-	-- add it to the name cache
-	namecache[size] = afont;
-
-	return afont;
---]=]
-end
-
-local function solidBrush(c)
-	local abrush = false;
-	
-	abrush = solidBrushes[tonumber(c.cref)]
-	--print("solidBrush: ", c.cref, abrush)
-	
-	if abrush then
-		return abrush, c;
-	end
-
-	abrush = ffi.C.CreateSolidBrush(c.cref);
-	solidBrushes[tonumber(c.cref)] = abrush;
-
-	return abrush, c;
-end
-
-local function solidPen(...)
-	local c = select(1, ...)
-	if type(c) ~= "cdata" then
-		c = color(...)
-	end
-	
-	local apen = solidPens[tonumber(c.cref)]
-
-	if apen then
-		return apen, c
-	end
-
-
-	apen = ffi.C.CreatePen(ffi.C.PS_SOLID, StrokeWidth, c.cref);
-	if not apen then 
-		return false, 'could not create solid pen'
-	end
-
-	solidPens[tonumber(c.cref)] = apen
-
-	return apen, c
-end
-
 -- ATTRIBUTES
 function blendMode(mode)
 	-- set compositing operator
@@ -173,11 +92,9 @@ function blendMode(mode)
 end
 
 function smooth()
-
 end
 
 function noSmooth()
-
 end
 
 function pointSize(ptSize)
@@ -334,6 +251,10 @@ function clear()
     appContext:restore();
 end
 
+-- The background could be either 
+-- a solid color, or an image
+-- or even a pattern or gradient
+-- Figure out which one it is and display
 function background(...)
 	local n = select('#', ...)
 	local c = select(1,...)
@@ -342,8 +263,9 @@ function background(...)
 	end
 
 	BackgroundColor = c;
+
     appContext:setFillStyle(BackgroundColor)
-	appContext:clear()
+	appContext:fillRectD(0,0,width,height)
 end
 
 function point(x,y,z)
@@ -378,7 +300,6 @@ function line(...)
 end
 
 function angleArc(x,y,r,startAt, endAt)
-	
 end
 
 function triangle(...)
@@ -747,6 +668,9 @@ end
 	TYPOGRAPHY
 --]==============================]
 
+local function getFont(name, size)
+end
+
 function createFont()
 end
 
@@ -775,16 +699,24 @@ function textSize(asize)
 end
 
 local function calcTextPosition(txt, x, y)
+	local cx, cy = textWidth(txt)
+
 	if TextHAlignment == LEFT then
 		x = x
 	elseif TextHAlignment == CENTER then
-		local cx = textWidth(txt)
 		x = x - (cx/2)
 	elseif TextHAlignment == RIGHT then
-		local cx = textWidth(txt)
 		x = x - cx;
 	end
 
+	if TextVAlignment == TOP then
+		y = y + cy;
+	elseif TextVAlignment == CENTER then 
+		y = y + cy / 2
+	elseif TextVAlignment == BASELINE then
+		y = y;
+	elseif TextVAlignment == BOTTOM then
+		y = y;	end
 	return x, y
 end
 
@@ -797,7 +729,7 @@ end
 
 function textAlign(halign, valign)
 	TextHAlignment = halign or LEFT
-	TextVAlignment = valign or TOP
+	TextVAlignment = valign or BASELINE
 end
 
 function textLeading(leading)

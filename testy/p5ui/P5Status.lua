@@ -15,7 +15,8 @@ function P5Status.new(self, ...)
     local obj = obj or {
         originX = 0;
         originY = 0;
-        height = 20
+        height = 20;
+        lasttime = 0;
     }
     obj.height = obj.height or 20;
 
@@ -26,6 +27,9 @@ end
 
 function P5Status.draw(self)
     -- Frame the area
+    local thistime = millis();
+    local elapsed = thistime - self.lasttime;
+    self.lasttime = thistime;
 
     push()
     translate(self.originX, self.originY)
@@ -35,8 +39,8 @@ function P5Status.draw(self)
     
     -- Draw the text
     fill(0)
-    local frameText = string.format("Set: %d Frame: %d  Rate: %f    Mouse: %d  %d", 
-        frameRate(), frameCount, frameCount/seconds(),
+    local frameText = string.format("Fate: %d Frame: %d  Period: %d Rate: %f    Mouse: %d  %d", 
+        frameRate(), frameCount, elapsed, frameCount/seconds(),
         mouseX or 0, mouseY or 0)
 
 

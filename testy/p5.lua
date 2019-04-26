@@ -154,7 +154,7 @@ keyCode = false;
 
 
 -- Touch events
-touches = false;
+touches = 0;
 -- touchStarted()
 -- touchMoved()
 -- touchEnded()
@@ -177,16 +177,14 @@ TextHAlignment = LEFT;
 TextVAlignment = BASELINE;
 TextLeading = 0;
 TextMode = SCREEN;
+
 --appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\alger.ttf")
 appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
-print("appFontFace: ", appFontFace, blerror[err])
+--print("appFontFace: ", appFontFace, blerror[err])
 
 appFont, err = appFontFace:createFont(TextSize)
 
 
-useStroke = true;
-useFill = true;
-StrokeWidth = 0;
 StrokeWeight = 1;
 
 surface = nil;
@@ -386,9 +384,6 @@ end
 function redraw()
     if draw then
         draw();
-        if surface then
-            --appContext:flush();
-        end
     end
 
     refreshWindow();
@@ -396,6 +391,13 @@ function redraw()
     return true;
 end
 
+local function handleFrame()
+    if LoopActive and EnvironmentReady then
+        frameCount = frameCount + 1;
+
+        redraw()
+    end
+end
 
 
 
@@ -665,6 +667,14 @@ local function msgLoop()
         end
 
         yield();
+
+        -- ideally this routine would be a coroutine
+        -- at the scheduler level, switching between 
+        -- normal scheduled tasks, and windows message looping
+        -- then message processing would be better interspersed
+        -- with tasks, rather than being scheduled at the end
+        -- of the ready list
+        --coroutine.yield(true)
     end
        
 end
@@ -748,23 +758,13 @@ local function setupUIHandlers()
 
 end
 
-local function handleFrame()
-    if LoopActive and EnvironmentReady then
-        frameCount = frameCount + 1;
-
-        if draw then
-            redraw();
-        end
-    end
-end
-
 local function showWindow()
     C.ShowWindow(appWindowHandle, C.SW_SHOWNORMAL);
 end
 
 local function main(params)
 
-    FrameRate = params.frameRate or 15;
+    FrameRate = params.frameRate or 30;
 
     -- make a local for 'onMessage' global function    
     if onMessage then
@@ -793,7 +793,9 @@ local function main(params)
     if setup then
         setup();
     end
-    redraw();
+
+    redraw()
+
     yield();
 
     -- setup the periodic frame calling

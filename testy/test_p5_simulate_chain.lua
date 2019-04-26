@@ -2,7 +2,7 @@ package.path = "../?.lua;"..package.path;
 
 require("p5")
 
-local stats = require("P5Status")()
+local stats = require("p5ui.P5Status")()
 
 local function randomColor()
     local r = random(30,255)

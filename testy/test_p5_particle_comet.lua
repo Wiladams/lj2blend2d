@@ -156,4 +156,4 @@ function keyPressed()
     reset();
 end
 
-go {width =1024, height=768, frameRate = 60, title="Particle Comet"}
+go {width =1024, height=768, frameRate = 30, title="Particle Comet"}

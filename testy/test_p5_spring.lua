@@ -92,4 +92,4 @@ function mouseReleased()
   move = false;
 end
 
-go {width=710, height=400}
+go {width=710, height=400, frameRate=30, title="spring"}

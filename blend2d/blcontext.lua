@@ -613,7 +613,11 @@ ffi.metatype(BLContextCore, {
 
       fillRectI = function(self, rect)
         local bResult = self.impl.virt.fillRectI(self.impl, rect);
-        return bResult == 0 or bResult;
+        if bResult ~= C.BL_SUCCESS then
+          return false, bResult 
+        end
+
+        return self
       end;
 
       fillRectD = function(self, x, y, w, h)

@@ -1,6 +1,7 @@
 package.path = "../?.lua;"..package.path;
 
 require("p5")
+local stats = require("p5ui.P5status")()
 
 local t = 0; -- time variable
 
@@ -11,13 +12,13 @@ end
 
 function draw() 
   background(10, 10); -- translucent background (creates trails)
-  --background(10);
 
-  if not mouseX then return end
+  --background(10);
   
   --print(mouseX, mouseY)
 
   -- make a x and y grid of ellipses
+  fill(40, 200, 40);
   for x = 0, width, 30 do
     for y = 0, height, 30 do
       -- starting point of each circle depends on mouse position
@@ -35,6 +36,9 @@ function draw()
   end
 
   t = t + 0.01; -- update time
+
+  stats:draw();
+
 end
 
 go {width = 600, height == 600, frameRate=30}

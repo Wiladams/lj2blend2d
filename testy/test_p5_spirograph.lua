@@ -1,7 +1,7 @@
 package.path = "../?.lua;"..package.path;
 
 require("p5")
-local stats = require("P5Status")()
+local stats = require("p5ui.P5Status")()
 
 
 --[[

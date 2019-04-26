@@ -13,6 +13,7 @@ local ffi = require("ffi")
 local bit = require("bit")
 local band, bor = bit.band, bit.bor
 local lshift, rshift = bit.lshift, bit.rshift
+
 local enum = require("blend2d.enum")
 
 -- platform Byte ordering
@@ -435,6 +436,116 @@ typedef struct {
 
 typedef BLArrayView BLDataView;
 ]]
+
+
+    -- Rendering context type.
+    BLContextType = enum {
+      [0] = "BL_CONTEXT_TYPE_NONE",
+      "BL_CONTEXT_TYPE_DUMMY",
+      "BL_CONTEXT_TYPE_RASTER",
+      "BL_CONTEXT_TYPE_RASTER_ASYNC",
+
+      --[4] = "BL_CONTEXT_TYPE_COUNT"
+  };
+
+  -- Rendering context hint.
+  BLContextHint = enum {
+      [0] = "BL_CONTEXT_HINT_RENDERING_QUALITY" = 0,
+      [1] = "BL_CONTEXT_HINT_GRADIENT_QUALITY" = 1,
+      [2] = "BL_CONTEXT_HINT_PATTERN_QUALITY" = 2,
+
+      --[8] = "BL_CONTEXT_HINT_COUNT" = 8
+  };
+
+  -- Describes a rendering operation type - fill or stroke.
+  BLContextOpType = enum {
+      [0] = "BL_CONTEXT_OP_TYPE_FILL",
+      [1] = "BL_CONTEXT_OP_TYPE_STROKE",
+
+      --[2] = "BL_CONTEXT_OP_TYPE_COUNT"
+  };
+
+  -- Rendering context flush-flags, use with `BLContext::flush()`.
+  BLContextFlushFlags = enum {
+      [0x80000000] = "BL_CONTEXT_FLUSH_SYNC"
+  };
+
+
+  BLContextCreateFlags = enum {
+      [0x10000000] = "BL_CONTEXT_CREATE_FLAG_ISOLATED_RUNTIME",
+      [0x20000000] = "BL_CONTEXT_CREATE_FLAG_OVERRIDE_FEATURES"
+  };
+
+  -- Clip operation.
+  BLClipOp = enum {
+      [0] = "BL_CLIP_OP_REPLACE",
+      [1] = "BL_CLIP_OP_INTERSECT",
+
+      --[2] = BL_CLIP_OP_COUNT"
+  };
+
+  -- Clip mode.
+  BLClipMode = enum {
+      [0] = "BL_CLIP_MODE_ALIGNED_RECT";
+      "BL_CLIP_MODE_UNALIGNED_RECT" = 1;
+      "BL_CLIP_MODE_MASK" = 2;
+
+      --BL_CLIP_MODE_COUNT = 3
+  };
+
+  -- Composition & blending operator.
+  BLCompOp = enum {
+      [0] = "BL_COMP_OP_SRC_OVER";
+      "BL_COMP_OP_SRC_COPY";
+      "BL_COMP_OP_SRC_IN";
+      "BL_COMP_OP_SRC_OUT";
+      "BL_COMP_OP_SRC_ATOP";
+      "BL_COMP_OP_DST_OVER";
+      "BL_COMP_OP_DST_COPY";
+      "BL_COMP_OP_DST_IN";
+      "BL_COMP_OP_DST_OUT";
+      "BL_COMP_OP_DST_ATOP";
+      "BL_COMP_OP_XOR";
+      "BL_COMP_OP_CLEAR";
+      "BL_COMP_OP_PLUS";
+      "BL_COMP_OP_MINUS";
+      "BL_COMP_OP_MULTIPLY";
+      "BL_COMP_OP_SCREEN";
+      "BL_COMP_OP_OVERLAY";
+      "BL_COMP_OP_DARKEN";
+      "BL_COMP_OP_LIGHTEN";
+      "BL_COMP_OP_COLOR_DODGE";
+      "BL_COMP_OP_COLOR_BURN";
+      "BL_COMP_OP_LINEAR_BURN";
+      "BL_COMP_OP_LINEAR_LIGHT";
+      "BL_COMP_OP_PIN_LIGHT";
+      "BL_COMP_OP_HARD_LIGHT";
+      "BL_COMP_OP_SOFT_LIGHT";
+      "BL_COMP_OP_DIFFERENCE";
+      "BL_COMP_OP_EXCLUSION";
+
+      --"BL_COMP_OP_COUNT"
+  };
+
+  -- Gradient rendering quality.
+  BLGradientQuality = enum {
+      [0] = "BL_GRADIENT_QUALITY_NEAREST",
+      [1] = "BL_GRADIENT_QUALITY_COUNT"
+  };
+
+  -- Pattern quality.
+  BLPatternQuality = enum {
+      [0] = "BL_PATTERN_QUALITY_NEAREST",
+      [1] = "BL_PATTERN_QUALITY_BILINEAR",
+  
+      --"BL_PATTERN_QUALITY_COUNT"
+  };
+
+  -- Rendering quality.
+  BLRenderingQuality = enum {
+      [0] = "BL_RENDERING_QUALITY_ANTIALIAS",
+      "BL_RENDERING_QUALITY_COUNT"
+  };
 
 
 --[[
@@ -997,6 +1108,6 @@ bool     __cdecl blVariantEquals(const void* a, const void* b) ;
 ]]
 
 
-end -- BLEND2D_BLAPI_H
+
 
 return ffi.load("blend2d")

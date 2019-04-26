@@ -23,17 +23,28 @@ function draw()
 
     -- draw the text
     stroke(0)
-    textAlign(RIGHT)
-    text(frameText, width/2, height/2-12)
+    fill(0)
+    textAlign(RIGHT, BOTTOM)
+    text("RIGHT Aligned", width/2, height/2-12)
 
-    textAlign(CENTER)
-    text(frameText, width/2, height/2)
+    textAlign(CENTER, BOTTOM)
+    text("CENTER Aligned", width/2, height/2)
     
-    textAlign(LEFT)
-    text(frameText, width/2, height/2+12)
+    textAlign(LEFT, BOTTOM)
+    text("LEFT Aligned", width/2, height/2+12)
 
 
-    --stats:draw()
+    stroke(255,0,0)
+    line(10, 100, width-10, 100)
+
+    textAlign(LEFT, BASELINE)
+    text("BOTTOM Mertigal", 20, 100)
+
+    textAlign(LEFT, CENTER)
+    text("CENTER Mertigal", 220, 100)
+
+    textAlign(LEFT, TOP)
+    text("TOP Mertigal", 420, 100)
 end
 
 go({frameRate = 30})
