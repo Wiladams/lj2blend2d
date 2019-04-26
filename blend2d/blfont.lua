@@ -233,7 +233,7 @@ BLFontFace_mt = {
     end;
 
     __index = {
-        -- Use as; BLFont:createFromFile(filename)
+        -- Use as; BLFontFace:createFromFile(filename)
         createFromFile = function(ct, fileName)
             --print("BLFontFace.createFromFile: ", ct, fileName)
             local obj = ffi.new(ct)

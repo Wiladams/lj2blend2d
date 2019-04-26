@@ -18,6 +18,7 @@
 
 local ffi = require("ffi")
 
+BLEND2D_H = true
 
 require("blend2d.blapi");
 require("blend2d.blarray");

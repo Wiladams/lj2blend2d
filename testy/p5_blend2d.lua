@@ -342,8 +342,8 @@ function background(...)
 	end
 
 	BackgroundColor = c;
-
-    clear();
+    appContext:setFillStyle(BackgroundColor)
+	appContext:clear()
 end
 
 function point(x,y,z)
@@ -857,13 +857,24 @@ function createImage(awidth, aheight)
 	return pm
 end
 
--- Loading and Displaying
+function loadImage(filename)
+    local img, err = BLImageCodec:readImageFromFile(filename)
+
+    local img, err = targa.readFromFile(filename)
+    if not img then 
+        return false, err
+    end
+    
+    return img
+end
 
 --[[
     copy one pixel buffer to another
-    without any blending operation
+	Using the first method (x,y,width,heigh) will essentially be a
+	blt, without any scaling.
 
-	need to do clipping
+	Using the second method, with all parameters allows you to do 
+	scaling and choose a subsection of the source.
 
 	image(img, x, y, [width], [height])
 	image(img, dx, dy, dWidth, dHeight, sx, sy, [sWidth], [sHeight])
@@ -884,11 +895,11 @@ function image(img, dx, dy, dWidth, dHeight, sx, sy, sWidth, sHeight)
 	dx = dx or 0;
 	dy = dy or 0;
 
-	--BLResult __cdecl blContextBlitScaledImageD(BLContextCore* self, const BLRect* rect, const BLImageCore* img, const BLRectI* imgArea) ;
 	local dstRect = BLRect(dx, dy, dWidth, dHeight)
 	local imgArea = BLRectI(sx, sy, sWidth, sHeight)
 	appContext:stretchBlt(dstRect, img, imgArea)
 
+	return true;
 end
 
 function imageMode()
@@ -917,22 +928,18 @@ function filter()
 end
 
 function get(x, y)
-	local cref = surface.DC:GetPixel(x,y)
-	local r = wingdi.GetRValue(cref)
-	local g = wingdi.GetGValue(cref)
-	local b = wingdi.GetBValue(cref)
-	return color(r,g,b)
 end
 
 function set(x,y,c)
-	surface.DC:SetPixel(x, y, c.cref)
 end
 
 function loadPixels()
+-- lock get a pointer to the pixels in appImage
 end
 
 function pixels()
 end
 
 function updatePixels()
+-- unlock the pixel pointer
 end

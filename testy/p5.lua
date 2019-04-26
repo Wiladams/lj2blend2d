@@ -177,7 +177,8 @@ TextHAlignment = LEFT;
 TextVAlignment = BASELINE;
 TextLeading = 0;
 TextMode = SCREEN;
-appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\alger.ttf")
+--appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\alger.ttf")
+appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
 print("appFontFace: ", appFontFace, blerror[err])
 
 appFont, err = appFontFace:createFont(TextSize)
@@ -196,7 +197,7 @@ appImage = nil;
 --[[
     These are functions that are globally available, so user code
     can use them.  These functions don't rely specifically on the 
-    drawing interface, so that can remain here in case the drawing
+    drawing interface, so they can remain here in case the drawing
     driver changes.
 ]]
 
@@ -320,14 +321,7 @@ function rectMode(newMode)
     RectMode = newMode;
 end
 
--- Image handling
-function loadImage(filename)
-    local img, err = targa.readFromFile(filename)
-    if not img then 
-        return false, err
-    end
-    return img
-end
+
 
 -- timing
 function seconds()

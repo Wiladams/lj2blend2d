@@ -66,19 +66,25 @@ local BLFile_mt = {
         end;
 
         open = function(self, fileName, openFlags)
-            print("open: ", fileName, string.format("0x%x",openFlags))
+            --print("open: ", fileName, string.format("0x%x",openFlags))
 
             openFlags = openFlags or C.BL_FILE_OPEN_READ;
             local bResult = blapi.blFileOpen(self, fileName, openFlags) ;
-            return bResult == C.BL_SUCCESS or bResult
+
+            if bResult ~= C.BL_SUCCESS then
+                return false, bResult
+            end
+
+            return true;
         end;
 
         read = function(self, buffer, size)
             local bytesTransferred = ffi.new("size_t[1]")
             local bResult = blapi.blFileRead(self, buffer, size, bytesTransferred) ;
+            
             if bResult ~= C.BL_SUCCESS then
               return false, bResult;
-          end
+            end
 
           return bytesTransferred[0]
         end;

@@ -1,10 +1,30 @@
 package.path = "../?.lua;"..package.path;
 
 local ffi = require("ffi")
+local bit = require("bit")
+local bor, band = bit.bor, bit.band
+
 local b2d = require("blend2d.blend2d")
+local blerror = require("blerror")
 
 local BL_FILE_OPEN_SHARE_READ = 0x10000000  -- no worky
 local BL_FILE_OPEN_READ = 0x00000001;       -- worky
+
+local fontDir = "c:\\windows\\fonts\\"
+
+local fontFiles = {
+    "alger.ttf",
+    "arial.ttf",
+    "calibri.ttf",
+    "Candara.ttf",
+    "comic.ttf",
+    "consola.ttf",
+    "cour.ttf",
+    "times.ttf",
+    "timesi.ttf",
+    "wingding.ttf",
+}
+
 
 local function test_class()
     local f = BLFile()
@@ -23,5 +43,21 @@ local function test_API()
     local f = ffi.new("BLFile")
 end
 
-test_class()
+local function test_readfonts()
+    for _,fontname in ipairs(fontFiles) do
+        local  f = BLFile()
+        local fullName = fontDir..fontname
+        --success, err = f:open(fullName, bor(BL_FILE_OPEN_READ, BL_FILE_OPEN_SHARE_READ))
+        local success, err = f:open(fullName, bor(BL_FILE_OPEN_READ))
+        print("open: ", fullName, success, err)
+        if success then
+            f:close()
+        else
+            print("ERROR: ", blerror[err])
+        end
+    end
+end
+
+--test_class()
 --test_API()
+test_readfonts()
