@@ -32,6 +32,9 @@ local BLDIBSection = require("BLDIBSection")
 local blerror = require("blerror")
 require("p5_blend2d")
 
+local LOWORD = win32.LOWORD
+local HIWORD = win32.HIWORD
+
 local exports = {}
 local SWatch = StopWatch();
 
@@ -114,6 +117,7 @@ TRIANGLE_FAN    = 9;
 
 
 -- environment
+touchIsOn = false;
 frameCount = 0;
 focused = false;
 displayWidth = false;
@@ -513,7 +517,7 @@ function KeyboardActivity(hwnd, msg, wparam, lparam)
     return res;
 end
 
----[=[
+
 local function wm_joystick_event(hwnd, msg, wParam, lParam)
     local event = {
         Buttons = wParam;
@@ -557,14 +561,77 @@ function JoystickActivity(hwnd, msg, wparam, lparam)
 
     return res;
 end
---]=]
+
 function CommandActivity(hwnd, msg, wparam, lparam)
     if onCommand then
         onCommand({source = tonumber(HIWORD(wparam)), id=tonumber(LOWORD(wparam))})
     end
 end
 
+function TouchActivity(hwnd, msg, wparam, lparam)
+    --print("TouchActivity - 1.0")
+    local function wm_touch_event()
+        -- cInputs could be set to a maximum value (10) and
+        -- we could reuse the same allocated array each time
+        -- rather than allocating a new one each time.
+        --print("wm_touch_event 0.0: ", wparam)
+        local cInputs = tonumber(LOWORD(wparam))
+        --print("wm_touch_event 1.0: ", cInputs)
+        local pInputs = ffi.new("TOUCHINPUT[?]", cInputs)
+        local cbSize = ffi.sizeof("TOUCHINPUT")
+        --print("wm_touch_event 2.0: ", pInputs, cbSize)
+        local bResult = C.GetTouchInputInfo(ffi.cast("HTOUCHINPUT",lparam), cInputs, pInputs,cbSize);
+        --print("wm_touch_event 3.0: ", bResult)
 
+        if bResult == 0 then
+            return nil, C.GetLastError()
+        end
+        --print("wm_touch_event 4.0: ", bResult)
+
+        -- Construct an event with all the given information
+        local events = {}
+        local PT = ffi.new("POINT")
+        for i=0,cInputs-1 do
+            PT.x = pInputs[i].x/100;
+            PT.y = pInputs[i].y/100;
+            --print("wm_touch_event 4.1: ", PT.x, PT.y)
+            local bResult = C.ScreenToClient(hwnd, PT)
+            --print("wm_touch_event 4.2: ", bResult, PT.x, PT.y)
+            local event = {
+                ID = pInputs[i].dwID;
+                x = PT.x;
+                y = PT.y;
+                rawX = pInputs[i].x;
+                rawY = pInputs[i].y;
+            }
+
+            if band(pInputs[i].dwMask, C.TOUCHINPUTMASKF_CONTACTAREA) ~= 0 then
+                event.rawWidth = pInputs[i].cxContact;
+                event.rawHeight = pInputs[i].cyContact;
+                event.width = event.rawWidth/100;
+                event.height = event.rawHeight/100;
+            end
+
+            table.insert(events, event)
+        end
+        --print("wm_touch_event 5.0: ", bResult)
+
+        return events
+    end
+
+    --print("TouchActivity - 2.0")
+    local events, err = wm_touch_event()
+    --print("TouchActivity - 3.0")
+    if events then
+        signalAll("gap_touch", events)
+    end
+
+    --print("TouchActivity - 4.0")
+    local bResult = C.CloseTouchInputHandle(ffi.cast("HTOUCHINPUT",lparam))
+    --print("TouchActivity - 5.0")
+    
+    return 0
+end
 
 
 local ps = ffi.new("PAINTSTRUCT");
@@ -586,6 +653,8 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         res = JoystickActivity(hwnd, msg, wparam, lparam)
     --elseif msg == C.WM_COMMAND then
     --    res = CommandActivity(hwnd, msg, wparam, lparam)
+    elseif msg == C.WM_TOUCH then
+        res = TouchActivity(hwnd, msg, wparam, lparam)
 ---[[
     elseif msg == C.WM_ERASEBKGND then
         --print("WM_ERASEBKGND")
@@ -744,6 +813,8 @@ local function setupUIHandlers()
         {activity = 'gap_joyup', response = "joyReleased"};
         {activity = 'gap_joydown', response = "joyPressed"};
 
+        -- Touch events
+        {activity = 'gap_touch', response = "touchEvent"};
 
         {activity = 'gap_idle', response = "onIdle"};
         --{activity = 'gap_frame', response = "draw"};
@@ -760,6 +831,34 @@ end
 
 local function showWindow()
     C.ShowWindow(appWindowHandle, C.SW_SHOWNORMAL);
+end
+
+--[[
+    static const int TWF_FINETOUCH      = 0x00000001;
+static const int TWF_WANTPALM       = 0x00000002;
+
+BOOL RegisterTouchWindow(HWND hwnd, ULONG ulFlags);
+BOOL UnregisterTouchWindow(HWND hwnd);
+]]
+function touchOn(flags)
+    flags = flags or 0
+    local bResult = C.RegisterTouchWindow(appWindowHandle, flags);
+    if bResult ~= 0 then
+        touchIsOn = true;
+        return true;
+    end
+
+    return false
+end
+
+function touchOff()
+    local bResult = C.UnregisterTouchWindow(appWindowHandle);
+    touchIsOff = true;
+
+    if bResult ~= 0 then
+        return true;
+    end
+    return false;
 end
 
 local function main(params)

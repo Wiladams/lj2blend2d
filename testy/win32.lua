@@ -70,7 +70,12 @@ typedef ULONG_PTR   SIZE_T;
 typedef int BOOL;
 typedef void *HANDLE;
 
+typedef ULONG *     PULONG;
 ]]
+
+local WORD = ffi.typeof("WORD")
+local DWORD_PTR = ffi.typeof("DWORD_PTR")
+
 
 -- libloaderapi
 ffi.cdef[[
@@ -104,6 +109,7 @@ typedef struct tagPOINT
 
 typedef const RECT * LPCRECT;
 ]]
+
 -- winuser
 ffi.cdef[[
 // Class styles
@@ -155,8 +161,9 @@ static const int COLOR_WINDOW          =  5;
 static const int BI_RGB       = 0;
 static const int DIB_RGB_COLORS     = 0; /* color table in RGBs */
 static const int SRCCOPY           =  0x00CC0020; /* dest = source                   */
+]]
 
-
+ffi.cdef[[
 // Types
 typedef HANDLE HDC;
 typedef HANDLE HWND;
@@ -167,7 +174,10 @@ typedef HANDLE HINSTANCE;
 typedef HANDLE HMENU;
 typedef HANDLE HBITMAP;
 typedef HANDLE HRGN;
+typedef HANDLE HTOUCHINPUT;
+]]
 
+ffi.cdef[[
 typedef WORD                ATOM; 
 
 typedef LRESULT (__stdcall* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
@@ -232,9 +242,27 @@ typedef struct tagBITMAPINFO {
     BITMAPINFOHEADER    bmiHeader;
     RGBQUAD             bmiColors[1];
 } BITMAPINFO,  *LPBITMAPINFO, *PBITMAPINFO;
+]]
 
 
+-- Touch Input defines and functions
+ffi.cdef[[
+typedef struct tagTOUCHINPUT {
+    LONG x;
+    LONG y;
+    HANDLE hSource;
+    DWORD dwID;
+    DWORD dwFlags;
+    DWORD dwMask;
+    DWORD dwTime;
+    ULONG_PTR dwExtraInfo;
+    DWORD cxContact;
+    DWORD cyContact;
+} TOUCHINPUT, *PTOUCHINPUT;
+typedef TOUCHINPUT const * PCTOUCHINPUT;
+]]
 
+ffi.cdef[[
 DWORD __stdcall GetLastError(void);
 
 LRESULT DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
@@ -246,12 +274,25 @@ BOOL DestroyWindow(HWND hWnd);
 BOOL ShowWindow(HWND hWnd, int nCmdShow);
 BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
 BOOL RedrawWindow(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
+BOOL ScreenToClient(HWND hWnd, LPPOINT lpPoint);
 
+// Touch Related founctions
+
+// RegisterTouchWindow flag values
+static const int TWF_FINETOUCH      = 0x00000001;
+static const int TWF_WANTPALM       = 0x00000002;
+
+BOOL RegisterTouchWindow(HWND hwnd, ULONG ulFlags);
+BOOL UnregisterTouchWindow(HWND hwnd);
+BOOL IsTouchWindow(HWND hwnd, PULONG pulFlags);
+
+// Regular Windows messaging
 void PostQuitMessage(int nExitCode);
 int PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 int TranslateMessage(const MSG *lpMsg);
 LRESULT DispatchMessageA(const MSG *lpMsg);
 
+// Windows paint
 HDC BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);
 int EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
 
@@ -334,6 +375,51 @@ static const int MM_JOY2BUTTONDOWN   = 0x3B6;
 static const int MM_JOY1BUTTONUP     = 0x3B7;
 static const int MM_JOY2BUTTONUP     = 0x3B8;
 ]]
+
+-- Touch Window Messages
+ffi.cdef[[
+static const int WM_TOUCH                        = 0x0240;
+
+]]
+
+
+
+
+-- Conversion of touch input coordinates to pixels
+
+function exports.TOUCH_COORD_TO_PIXEL(l) return ((l) / 100) end
+
+ffi.cdef[[
+/*
+ * Touch input flag values (TOUCHINPUT.dwFlags)
+ */
+static const int TOUCHEVENTF_MOVE            = 0x0001;
+static const int TOUCHEVENTF_DOWN            = 0x0002;
+static const int TOUCHEVENTF_UP              = 0x0004;
+static const int TOUCHEVENTF_INRANGE         = 0x0008;
+static const int TOUCHEVENTF_PRIMARY         = 0x0010;
+static const int TOUCHEVENTF_NOCOALESCE      = 0x0020;
+static const int TOUCHEVENTF_PEN             = 0x0040;
+static const int TOUCHEVENTF_PALM            = 0x0080;
+
+/*
+ * Touch input mask values (TOUCHINPUT.dwMask)
+ */
+static const int TOUCHINPUTMASKF_TIMEFROMSYSTEM  = 0x0001;  // the dwTime field contains a system generated value
+static const int TOUCHINPUTMASKF_EXTRAINFO       = 0x0002;  // the dwExtraInfo field is valid
+static const int TOUCHINPUTMASKF_CONTACTAREA     = 0x0004;  // the cxContact and cyContact fields are valid
+
+// hTouchInput - input event handle; from touch message lParam
+// cInputs - number of elements in the array
+// pInputs - array of touch inputs
+// cbSize - sizeof(TOUCHINPUT)
+BOOL GetTouchInputInfo(HTOUCHINPUT hTouchInput, UINT cInputs, PTOUCHINPUT pInputs, int cbSize);                           
+BOOL CloseTouchInputHandle(HTOUCHINPUT hTouchInput);                   // input event handle; from touch message lParam
+
+]]
+
+function exports.LOWORD(l)         return  WORD(band(DWORD_PTR(l) , 0xffff)) end
+function exports.HIWORD(l)         return  WORD(band(rshift(DWORD_PTR(l) , 16) , 0xffff)) end
 
 -- Convenience functions
 function exports.RegisterWindowClass(wndclassname, msgproc, style)
