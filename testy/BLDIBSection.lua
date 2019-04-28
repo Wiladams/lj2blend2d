@@ -32,67 +32,83 @@ setmetatable(BLDIBSection, {
         __call = function(self, ...)
             return self:new(...)
         end;
-    
-        --__index = DeviceContext;
 })
-local BLDIBSection_mt = {
-    __index = BLDIBSection;
-}
+
     
-    
-function BLDIBSection.new(self, params)
-    local obj = params or {}
-    
-    obj.width = obj.width or 1
-    obj.height = obj.height or 1
-    obj.bitsPerPixel =  32;
-    obj.alignment =  4;
-    
-    obj.bytesPerRow = GetAlignedByteCount(obj.width, 32, 4)
-    
+function BLDIBSection.createDIBSection(self, params)
+    if not params then
+        return false, "must specify some parameters"
+    end
+
+    if not params.width or not params.height then
+        return false, "must specify width and height"
+    end
+
+    local obj = {
+        width = params.width,
+        height = params.height;
+        bitsPerPixel = params.bitsPerPixel or 32;
+        alignment = params.alignment or 4;
+    }
+    obj.bytesPerRow = GetAlignedByteCount(obj.width, obj.bitsPerPixel, obj.alignment)
+
     local info = ffi.new("BITMAPINFO")
     info.bmiHeader.biSize = ffi.sizeof("BITMAPINFOHEADER");
     info.bmiHeader.biWidth = obj.width;
     info.bmiHeader.biHeight = -obj.height;	-- top-down DIB Section
     info.bmiHeader.biPlanes = 1;
-    info.bmiHeader.biBitCount = 32;
+    info.bmiHeader.biBitCount = obj.bitsPerPixel;
     info.bmiHeader.biSizeImage = obj.bytesPerRow * obj.height;
     info.bmiHeader.biClrImportant = 0;
     info.bmiHeader.biClrUsed = 0;
     info.bmiHeader.biCompression = C.BI_RGB;
     
     obj.info = info;
-    
-    local pixelP = ffi.new("void *[1]")
-    obj.Handle = C.CreateDIBSection(nil,
+
+    local pPixels = ffi.new("void *[1]")
+    obj.GDIHandle = C.CreateDIBSection(nil,
             info,
             C.DIB_RGB_COLORS,
-            pixelP,
+            pPixels,
             nil,
             0);
     
     --print("BLDIBSection Handle: ", obj.Handle)
     obj.pixelData = {
-        data = pixelP[0];
+        data = pPixels[0];
         size = info.bmiHeader.biSizeImage;
     }
 
-    
-    -- create the BLImage to go with it
+    return obj
+end
 
-    local dataPtr = obj.pixelData.data;
-    local stride = obj.bytesPerRow;
+function BLDIBSection.bindBLImage(self, DIB)
+    local dataPtr = DIB.pixelData.data;
+    local stride = DIB.bytesPerRow;
     local destroyFunc = nil
     local destroyData = nil;
     -- MUST use the PRGB32 in order for SRC_OVER operations to work correctly
-    local img, err = BLImage(obj.width, obj.height, C.BL_FORMAT_PRGB32, dataPtr, stride, destroyFunc, destroyData);
-    --local img, err = BLImage(obj.width, obj.height, C.BL_FORMAT_XRGB32, dataPtr, stride, destroyFunc, destroyData);
+    local img, err = BLImage(DIB.width, DIB.height, C.BL_FORMAT_PRGB32, dataPtr, stride, destroyFunc, destroyData);
 
-     obj.Image = img;
+    return img, err
+end
 
-    setmetatable(obj, BLDIBSection_mt)
+function BLDIBSection.new(self, params)
+    local DIB, err = self:createDIBSection(params)
+    if not DIB then
+        return nil, err
+    end
+
+    -- bind DIB to BLImage
+    local img, err = self:bindBLImage(DIB)
+
+    if not img then
+        return nil, err;
+    end
+
+    DIB.Image = img;
     
-    return obj;
+    return DIB;
 end
 
 

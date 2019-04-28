@@ -1,23 +1,22 @@
 --[[
-    This single file represents the guts of a processing/p5 skin
-    The code will be very familiar to anyone who's used to doing processing,
-    but done with a Lua flavor.
+    This single file represents the guts of a desktop windowing environment
+
     
 
     Typical usage:
 
     -- This first line MUST come before any user code
-    require("p5")
-
-    function mouseMoved(event)
-        print("MOVE: ", event.x, event.y)
-    end
+    require("WinMan")
 
     -- This MUST be the last line of the user code
     go {width=700, height=400}
 
-    Reources
-    https://natureofcode.com/
+
+    This will essentially create a desktop environment ready for windows and other 
+    graphics to be created.
+
+
+    window:new()
 ]]
 local ffi = require("ffi")
 local C = ffi.C 
@@ -29,332 +28,40 @@ local rshift, lshift = bit.rshift, bit.lshift;
 local win32 = require("win32")
 local sched = require("scheduler")
 local BLDIBSection = require("BLDIBSection")
-local blerror = require("blend2d.blerror")
-require("p5_blend2d")
+local GraphicGroup = require("GraphicGroup")
+local Window = require("Window")
 
 local LOWORD = win32.LOWORD
 local HIWORD = win32.HIWORD
 
-local exports = {}
 local SWatch = StopWatch();
 
--- Useful data types
-ffi.cdef[[
-struct PVector {
-    double x;
-    double y;
-};
-]]
-PVector = ffi.typeof("struct PVector")
-ffi.metatype(PVector, {
-    __index = {
-        add = function(self, other)
-            self.x = self.x + other.x;
-            self.y = self.y + other.y;
-        end;
 
-        sub = function(self, other)
-            self.x = self.x - other.x;
-            self.y = self.y - other.y;
-        end;
-    }
-})
 
--- Global things
--- Constants
-HALF_PI = math.pi / 2
-PI = math.pi
-QUARTER_PI = math.pi/4
-TWO_PI = math.pi * 2
-TAU = TWO_PI
-
--- angleMode
-DEGREES = 1;
-RADIANS = 2;
-
-
--- Constants related to colors
--- colorMode
-RGB = 1;
-HSB = 2;
-
--- rectMode, ellipseMode
-CORNER = 1;
-CORNERS = 2;
-RADIUS = 3;
-CENTER = 4;
-
--- kind of close (for polygon)
-STROKE = 0;
-CLOSE = 1;
-
--- alignment
-CENTER      = 0x00;
-LEFT        = 0x01;
-RIGHT       = 0x04;
-TOP         = 0x10;
-BOTTOM      = 0x40;
-BASELINE    = 0x80;
-
-MODEL = 1;
-SCREEN = 2;
-SHAPE = 3;
-
--- GEOMETRY
-POINTS          = 0;
-LINES           = 1;
-LINE_STRIP      = 2;
-LINE_LOOP       = 3;
-POLYGON         = 4;
-QUADS           = 5;
-QUAD_STRIP      = 6;
-TRIANGLES       = 7;
-TRIANGLE_STRIP  = 8;
-TRIANGLE_FAN    = 9;
-
-
-
-
-
--- environment
-touchIsOn = false;
-frameCount = 0;
-focused = false;
-displayWidth = false;
-displayHeight = false;
-windowWidth = false;
-windowHeight = false;
-width = false;
-height = false;
-
--- Mouse state changing live
-mouseX = 0;
-mouseY = 0;
-pMouseX = 0;
-pMouseY = 0;
-winMouseX = false;
-winMouseY = false;
-pwinMouseX = false;
-pwinMouseY = false;
-mouseButton = false;
-mouseIsPressed = false;
--- to be implemented by user code
--- mouseMoved()
--- mouseDragged()
--- mousePressed()
--- mouseReleased()
--- mouseClicked()
--- doubleClicked()
--- mouseWheel()
-
--- Keyboard state changing live
-keyIsPressed = false;
-key = false;
-keyCode = false;
--- to be implemented by client code
--- keyPressed()
--- keyReleased()
--- keyTyped()
-
-
--- Touch events
-touches = 0;
--- touchStarted()
--- touchMoved()
--- touchEnded()
-
-
--- Initial State for modes
-AngleMode = RADIANS;
-ColorMode = RGB;
-RectMode = CORNER;
-EllipseMode = CENTER;
-ShapeMode = POLYGON;
-
-FrameRate = 15;
-LoopActive = true;
-EnvironmentReady = false;
-
--- Typography
-TextSize = 18;
-TextHAlignment = LEFT;
-TextVAlignment = BASELINE;
-TextLeading = 0;
-TextMode = SCREEN;
-
---appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\alger.ttf")
-appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
---print("appFontFace: ", appFontFace, blerror[err])
-
-appFont, err = appFontFace:createFont(TextSize)
---print("appFont: ", appFont, err)
-
-StrokeWeight = 1;
-
-surface = nil;
-appContext = nil;
-appImage = nil;
-
-
---[[
-    These are functions that are globally available, so user code
-    can use them.  These functions don't rely specifically on the 
-    drawing interface, so they can remain here in case the drawing
-    driver changes.
-]]
-
---[[
-    MATHS
-]]
-
-
-function lerp(low, high, x)
-    return low + x*(high-low)
-end
-
-function mag(x, y)
-    return sqrt(x*x +y*y)
-end
-
-function map(x, olow, ohigh, rlow, rhigh, withinBounds)
-    rlow = rlow or olow
-    rhigh = rhigh or ohigh
-    local value = rlow + (x-olow)*((rhigh-rlow)/(ohigh-olow))
-
-    if withinBounds then
-        value = constrain(value, rlow, rhigh)
-    end
-
-    return value;
-end
-
-function noise(x,y,z)
-    if z ~= nil then
-        return simplex.Noise3(x,y,z)
-    end
-
-    if y and z ~= nil then
-        return simplex.Noise2(x,y)
-    end
-
-    if x ~= 0 then 
-        return simplex.Noise1(x)
-    end
-
-    return 0
-end
-
-function sq(x)
-    return x*x
-end
-
-abs = math.abs
-asin = math.asin
-acos = math.acos
-atan = math.atan
-
-function atan2(y,x)
-    return atan(y/x)
-end
-
-ceil = math.ceil
-
-function constrain(x, low, high)
-    return math.min(math.max(x, low), high)
-end
-clamp = constrain
-cos = math.cos
-
-degrees = math.deg
-
-function dist(x1, y1, x2, y2)
-    return math.sqrt(sq(x2-x1) + sq(y2-y1))
-end
-
-exp = math.exp
-floor = math.floor
-log = math.log
-max = math.max
-min = math.min
-
-function norm(val, low, high)
-    return map(value, low, high, 0, 1)
-end
-
-function pow(x,y)
-    return x^y;
-end
-
-radians = math.rad
-random = math.random
-
-function round(n)
-	if n >= 0 then
-		return floor(n+0.5)
-	end
-
-	return ceil(n-0.5)
-end
-
-sin = math.sin
-sqrt = math.sqrt
-
-
-
-
-
-
--- Modes to be honored by various drawing APIs
-function angleMode(newMode)
-    if newMode ~= DEGREES and newMode ~= RADIANS then 
-        return false 
-    end
-
-    AngleMode = newMode;
-
-    return true;
-end
-
-function ellipseMode(newMode)
-    EllipseMode = newMode;
-end
-
-function rectMode(newMode)
-    RectMode = newMode;
-end
-
-
-
--- timing
-function seconds()
-    return SWatch:seconds();
-end
-
-function millis()
-    -- get millis from p5 stopwatch
-    return SWatch:millis();
-end
-
-function frameRate(...)
-    if select('#', ...) == 0 then
-        return FrameRate;
-    end
-
-    if type(select(1,...)) ~= "number" then
-        return false, 'must specify a numeric frame rate'
-    end
-
-    FrameRate = select(1,...);
-
-    -- reset frame timer
-end
-
-function loop()
-    LoopActive = true;
-end
-
-function noLoop()
-    LoopActive = false;
+local appSurface = nil;
+local appContext = nil;
+local appImage = nil;
+local appWindowHandle = nil;
+local EnvironmentReady = false;
+local appDC = nil;
+local frameCount = 0;
+
+-- The GraphicGroup representing subsequent windows that
+-- are added to the environment
+local windowGroup = GraphicGroup:new()
+
+-- Global Functions
+-- Create a WinMan window
+function createWindow(x,y, w, h)
+    local win = Window:new {
+        x = x,
+        y=y,
+        width = w,
+        height = h}
+
+    windowGroup:add(win)
+
+    return win
 end
 
 -- Drawing and canvas management
@@ -385,22 +92,26 @@ function refreshWindow()
     return true;
 end
 
-function redraw()
-    if draw then
-        draw();
-    end
 
-    refreshWindow();
-
-    return true;
-end
 
 local function handleFrame()
-    if LoopActive and EnvironmentReady then
-        frameCount = frameCount + 1;
+    if not EnvironmentReady then return end
 
-        redraw()
+
+    frameCount = frameCount + 1;
+    --print("handleFrame: ", frameCount, #windowGroup.children)
+
+    -- iterate through the windows
+    -- compositing each one
+    for _, win in ipairs(windowGroup.children) do
+        local readyBuff = win:getReadyBuffer()
+        if readyBuff then
+            appContext:blit(readyBuff, BLPoint(win.x, win.y))
+        end
     end
+
+    -- force a redraw to the screen
+    refreshWindow()
 end
 
 
@@ -543,7 +254,7 @@ end
 
 function JoystickActivity(hwnd, msg, wparam, lparam)
     --print("JoystickActivity: ", msg, wparam, lparam)
-    local res = 1;
+    local res = 0;
 
     local event = wm_joystick_event(hwnd, msg, wparam, lparam)
 
@@ -566,6 +277,8 @@ function CommandActivity(hwnd, msg, wparam, lparam)
     if onCommand then
         onCommand({source = tonumber(HIWORD(wparam)), id=tonumber(LOWORD(wparam))})
     end
+
+    return 0
 end
 
 function TouchActivity(hwnd, msg, wparam, lparam)
@@ -633,16 +346,6 @@ function TouchActivity(hwnd, msg, wparam, lparam)
     return 0
 end
 
-local gestureCommands = {
-[1] = "GID_BEGIN";                    
-"GID_END";                       
-"GID_ZOOM";
-"GID_PAN";
-"GID_ROTATE";                    
-"GID_TWOFINGERTAP";               
-"GID_PRESSANDTAP";               
---"GID_ROLLOVER";
-}
 
 function GestureActivity(hwnd, msg, wparam, lparam)
 
@@ -691,9 +394,11 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     local res = 1;
 
     if msg == C.WM_DESTROY then
+
         C.PostQuitMessage(0);
         signalAllImmediate('gap_quitting');
         return 0;
+
     elseif msg >= C.WM_MOUSEFIRST and msg <= C.WM_MOUSELAST then
         res = MouseActivity(hwnd, msg, wparam, lparam)
     elseif msg >= C.WM_KEYFIRST and msg <= C.WM_KEYLAST then
@@ -706,13 +411,13 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         res = TouchActivity(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_GESTURE then
         res = GestureActivity(hwnd, msg, wparam, lparam)
----[[
+
     elseif msg == C.WM_ERASEBKGND then
         --print("WM_ERASEBKGND")
-        local hdc = ffi.cast("HDC", wparam); 
+        --local hdc = ffi.cast("HDC", wparam); 
 
-        res = 1; 
---]]
+        res = 0; 
+
     elseif msg == C.WM_PAINT then
         -- bitblt backing store to client area
         --print("WindowProc.WM_PAINT:", wparam, lparam)
@@ -722,37 +427,28 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         --print("PAINT: ", hdc, ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
 
 
-        if surface then
+        if appSurface then
             local imgSize = appImage:size()
-
+            --print("Size: ", imgSize.w, imgSize.h)
+---[[
             local bResult = C.StretchDIBits(appDC,
                 0,0,
                 imgSize.w,imgSize.h,
                 0,0,
                 imgSize.w, imgSize.h,
-                surface.pixelData.data,surface.info,
+                appSurface.pixelData.data,appSurface.info,
                 C.DIB_RGB_COLORS,C.SRCCOPY)
             -- the bResult is the number of scanlines drawn
             -- there's a failure, this will be 0
+--]]
         end
-
 
         C.EndPaint(hwnd, ps);
         res = 0
+
     else
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
-
---[[
-
-    elseif msg == ffi.C.WM_SETFOCUS then
-        --print("WM_SETFOCUS")
-        focused = true;
-    elseif msg == ffi.C.WM_KILLFOCUS then
-        --print("WM_KILLFOCUS")
-        focused = false;
-    end
---]]
 
 	return res
 end
@@ -800,7 +496,7 @@ local function msgLoop()
 end
 
 
-local function createWindow(params)
+local function createWin32Window(params)
     params = params or {width=1024, height=768, title="GraphicApplication"}
     params.width = params.width or 1024;
     params.height = params.height or 768;
@@ -918,60 +614,60 @@ end
 
 local function main(params)
 
-    FrameRate = params.frameRate or 30;
-
-    -- make a local for 'onMessage' global function    
-    if onMessage then
-        lonMessage = onMessage;
-    end
-
-    -- Setup for Blend2D drawing
-    surface, err = BLDIBSection(params)
-    print("DIBSection: ", surface, err)
-    appImage = surface.Image
+    -- We can create the app Surface from the beginning
+    -- as it's fairly independent
+    appSurface, err = BLDIBSection(params)
+    appImage = appSurface.Image
     appContext = BLContext(appImage)
 
-    -- Start things rolling
-    spawn(msgLoop);
+    FrameRate = params.frameRate or 30;
 
+    -- Start the message loop going so window
+    -- creation can occur
+    spawn(msgLoop);
     yield();
 
-    appWindowHandle,err = createWindow(params)
+
+    -- Create the actual Window which will represent
+    -- the Managed window UI Surface
+    appWindowHandle,err = createWin32Window(params)
     showWindow();
 
+    -- Setup to deal with user inputs
     setupUIHandlers();
-
     yield();
 
     EnvironmentReady = true;
 
-    if setup then
-        setup();
-    end
-
-    redraw()
-
     yield();
+
+    if params.startup then
+        spawn(params.startup)
+    end
+    --yield()
 
     -- setup the periodic frame calling
     local framePeriod = math.floor(1000/FrameRate)
     periodic(framePeriod, handleFrame)
 
-    signalAll("gap_ready");
+    --signalAll("gap_ready");
 end
 
 
-function go(params)
-    params = params or {
-        width = 640;
-        height = 480;
-        title = "Blend2d App"
-    }
-    params.width = params.width or 640;
-    params.height = params.height or 480;
-    params.title = params.title or "Blend2d App";
+local function start(params)
+    if not params then
+        return nil, "creation parameters must be specified"
+    end
+
+    if not params.width or not params.height then
+        return nil, "must specify width and height"
+    end
+
+
+    params.title = params.title or "WinMan";
     params.frameRate = params.frameRate or 15;
 
     run(main, params)
 end
 
+return start

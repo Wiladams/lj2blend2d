@@ -1,6 +1,8 @@
 local Drawable = require("Drawable")
 
 local GraphicGroup = Drawable:new()
+GraphicGroup.__index = GraphicGroup
+
 
 function GraphicGroup.new(self, obj)
     obj = obj or {}
@@ -9,16 +11,14 @@ function GraphicGroup.new(self, obj)
     obj.children = {};
 
     setmetatable(obj, self)
-    self.__index = self;
     return obj;
 end
 
-function GraphicGroup.addChild(self, child, after)
-
+function GraphicGroup.add(self, child, after)
     table.insert(self.children, child)
 end
 
-function GraphicGroup.drawBody(ctxt)
+function GraphicGroup.drawBegin(self, ctxt)
     -- draw all the children
     for _, child in ipairs(self.children) do 
 

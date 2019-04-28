@@ -69,9 +69,9 @@ local function test_class()
     end
 
     function Drawable:draw()
-        drawBegin()
-        drawBody()
-        drawEnd()
+        self:drawBegin()
+        self:drawBody()
+        self:drawEnd()
     end
 
     local GRectangle = Drawable:new()
@@ -80,6 +80,7 @@ local function test_class()
     end
 
     local aRect = GRectangle:new {Frame = {x=10, y=10, width = 100, height=100}}
+    aRect:draw()
 end
 
 
