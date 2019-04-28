@@ -11,6 +11,11 @@ local function randomColor()
     return color(r,g,b,126)
 end
 
+local radius = 30
+local s1, s2;
+local gravity = 3.0;    -- 9.0
+local mass = 3.0;       -- 2.0
+
 local Spring2D = {}
 setmetatable(Spring2D, {
     __call = function(self, ...)
@@ -29,7 +34,7 @@ function Spring2D.new(self, xpos, ypos, m, g, c)
         vy = 0;
         mass = m;
         gravity = g;
-        radius = 30;
+        radius = radius;
         stiffness = 0.2;
         damping = 0.7;
         color = c or randomColor();
@@ -60,9 +65,7 @@ function Spring2D.display(self, nx, ny)
     line(self.x, self.y, nx, ny);
 end
 
-local s1, s2;
-local gravity = 9.0;
-local mass = 2.0;
+
 
 local springs = {}
 local headSpring = nil
@@ -74,6 +77,12 @@ function addSpring()
         headSpring = aspring
     else
         table.insert(springs, aspring)
+    end
+end
+
+function removeSpring()
+    if #springs > 1 then
+        springs[#springs] = nil;
     end
 end
 
@@ -114,19 +123,22 @@ end
 
 local T_SP = string.byte(' ')
 local VK_UP = 38
+local VK_DOWN = 40
 
 function keyReleased(event)
     --print("keyReleased: ", event, keyCode)
     if keyCode == VK_UP then
         addSpring();
+    elseif keyCode == VK_DOWN then
+        removeSpring();
     end
 end
 
 function keyTyped(event)
-    print("keyTyped: ", event, keyCode)
+    --print("keyTyped: ", event, keyCode)
     if keyCode == T_SP then
         reset()
     end
 end
 
-go {width = 1024, height=768, frameRate=30}
+go {width = 1024, height=1024, frameRate=30}

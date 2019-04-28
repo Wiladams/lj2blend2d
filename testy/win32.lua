@@ -70,6 +70,7 @@ typedef ULONG_PTR   SIZE_T;
 typedef int BOOL;
 typedef void *HANDLE;
 
+typedef BYTE *      PBYTE;
 typedef ULONG *     PULONG;
 ]]
 
@@ -93,6 +94,18 @@ int QueryPerformanceFrequency(int64_t * lpFrequency);
 
 -- windef
 ffi.cdef[[
+typedef struct tagPOINT
+{
+    LONG  x;
+    LONG  y;
+} POINT, *PPOINT, *NPPOINT, *LPPOINT;
+    
+typedef struct tagPOINTS
+{
+    SHORT   x;
+    SHORT   y;
+} POINTS, *PPOINTS, *LPPOINTS;
+    
 typedef struct tagRECT
 {
     LONG    left;
@@ -100,13 +113,6 @@ typedef struct tagRECT
     LONG    right;
     LONG    bottom;
 } RECT, *PRECT, *NPRECT, *LPRECT;
-
-typedef struct tagPOINT
-{
-    LONG  x;
-    LONG  y;
-} POINT, *PPOINT, *NPPOINT, *LPPOINT;
-
 typedef const RECT * LPCRECT;
 ]]
 
@@ -379,6 +385,8 @@ static const int MM_JOY2BUTTONUP     = 0x3B8;
 -- Touch Window Messages
 ffi.cdef[[
 static const int WM_TOUCH                        = 0x0240;
+static const int WM_GESTURE                      = 0x0119;
+static const int WM_GESTURENOTIFY                = 0x011A;
 
 ]]
 
@@ -416,6 +424,108 @@ static const int TOUCHINPUTMASKF_CONTACTAREA     = 0x0004;  // the cxContact and
 BOOL GetTouchInputInfo(HTOUCHINPUT hTouchInput, UINT cInputs, PTOUCHINPUT pInputs, int cbSize);                           
 BOOL CloseTouchInputHandle(HTOUCHINPUT hTouchInput);                   // input event handle; from touch message lParam
 
+]]
+
+-- * Gesture information handle
+ffi.cdef[[
+typedef HANDLE HGESTUREINFO;
+]]
+
+ffi.cdef[[
+/*
+ * Gesture flags - GESTUREINFO.dwFlags
+ */
+static const int GF_BEGIN                       = 0x00000001;
+static const int GF_INERTIA                     = 0x00000002;
+static const int GF_END                         = 0x00000004;
+
+/*
+ * Gesture IDs
+ */
+static const int GID_BEGIN                      = 1;
+static const int GID_END                        = 2;
+static const int GID_ZOOM                       = 3;
+static const int GID_PAN                        = 4;
+static const int GID_ROTATE                     = 5;
+static const int GID_TWOFINGERTAP               = 6;
+static const int GID_PRESSANDTAP                = 7;
+static const int GID_ROLLOVER                   = GID_PRESSANDTAP;
+]]
+
+ffi.cdef[[
+/*
+ * Gesture information structure
+ *   - Pass the HGESTUREINFO received in the WM_GESTURE message lParam into the
+ *     GetGestureInfo function to retrieve this information.
+ *   - If cbExtraArgs is non-zero, pass the HGESTUREINFO received in the WM_GESTURE
+ *     message lParam into the GetGestureExtraArgs function to retrieve extended
+ *     argument information.
+ */
+typedef struct tagGESTUREINFO {
+    UINT cbSize;                    // size, in bytes, of this structure (including variable length Args field)
+    DWORD dwFlags;                  // see GF_* flags
+    DWORD dwID;                     // gesture ID, see GID_* defines
+    HWND hwndTarget;                // handle to window targeted by this gesture
+    POINTS ptsLocation;             // current location of this gesture
+    DWORD dwInstanceID;             // internally used
+    DWORD dwSequenceID;             // internally used
+    ULONGLONG ullArguments;         // arguments for gestures whose arguments fit in 8 BYTES
+    UINT cbExtraArgs;               // size, in bytes, of extra arguments, if any, that accompany this gesture
+} GESTUREINFO, *PGESTUREINFO;
+typedef GESTUREINFO const * PCGESTUREINFO;
+
+
+/*
+ * Gesture notification structure
+ *   - The WM_GESTURENOTIFY message lParam contains a pointer to this structure.
+ *   - The WM_GESTURENOTIFY message notifies a window that gesture recognition is
+ *     in progress and a gesture will be generated if one is recognized under the
+ *     current gesture settings.
+ */
+typedef struct tagGESTURENOTIFYSTRUCT {
+    UINT cbSize;                    // size, in bytes, of this structure
+    DWORD dwFlags;                  // unused
+    HWND hwndTarget;                // handle to window targeted by the gesture
+    POINTS ptsLocation;             // starting location
+    DWORD dwInstanceID;             // internally used
+} GESTURENOTIFYSTRUCT, *PGESTURENOTIFYSTRUCT;
+]]
+
+--[[
+/*
+ * Gesture argument helpers
+ *   - Angle should be a double in the range of -2pi to +2pi
+ *   - Argument should be an unsigned 16-bit value
+ */
+function exports.GID_ROTATE_ANGLE_TO_ARGUMENT(_arg_)     ((USHORT)((((_arg_) + 2.0 * 3.14159265) / (4.0 * 3.14159265)) * 65535.0))
+function exports.GID_ROTATE_ANGLE_FROM_ARGUMENT(_arg_)   ((((double)(_arg_) / 65535.0) * 4.0 * 3.14159265) - 2.0 * 3.14159265)
+]]
+
+ffi.cdef[[
+/*
+ * Gesture information retrieval
+ *   - HGESTUREINFO is received by a window in the lParam of a WM_GESTURE message.
+ */
+
+BOOL
+__stdcall
+GetGestureInfo(
+     HGESTUREINFO hGestureInfo,
+     PGESTUREINFO pGestureInfo);
+
+
+BOOL
+__stdcall
+GetGestureExtraArgs(
+     HGESTUREINFO hGestureInfo,
+     UINT cbExtraArgs,
+     PBYTE pExtraArgs);
+
+
+BOOL
+__stdcall
+CloseGestureInfoHandle(
+     HGESTUREINFO hGestureInfo);
 ]]
 
 function exports.LOWORD(l)         return  WORD(band(DWORD_PTR(l) , 0xffff)) end

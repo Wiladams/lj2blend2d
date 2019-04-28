@@ -159,12 +159,31 @@ function DrawingContext.new(self, w, h)
 
     obj.DC = obj.DC or ffi.new("struct BLContextCore")
     obj.Image = obj.Image or BLImage(w, h)
-    local bResult = blapi.blContextInitAs(obj.DC, obj.image, nil)
+    local bResult = blapi.blContextInitAs(obj.DC, obj.Image, nil)
     if bResult ~= C.BL_SUCCESS then
       return nil, bResult;
     end
 
     return obj;
+end
+
+function DrawingContext.clip(self, x, y, w, y)
+    local bResult = blapi.blContextClipToRectI(self.DC, BLRectI(x,y,w,h)) ;
+    if bResult ~= C.BL_SUCCESS then
+        return nil, bResult;
+    end
+
+    return self;
+end
+
+function DrawingContext.removeClip(self)
+    local bResult = blapi.blContextRestoreClipping(self.DC) ;
+    
+    if bResult ~= C.BL_SUCCESS then
+        return nil, bResult;
+    end
+
+    return self;
 end
 
 

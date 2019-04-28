@@ -25,13 +25,13 @@ function Drawable.new(self, obj)
     return obj;
 end
 
-function Drawable:drawBegin()
+function Drawable:drawBegin(ctxt)
 end
 
-function Drawable:drawBody()
+function Drawable:drawBody(ctxt)
 end
 
-function Drawable:drawEnd()
+function Drawable:drawEnd(ctxt)
 end
 
 function Drawable:draw(renderContext)

@@ -633,6 +633,55 @@ function TouchActivity(hwnd, msg, wparam, lparam)
     return 0
 end
 
+local gestureCommands = {
+[1] = "GID_BEGIN";                    
+"GID_END";                       
+"GID_ZOOM";
+"GID_PAN";
+"GID_ROTATE";                    
+"GID_TWOFINGERTAP";               
+"GID_PRESSANDTAP";               
+--"GID_ROLLOVER";
+}
+
+function GestureActivity(hwnd, msg, wparam, lparam)
+
+    local pGestureInfo = ffi.new("GESTUREINFO")
+    pGestureInfo.cbSize = ffi.sizeof("GESTUREINFO")
+
+    local bResult = C.GetGestureInfo(ffi.cast("HGESTUREINFO",lparam), pGestureInfo);
+
+    print("GestureActivity: ", pGestureInfo.dwID)
+
+    if bResult == 0 then
+        -- error getting gestureinfo, so just pass through 
+        -- to default and return that result
+        return C.DefWindowProcA(hwnd, msg, wparam, lparam);
+    end
+
+    -- Pass these through for default handling
+    if pGestureInfo.dwID == C.GID_BEGIN or pGestureInfo.dwID == C.GID_END then
+        res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
+        return res;
+    end
+
+    local event = {
+        ID = pGestureInfo.dwID;
+        x = pGestureInfo.ptsLocation.x;
+        y = pGestureInfo.ptsLocation.y;
+        instance = pGestureInfo.dwInstanceID;
+        sequence = pGestureInfo.dwSequenceID;
+        arguments = pGestureInfo.ullArguments;
+        flags = pGestureInfo.dwFlags;
+    }
+
+    local bResult = C.CloseGestureInfoHandle(ffi.cast("HGESTUREINFO",lparam))
+    
+    signalAll("gap_gesture", event)
+
+    return 0
+end
+
 
 local ps = ffi.new("PAINTSTRUCT");
 
@@ -655,6 +704,8 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     --    res = CommandActivity(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_TOUCH then
         res = TouchActivity(hwnd, msg, wparam, lparam)
+    elseif msg == C.WM_GESTURE then
+        res = GestureActivity(hwnd, msg, wparam, lparam)
 ---[[
     elseif msg == C.WM_ERASEBKGND then
         --print("WM_ERASEBKGND")
@@ -815,6 +866,10 @@ local function setupUIHandlers()
 
         -- Touch events
         {activity = 'gap_touch', response = "touchEvent"};
+        
+        -- Gesture activity
+        {activity = 'gap_gesture', response = "gestureEvent"};
+
 
         {activity = 'gap_idle', response = "onIdle"};
         --{activity = 'gap_frame', response = "draw"};

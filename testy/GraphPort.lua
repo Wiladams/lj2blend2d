@@ -97,7 +97,7 @@ end
 		LANGUAGE COMMANDS
 --]==================================================]
 function GraphPort.push(self)
-    renderer:save()
+    self.renderer:save()
 end
 
 function GraphPort.pop(self)
