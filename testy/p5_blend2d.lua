@@ -240,16 +240,25 @@ function noStroke()
 	return true;
 end
 
-
---[[
-	Actual drawing
-]]
 function clear()
     appContext:save()
     appContext:setFillStyle(BackgroundColor)
     appContext:fillAll();
     appContext:restore();
 end
+
+function clip(x, y, w, h)
+	appContext:clip(x, y, w, h)
+end
+
+function noClip()
+	appContext:removeClip()
+end
+
+--[[
+	Actual drawing
+]]
+
 
 -- The background could be either 
 -- a solid color, or an image

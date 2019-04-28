@@ -429,6 +429,22 @@ ffi.metatype(BLContextCore, {
         return bResult == 0 or bResult;
       end;
 
+      clip = function(self, x, y, w, h)
+        local bResult = self.impl.virt.clipToRectI(self.impl, BLRectI(x,y,w,h));
+        if bResult ~= C.BL_SUCCESS then
+          return false, bResult;
+        end
+        return true;      
+      end;
+
+      removeClip = function(self)
+        local bResult = self.impl.virt.restoreClipping(self.impl) ;
+        if bResult ~= C.BL_SUCCESS then
+          return false, bResult;
+        end
+        return true; 
+      end;
+
       -- Applies a matrix operation to the current transformation matrix (internal).
       _applyMatrixOp = function(self, opType, opData)
         return self.impl.virt.matrixOp(self.impl, opType, opData);
@@ -509,18 +525,6 @@ ffi.metatype(BLContextCore, {
         return bResult == 0 or bResult;
       end;
 
-
-      --[[
-        Actual Drawing
-      ]]
-      blit = function(self, img, pt)
-      --BLResult __cdecl blContextBlitImageD(BLContextCore* self, const BLPoint* pt, const BLImageCore* img, const BLRectI* imgArea) ;
-      end;
-
-      stretchBlt = function(self, dstRect, img, imgArea)
-          local bResult = blapi.blContextBlitScaledImageD(self, dstRect, img, imgArea) ;
-      end;
-
       setStrokeStartCap = function(self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
       end;
@@ -552,6 +556,18 @@ ffi.metatype(BLContextCore, {
         local bResult = blapi.blContextSetStrokeWidth(self, width) ;
         return bResult == C.BL_SUCCESS or bResult;
       end;
+
+      --[[
+        Actual Drawing
+      ]]
+      blit = function(self, img, pt)
+      --BLResult __cdecl blContextBlitImageD(BLContextCore* self, const BLPoint* pt, const BLImageCore* img, const BLRectI* imgArea) ;
+      end;
+
+      stretchBlt = function(self, dstRect, img, imgArea)
+          local bResult = blapi.blContextBlitScaledImageD(self, dstRect, img, imgArea) ;
+      end;
+
 
       -- Whole canvas drawing functions
       clear = function(self)

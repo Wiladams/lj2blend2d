@@ -33,6 +33,124 @@ require("blend2d.blvariant");
 require("blend2d.blcontext")
 local enum = require("blend2d.enum")
 
+--[=[
+-- environment
+touchIsOn = false;
+frameCount = 0;
+focused = false;
+displayWidth = false;
+displayHeight = false;
+windowWidth = false;
+windowHeight = false;
+width = false;
+height = false;
+
+-- Mouse state changing live
+mouseX = 0;
+mouseY = 0;
+pMouseX = 0;
+pMouseY = 0;
+winMouseX = false;
+winMouseY = false;
+pwinMouseX = false;
+pwinMouseY = false;
+mouseButton = false;
+mouseIsPressed = false;
+-- to be implemented by user code
+-- mouseMoved()
+-- mouseDragged()
+-- mousePressed()
+-- mouseReleased()
+-- mouseClicked()
+-- doubleClicked()
+-- mouseWheel()
+
+-- Keyboard state changing live
+keyIsPressed = false;
+key = false;
+keyCode = false;
+-- to be implemented by client code
+-- keyPressed()
+-- keyReleased()
+-- keyTyped()
+
+
+-- Touch events
+touches = 0;
+-- touchStarted()
+-- touchMoved()
+-- touchEnded()
+
+
+-- Initial State for modes
+AngleMode = RADIANS;
+ColorMode = RGB;
+RectMode = CORNER;
+EllipseMode = CENTER;
+ShapeMode = POLYGON;
+
+FrameRate = 15;
+LoopActive = true;
+EnvironmentReady = false;
+
+-- Typography
+TextSize = 18;
+TextHAlignment = LEFT;
+TextVAlignment = BASELINE;
+TextLeading = 0;
+TextMode = SCREEN;
+
+--appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\alger.ttf")
+appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
+--print("appFontFace: ", appFontFace, blerror[err])
+
+appFont, err = appFontFace:createFont(TextSize)
+--print("appFont: ", appFont, err)
+
+StrokeWeight = 1;
+--]=]
+
+
+--[[
+-- Constants related to colors
+-- colorMode
+RGB = 1;
+HSB = 2;
+
+-- rectMode, ellipseMode
+CORNER = 1;
+CORNERS = 2;
+RADIUS = 3;
+CENTER = 4;
+
+-- kind of close (for polygon)
+STROKE = 0;
+CLOSE = 1;
+
+-- alignment
+CENTER      = 0x00;
+LEFT        = 0x01;
+RIGHT       = 0x04;
+TOP         = 0x10;
+BOTTOM      = 0x40;
+BASELINE    = 0x80;
+
+MODEL = 1;
+SCREEN = 2;
+SHAPE = 3;
+
+-- GEOMETRY
+POINTS          = 0;
+LINES           = 1;
+LINE_STRIP      = 2;
+LINE_LOOP       = 3;
+POLYGON         = 4;
+QUADS           = 5;
+QUAD_STRIP      = 6;
+TRIANGLES       = 7;
+TRIANGLE_STRIP  = 8;
+TRIANGLE_FAN    = 9;
+--]]
 
 
 local DrawingContext = {
@@ -176,7 +294,7 @@ function DrawingContext.clip(self, x, y, w, y)
     return self;
 end
 
-function DrawingContext.removeClip(self)
+function DrawingContext.noClip(self)
     local bResult = blapi.blContextRestoreClipping(self.DC) ;
     
     if bResult ~= C.BL_SUCCESS then
