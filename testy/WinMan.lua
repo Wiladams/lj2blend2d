@@ -52,7 +52,7 @@ local windowGroup = GraphicGroup:new()
 
 -- Global Functions
 -- Create a WinMan window
-function createWindow(x,y, w, h)
+function WMCreateWindow(x,y, w, h)
     local win = Window:new {
         x = x,
         y=y,
@@ -64,6 +64,55 @@ function createWindow(x,y, w, h)
     return win
 end
 
+--[[
+    COLOR
+]]
+
+function WMColor(...)
+	local nargs = select('#', ...)
+
+	-- There can be 1, 2, 3, or 4, arguments
+	--	print("Color.new - ", nargs)
+	
+	local r = 0
+	local g = 0
+	local b = 0
+	local a = 255
+	
+	if (nargs == 1) then
+			r = select(1,...)
+			g = r
+			b = r
+			a = 255;
+	elseif nargs == 2 then
+			r = select(1,...)
+			g = r
+			b = r
+			a = select(2,...) or 255
+	elseif nargs == 3 then
+			r = select(1,...) or 0
+			g = select(2,...) or 0
+			b = select(3,...) or 0
+			a = 255
+	elseif nargs == 4 then
+		r = select(1,...)
+		g = select(2,...)
+		b = select(3,...)
+		a = select(4,...) or 255
+    end
+    
+    local pix = BLRgba32()
+--print("r,g,b: ", r,g,b)
+    pix.r = r
+    pix.g = g
+    pix.b = b 
+    pix.a = a
+
+	return pix;
+end
+
+
+-- Internal functions
 -- Drawing and canvas management
 -- BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
 local function invalidateWindow(lpRect, bErase)
@@ -106,7 +155,7 @@ local function handleFrame()
     for _, win in ipairs(windowGroup.children) do
         local readyBuff = win:getReadyBuffer()
         if readyBuff then
-            appContext:blit(readyBuff, BLPoint(win.x, win.y))
+            appContext:blit(readyBuff, win.x, win.y)
         end
     end
 

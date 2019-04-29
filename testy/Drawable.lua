@@ -25,16 +25,16 @@ function Drawable.new(self, obj)
     return obj;
 end
 
-function Drawable:drawBegin(ctxt)
+function Drawable.drawBegin(self, ctxt)
 end
 
-function Drawable:drawBody(ctxt)
+function Drawable.drawBody(self, ctxt)
 end
 
-function Drawable:drawEnd(ctxt)
+function Drawable.drawEnd(self, ctxt)
 end
 
-function Drawable:draw(renderContext)
+function Drawable.draw(self, renderContext)
     self:drawBegin(renderContext)
     self:drawBody(renderContext)
     self:drawEnd(renderContext)

@@ -19,6 +19,7 @@ function Window.new(self, obj)
     --print("Window.new: ", obj.width, obj.height)
     obj.BackingBuffer = BLImage(obj.width,obj.height)
     obj.DC = BLContext(obj.BackingBuffer)
+    obj.DC:clear();
 
     setmetatable(obj, self)
     self.__index = self;
@@ -34,24 +35,15 @@ function Window.getDC(self)
     return self.DC;
 end
 
+-- A window could be using as many buffers as it wants
+-- getReadyBuffer() returns the one the window wants the
+-- compositor to use in rendering it's current view
 function Window.getReadyBuffer(self)
     return self.BackingBuffer
 end
 
-function Window.background(self, c)
-    self.background = c;
-    self.DC:setFillStyle(c)
-    self.DC:fillAll()
-end
-
-
-function Window.drawBody(self, ctxt)
-    print("Window.drawBody")
-
-    -- draw red frame around ourself
-    --self.DC:setFillStyle(BLRgba32(0xff00ff00))
-    --self.DC:fillRectD(0,0,self.width, self.height)
-end
-
+--function Window.drawBody(self, ctxt)
+--    print("Window.drawBody")
+--end
 
 return Window

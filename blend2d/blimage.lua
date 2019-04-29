@@ -201,10 +201,8 @@ BLImage_mt = {
       blapi.blImageReset(self)
   end;
 --[[
-BLResult __cdecl blImageInit(BLImageCore* self) ;
 BLResult __cdecl blImageInitAs(BLImageCore* self, int w, int h, uint32_t format) ;
 BLResult __cdecl blImageInitAsFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-BLResult __cdecl blImageReset(BLImageCore* self) ;
 BLResult __cdecl blImageAssignMove(BLImageCore* self, BLImageCore* other) ;
 BLResult __cdecl blImageAssignWeak(BLImageCore* self, const BLImageCore* other) ;
 BLResult __cdecl blImageAssignDeep(BLImageCore* self, const BLImageCore* other) ;
@@ -231,7 +229,10 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
         bResult = blapi.blImageInit(obj)
       elseif nargs == 2 then
         -- width, height
-        bResult = blapi.blImageInitAs(obj, select(1,...), select(2,...), C.BL_FORMAT_PRGB32)
+        local width = select(1,...)
+        local height = select(2,...)
+        bResult = blapi.blImageInitAs(obj, width, height, C.BL_FORMAT_PRGB32)
+        --print("BLImage.__new: ", bResult, width, height)
       elseif nargs == 3 then
         -- width, height, format
         bResult = blapi.blImageInitAs(obj, select(1,...), select(2,...), select(3,...))
@@ -267,7 +268,7 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
 
             return obj
         end;
-
+--[[
         writeToFile = function(self, fileName, codec) 
           local bResult = blapi.blImageWriteToFile(self, fileName, codec)
           return bResult == 0 or bResult
@@ -283,12 +284,12 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
 
             return false, bResult
         end;
-    };
---[[
-    __tostring = function(self)
-      return string.format("%dx%d", self.impl.size.w, self.impl.size.h)
-    end;
 --]]
+    };
+
+    __tostring = function(self)
+      return string.format("BLImage(%d,%d)", self.impl.size.w, self.impl.size.h)
+    end;
 }
 ffi.metatype(BLImage, BLImage_mt)
 

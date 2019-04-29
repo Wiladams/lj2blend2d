@@ -128,7 +128,11 @@ struct BLRectI {
 
 };
 ]]
-
+ffi.metatype("struct BLRectI", {
+  __tostring = function(self)
+    return string.format("BLRect(%d, %d, %d, %d)", self.x, self.y, self.w, self.h)
+  end
+})
 
 ffi.cdef[[
 //! Point specified as [x, y] using `double` as a storage type.

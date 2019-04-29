@@ -18,7 +18,7 @@ function GraphicGroup.add(self, child, after)
     table.insert(self.children, child)
 end
 
-function GraphicGroup.drawBegin(self, ctxt)
+function GraphicGroup.drawChildren(self, ctxt)
     -- draw all the children
     for _, child in ipairs(self.children) do 
 
@@ -29,6 +29,14 @@ function GraphicGroup.drawBegin(self, ctxt)
         -- untranslate
         -- unclip
     end
+end
+
+
+function GraphicGroup.draw(self, dc)
+    self:drawBegin(dc)
+    self:drawChildren(dc)
+    self:drawBody(dc)
+    self:drawEnd(dc)
 end
 
 return GraphicGroup

@@ -560,10 +560,13 @@ ffi.metatype(BLContextCore, {
       --[[
         Actual Drawing
       ]]
-      blit = function(self, img, pt, imgArea)
+      blit = function(self, img, dstX, dstY, imgArea)
           local imgSize = img:size()
           imgArea = imgArea or BLRectI(0,0,imgSize.w, imgSize.h)
-          local bResult = blapi.blContextBlitImageD(self, pt, img, imgArea) ;
+          --print(imgArea)
+          --BLResult (__cdecl* blitImageI              )(BLContextImpl* impl, const BLPointI* pt, const BLImageCore* img, const BLRectI* imgArea) ;
+
+          local bResult = self.impl.virt.blitImageI(self.impl, BLPointI(dstX, dstY), img, imgArea)
       end;
 
       stretchBlt = function(self, dstRect, img, imgArea)
