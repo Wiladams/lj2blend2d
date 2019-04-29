@@ -11,10 +11,10 @@ local function randomColor()
     return color(r,g,b,126)
 end
 
-local radius = 30
+local radius = 20
 local s1, s2;
 local gravity = 3.0;    -- 9.0
-local mass = 3.0;       -- 2.0
+local mass = 2.5;       -- 2.0
 
 local Spring2D = {}
 setmetatable(Spring2D, {
@@ -141,4 +141,4 @@ function keyTyped(event)
     end
 end
 
-go {width = 1024, height=1024, frameRate=30}
+go {width = 1200, height=1080, frameRate=30}

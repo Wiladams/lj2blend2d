@@ -651,7 +651,7 @@ function GestureActivity(hwnd, msg, wparam, lparam)
 
     local bResult = C.GetGestureInfo(ffi.cast("HGESTUREINFO",lparam), pGestureInfo);
 
-    print("GestureActivity: ", pGestureInfo.dwID)
+    --print("GestureActivity: ", pGestureInfo.dwID)
 
     if bResult == 0 then
         -- error getting gestureinfo, so just pass through 
