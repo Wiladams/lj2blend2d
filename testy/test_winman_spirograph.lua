@@ -12,7 +12,11 @@ local function startup()
     win1:add(spg)
 
     win1:show()
-    win1:draw()
+
+    while true do
+        win1:draw()
+        yield();
+    end
 end
 
 winman {width = 1200, height=1024, startup = startup}
