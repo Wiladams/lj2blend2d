@@ -668,6 +668,12 @@ local function main(params)
     appSurface, err = BLDIBSection(params)
     appImage = appSurface.Image
     appContext = BLContext(appImage)
+    
+    -- Fill context with background color to start
+    appContext:clear()
+    appContext:setFillStyle(BLRgba32(0xffcccccc))
+    appContext:fillAll()
+
 
     FrameRate = params.frameRate or 30;
 

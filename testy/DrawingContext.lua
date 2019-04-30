@@ -233,6 +233,9 @@ function DrawingContext.new(self, w, h)
     obj.EllipseMode = DrawingContext.constants.RADIUS;
     obj.ShapeMode = DrawingContext.constants.POLYGON;
 
+    obj.DC:clear()
+
+
     return obj;
 end
 
@@ -860,7 +863,7 @@ function DrawingContext.stroke(self, ...)
 	local c = select(1, ...)
 
 	if type(c) ~= "cdata" then
-		c = color(...)
+		c = self:color(...)
 	end
 
 	self.StrokeColor = c;
@@ -979,6 +982,12 @@ local function calcEllipseParams(mode, a,b,c,d)
 	end
 
 	return cx, cy, rx, ry;
+end
+
+function DrawingContext.line(self, x1, y1, x2, y2)
+    self:strokeLine(x1,y1,x2,y2)
+
+	return self;
 end
 
 function DrawingContext.ellipse(self, cx, cy, rx, ry)

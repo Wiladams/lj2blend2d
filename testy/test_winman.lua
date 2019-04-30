@@ -5,12 +5,13 @@ local winman = require("WinMan")
 
 local function startup()
     print("startup")
-    local win1 = WMCreateWindow(0,0, 300, 200)
+    local win1 = WMCreateWindow(100,100, 320, 240)
 
-    function win1.drawBegin(self, ctxt)
-        print("win1:drawBegin(): ", self, ctxt)
+    function win1.drawBody(self, ctxt)
+        print("win1:drawBody(): ", self, ctxt)
+
         self.DC:fill(255,0,0)
-        self.DC:fillCircle(150, 100, 75)
+        self.DC:fillEllipse(150, 100, 75,75)
     end
 
     win1:show()

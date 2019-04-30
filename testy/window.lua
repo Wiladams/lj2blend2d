@@ -23,9 +23,7 @@ function Window.new(self, obj)
     -- add a drawing context
     --print("Window.new: ", obj.width, obj.height)
     obj.DC = DrawingContext:new(obj.width, obj.height);
-    --obj.BackingBuffer = BLImage(obj.width,obj.height)
-    --obj.DC = BLContext(obj.BackingBuffer)
-    --obj.DC:clear();
+
 
     setmetatable(obj, self)
     self.__index = self;
@@ -48,8 +46,27 @@ function Window.getReadyBuffer(self)
     return self.DC:getReadyBuffer()
 end
 
---function Window.drawBody(self, ctxt)
---    print("Window.drawBody")
---end
+function Window.drawBegin(self, ctxt)
+    print("Window.drawBegin")
+    -- draw window outline
+    --noFill();
+    ctxt:fill(0xDA)
+    ctxt:fillAll()
+
+    ctxt:stroke(BLRgba32(0xff000000))
+    ctxt:strokeWidth(4)
+    ctxt:strokeRect(0,0,self.width, self.height)
+
+    -- draw title bar
+end
+
+function GraphicGroup.draw(self, dc)
+    dc = dc or self:getDC()
+
+    self:drawBegin(dc)
+    self:drawChildren(dc)
+    self:drawBody(dc)
+    self:drawEnd(dc)
+end
 
 return Window
