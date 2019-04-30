@@ -201,14 +201,16 @@ setmetatable(DrawingContext, {
         return self:new(...)
     end
 })
+local DrawingContext_mt = {
+    __index = DrawingContext
+}
+
 
 function DrawingContext.new(self, w, h)
-    obj = obj or {}
-    setmetatable(obj, self)
-    self.__index = self;
+    obj = {}
 
-    obj.DC = obj.DC or ffi.new("struct BLContextCore")
     obj.BackingBuffer = obj.BackingBuffer or BLImage(w, h)
+    obj.DC = obj.DC or ffi.new("struct BLContextCore")
     local bResult = blapi.blContextInitAs(obj.DC, obj.BackingBuffer, nil)
     if bResult ~= C.BL_SUCCESS then
       return nil, bResult;
@@ -234,6 +236,7 @@ function DrawingContext.new(self, w, h)
     obj.ShapeMode = DrawingContext.constants.POLYGON;
 
     obj.DC:clear()
+    setmetatable(obj, DrawingContext_mt)
 
 
     return obj;

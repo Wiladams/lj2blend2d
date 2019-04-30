@@ -1,9 +1,19 @@
-local GraphicGroup = require("GraphicGroup")
+--local GraphicGroup = require("GraphicGroup")
 local b2d = require("blend2d.blend2d")
 local DrawingContext = require("DrawingContext")
 
 
-local Window = GraphicGroup:new()
+--local Window = GraphicGroup:new()
+
+local Window = {}
+setmetatable(Window, {
+    __call = function(self, ...)
+        return self:new(...)
+    end;
+})
+local Window_mt = {
+    __index = Window
+}
 
 function Window.new(self, obj)
     if not obj then
@@ -23,16 +33,20 @@ function Window.new(self, obj)
     -- add a drawing context
     --print("Window.new: ", obj.width, obj.height)
     obj.DC = DrawingContext:new(obj.width, obj.height);
+    obj.children = {};
 
 
-    setmetatable(obj, self)
-    self.__index = self;
+    setmetatable(obj, Window_mt)
 
     return obj;
 end
 
-function Window.show()
-    isShown = true;
+function Window.show(self)
+    self.isShown = true;
+end
+
+function Window.hide(self)
+    self.isShown = false;
 end
 
 function Window.getDC(self)
@@ -46,12 +60,26 @@ function Window.getReadyBuffer(self)
     return self.DC:getReadyBuffer()
 end
 
+function Window.add(self, child, after)
+    table.insert(self.children, child)
+end
+
+function Window.drawChildren(self, ctxt)
+    -- draw all the children
+    for _, child in ipairs(self.children) do 
+
+        -- set clip area to child
+        -- translate the context to the child's frame
+        child:draw(ctxt)
+
+        -- untranslate
+        -- unclip
+    end
+end
+
 function Window.drawBegin(self, ctxt)
-    print("Window.drawBegin")
-    -- draw window outline
-    --noFill();
-    ctxt:fill(0xDA)
-    ctxt:fillAll()
+    --ctxt:fill(0x7f,0x7f)
+    --ctxt:fillAll()
 
     ctxt:stroke(BLRgba32(0xff000000))
     ctxt:strokeWidth(4)
@@ -60,7 +88,13 @@ function Window.drawBegin(self, ctxt)
     -- draw title bar
 end
 
-function GraphicGroup.draw(self, dc)
+function Window.drawBody(self, ctxt)
+end
+
+function Window.drawEnd(self, ctxt)
+end
+
+function Window.draw(self, dc)
     dc = dc or self:getDC()
 
     self:drawBegin(dc)
