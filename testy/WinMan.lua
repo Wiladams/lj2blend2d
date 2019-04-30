@@ -47,6 +47,7 @@ local Window = require("Window")
 local CheckerGraphic = require("CheckerGraphic")
 local DrawingContext = require("DrawingContext")
 
+DrawingContext:exportConstants()
 
 
 

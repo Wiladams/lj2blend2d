@@ -232,7 +232,7 @@ function DrawingContext.new(self, params)
     obj.AngleMode = DrawingContext.constants.RADIANS;
     obj.ColorMode = DrawingContext.constants.RGB;
     obj.RectMode = DrawingContext.constants.CORNER;
-    obj.EllipseMode = DrawingContext.constants.RADIUS;
+    obj.EllipseMode = DrawingContext.constants.CENTER;
     obj.ShapeMode = DrawingContext.constants.POLYGON;
 
     obj.DC:clear()
@@ -1052,7 +1052,7 @@ local function calcEllipseParams(mode, a,b,c,d)
 		rx = c;
 		ry = d or rx;
 	end
-
+--print("calc ellipse: ", cx, cy, rx, ry)
 	return cx, cy, rx, ry;
 end
 
