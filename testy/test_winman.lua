@@ -9,11 +9,11 @@ local function startup()
 
     function win1.drawBegin(self, ctxt)
         print("win1:drawBegin(): ", self, ctxt)
-        self.DC:setFillStyle(WMColor(0x255,0,0))
+        self.DC:fill(255,0,0)
         self.DC:fillCircle(150, 100, 75)
     end
 
-    --win1:show()
+    win1:show()
     --win1:background(BLRgba32(0xff00ff00))
     win1:draw()
 end

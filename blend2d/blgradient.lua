@@ -131,6 +131,7 @@ struct BLGradientCore {
 ]]
 
 
+
 BLGradientStop = ffi.typeof("BLGradientStop")
 BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
 BLRadialGradientValues = ffi.typeof("struct BLRadialGradientValues")
@@ -143,6 +144,10 @@ local BLGradient_mt = {
         return blapi.blGradientReset(self);
     end;
 
+    -- This function is only called when you use the 'constructor'
+    -- method of creating a gradient, such as:
+    -- BLGradient(BLLinearValues({0,0,256,256}))
+    -- it is NOT called when you simply do ffi.new("struct BLGradientCore")
     __new = function(ct, ...)
         local nargs = select("#", ...)
         local obj = ffi.new(ct);

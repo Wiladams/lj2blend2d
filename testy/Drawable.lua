@@ -12,16 +12,13 @@
 
     myInstance:draw(renderContext)
 --]]
-local Drawable = {
-    -- a bounding box expressed in the coordinates of
-    -- an enclosing graphic if exists
-    Frame = {x = 0; y = 0; width = 1; height = 1;};
-}
+local Drawable = {}
 
 function Drawable.new(self, obj)
     obj = obj or {}
     setmetatable(obj, self)
     self.__index = self;
+    
     return obj;
 end
 
@@ -34,10 +31,10 @@ end
 function Drawable.drawEnd(self, ctxt)
 end
 
-function Drawable.draw(self, renderContext)
-    self:drawBegin(renderContext)
-    self:drawBody(renderContext)
-    self:drawEnd(renderContext)
+function Drawable.draw(self, ctxt)
+    self:drawBegin(ctxt)
+    self:drawBody(ctxt)
+    self:drawEnd(ctxt)
 end
 
 

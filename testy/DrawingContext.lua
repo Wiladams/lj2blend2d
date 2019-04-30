@@ -112,6 +112,11 @@ StrokeWeight = 1;
 
 
 --[[
+
+--]]
+
+
+local DrawingContext = {
 -- Constants related to colors
 -- colorMode
 RGB = 1;
@@ -150,10 +155,6 @@ QUAD_STRIP      = 6;
 TRIANGLES       = 7;
 TRIANGLE_STRIP  = 8;
 TRIANGLE_FAN    = 9;
---]]
-
-
-local DrawingContext = {
 
     -- Rendering context type.
     BLContextType = enum {
@@ -276,13 +277,19 @@ function DrawingContext.new(self, w, h)
     self.__index = self;
 
     obj.DC = obj.DC or ffi.new("struct BLContextCore")
-    obj.Image = obj.Image or BLImage(w, h)
-    local bResult = blapi.blContextInitAs(obj.DC, obj.Image, nil)
+    obj.BackingBuffer = obj.BackingBuffer or BLImage(w, h)
+    local bResult = blapi.blContextInitAs(obj.DC, obj.BackingBuffer, nil)
     if bResult ~= C.BL_SUCCESS then
       return nil, bResult;
     end
 
+    self.DC:clear();
+
     return obj;
+end
+
+function DrawingContext.getReadyBuffer(self)
+    return self.BackingBuffer;
 end
 
 function DrawingContext.clip(self, x, y, w, y)
@@ -438,29 +445,73 @@ function DrawingContext.setFillStyleRgba32 (self, rgba32)
         return false, bResult
 end
 
+function DrawingContext.color(self, ...)
+	local nargs = select('#', ...)
+
+	-- There can be 1, 2, 3, or 4, arguments
+	--	print("Color.new - ", nargs)
+	
+	local r = 0
+	local g = 0
+	local b = 0
+	local a = 255
+	
+	if (nargs == 1) then
+			r = select(1,...)
+			g = r
+			b = r
+			a = 255;
+	elseif nargs == 2 then
+			r = select(1,...)
+			g = r
+			b = r
+			a = select(2,...)
+	elseif nargs == 3 then
+			r = select(1,...)
+			g = select(2,...)
+			b = select(3,...)
+			a = 255
+	elseif nargs == 4 then
+		r = select(1,...)
+		g = select(2,...)
+		b = select(3,...)
+		a = select(4,...)
+    end
+    
+    local pix = BLRgba32()
+--print("r,g,b: ", r,g,b)
+    pix.r = r
+    pix.g = g
+    pix.b = b 
+    pix.a = a
+
+	return pix;
+end
+
+function DrawingContext.fill(self, ...)
+	local c = select(1,...)
+
+	if type(c) ~= "cdata" then
+		c = self:color(...)
+	end
+
+	self.FillColor = c;
+    self.DC:setFillStyle(c)
+	self.useFill = true;
+
+	return self;
+end
+
+function DrawingContext.noFill(self)
+	self.useFill = false;
+
+	return self;
+end
 
 --[[
         Actual Drawing
 ]]
-function DrawingContext.blit (self, img, pt)
-    local bResult = blapi.blContextBlitImageD(self.DC, const BLPoint* pt, const BLImageCore* img, const BLRectI* imgArea) ;
-    
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
 
-    return false, bResult
-end
-
-function DrawingContext.stretchBlt (self, dstRect, img, imgArea)
-    local bResult = blapi.blContextBlitScaledImageD(self.DC, dstRect, img, imgArea) ;
-
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
-end
 
 function DrawingContext.setStrokeStartCap (self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self.DC, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
@@ -802,6 +853,85 @@ function DrawingContext.strokeTriangle (self, ...)
         local tri = BLTriangle(...)
         return self:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
     end
+end
+
+--[[
+    Simple primitives UI
+]]
+local function calcEllipseParams(mode, a,b,c,d)
+
+	if not d then 
+		d = c;
+	end
+	
+	local cx = 0;
+	local cy = 0;
+	local rx = 0;
+	local ry = 0;
+
+	if mode == DrawingContext.CORNER then
+		rx = c / 2;
+		ry = d / 2;
+		cx = a + rx;
+		cy = b + ry;
+	elseif mode == DrawingContext.CORNERS then
+		rx = (c-a)/2;
+		ry = (d-b)/2;
+		cx = a + rx;
+		cy = b + ry;
+	elseif mode == DrawingContext.CENTER then
+		rx = c / 2;
+		ry = d / 2;
+		cx = a;
+		cy = b;
+	elseif mode == DrawingContext.RADIUS then
+		cx = a;
+		cy = b;
+		rx = c;
+		ry = d;
+	end
+
+	return cx, cy, rx, ry;
+end
+
+function DrawingContext.ellipse(self, cx, cy, rx, ry)
+
+	
+	local cx, cy, rx, ry = calcEllipseParams(EllipseMode, cx, cy, rx, ry)
+
+	if self.useFill then
+		self.DC:fillEllipse(cx, cy, rx, ry)
+	end
+	
+	if self.useStroke then
+		local bResult, err = self.DC:strokeEllipse(cx, cy, rx, ry)
+	end
+
+	return self
+end
+
+--[[
+    Images
+]]
+function DrawingContext.blit (self, img, x, y)
+    local imgArea = BLRectI(0,0,img:size().w, img:size().h)
+    local bResult = blapi.blContextBlitImageD(self.DC, BLPoint(x,y), img, const BLRectI* imgArea) ;
+    
+    if bResult == C.BL_SUCCESS then
+        return self;
+    end
+
+    return false, bResult
+end
+
+function DrawingContext.stretchBlt (self, dstRect, img, imgArea)
+    local bResult = blapi.blContextBlitScaledImageD(self.DC, dstRect, img, imgArea) ;
+
+    if bResult == C.BL_SUCCESS then
+        return self;
+    end
+
+    return false, bResult
 end
 
 return DrawingContext

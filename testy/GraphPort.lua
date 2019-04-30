@@ -71,11 +71,7 @@ JOIN_ROUND = C.BL_STROKE_JOIN_ROUND;
     CAP_TRIANGLE = 4;
     CAP_TRIANGLE_REV = 5;
 
-    -- State information
-    FillColor = 255;
-    StrokeColor = 0;
-    useFilll = true;
-    useStroke = true;
+
 }
 
 --[[
@@ -87,7 +83,15 @@ JOIN_ROUND = C.BL_STROKE_JOIN_ROUND;
 
 local GraphPort.new(self, obj)
     obj = obj or {}
-    setmetatable(obj, self)
+
+    -- State information
+    obj.FillColor = 255;
+    obj.StrokeColor = 0;
+    obj.useFilll = true;
+	obj.useStroke = true;
+	obj.PointSize = 1.0;
+
+	setmetatable(obj, self)
     self.__index = self;
     
     return obj;
@@ -97,7 +101,7 @@ end
 		LANGUAGE COMMANDS
 --]==================================================]
 function GraphPort.push(self)
-    self.renderer:save()
+    self.DC:save()
 end
 
 function GraphPort.pop(self)
@@ -112,7 +116,7 @@ end
 -- ATTRIBUTES
 function GraphPort.blendMode(self, mode)
 	-- set compositing operator
-	renderer:setCompOp(mode)
+	self.DC:setCompOp(mode)
 end
 
 function GraphPort.smooth(self)
