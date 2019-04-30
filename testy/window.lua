@@ -32,7 +32,7 @@ function Window.new(self, obj)
     
     -- add a drawing context
     --print("Window.new: ", obj.width, obj.height)
-    obj.DC = DrawingContext:new(obj.width, obj.height);
+    obj.DC = DrawingContext:new({width = obj.width, height = obj.height});
     obj.children = {};
 
 
@@ -78,9 +78,11 @@ function Window.drawChildren(self, ctxt)
 end
 
 function Window.drawBegin(self, ctxt)
-    --ctxt:fill(0x7f,0x7f)
-    --ctxt:fillAll()
+    ctxt:clear()
+    ctxt:fill(127,126)
+    ctxt:fillAll()
 
+    -- draw a black border
     ctxt:stroke(BLRgba32(0xff000000))
     ctxt:strokeWidth(4)
     ctxt:strokeRect(0,0,self.width, self.height)

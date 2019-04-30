@@ -206,10 +206,10 @@ local DrawingContext_mt = {
 }
 
 
-function DrawingContext.new(self, w, h)
-    obj = {}
+function DrawingContext.new(self, params)
+    obj = params or {}
 
-    obj.BackingBuffer = obj.BackingBuffer or BLImage(w, h)
+    obj.BackingBuffer = obj.BackingBuffer or BLImage(params.width, params.height)
     obj.DC = obj.DC or ffi.new("struct BLContextCore")
     local bResult = blapi.blContextInitAs(obj.DC, obj.BackingBuffer, nil)
     if bResult ~= C.BL_SUCCESS then
@@ -221,10 +221,10 @@ function DrawingContext.new(self, w, h)
 
     -- Typography
     obj.TextSize = 18;
-    obj.TextHAlignment = LEFT;
-    obj.TextVAlignment = BASELINE;
+    obj.TextHAlignment = DrawingContext.constants.LEFT;
+    obj.TextVAlignment = DrawingContext.constants.BASELINE;
     obj.TextLeading = 0;
-    obj.TextMode = SCREEN;
+    obj.TextMode = DrawingContext.constants.SCREEN;
 
     obj.FontFace = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
     obj.Font = obj.FontFace:createFont(obj.TextSize)
@@ -340,7 +340,8 @@ function DrawingContext.save (self, cookie)
 
     return false, bResult
 end
-      
+DrawingContext.push = DrawingContext.save
+
 function DrawingContext.restore (self, cookie)
     local bResult = self.DC.impl.virt.restore(self.DC.impl, cookie);
     if bResult == C.BL_SUCCESS then
@@ -350,8 +351,20 @@ function DrawingContext.restore (self, cookie)
     return false, bResult
 end
 
+DrawingContext.pop = DrawingContext.restore
+
+function DrawingContext.ellipseMode(self, newMode)
+    self.EllipseMode = newMode;
+end
+
+function DrawingContext.rectMode(self, newMode)
+    self.RectMode = newMode;
+end
+
+
+
 -- Applies a matrix operation to the current transformation matrix (internal).
-local function _applyMatrixOp (self, opType, opData)
+function DrawingContext._applyMatrixOp (self, opType, opData)
     local bResult = self.DC.impl.virt.matrixOp(self.DC.impl, opType, opData);
     if bResult == C.BL_SUCCESS then
         return self;
@@ -360,7 +373,7 @@ local function _applyMatrixOp (self, opType, opData)
     return false, bResult
 end
       
-local function _applyMatrixOpV(self, opType, ...)
+function DrawingContext._applyMatrixOpV(self, opType, ...)
         local opData = ffi.new("double[?]",select('#',...), {...});
         local bResult = self.DC.impl.virt.matrixOp(self.DC.impl, opType, opData);
         if bResult == C.BL_SUCCESS then
@@ -374,7 +387,7 @@ end
       -- 1 value - an angle (in radians)
       -- 3 values - an angle, and a point to rotate around
 function DrawingContext.rotateAroundPoint(self, rads, x, y)
-    return _applyMatrixOpV(self.DC, C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
+    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
 end
 
 function DrawingContext.rotate (self, rads)
@@ -382,7 +395,7 @@ function DrawingContext.rotate (self, rads)
 end
 
 function DrawingContext.translate (self, x, y)
-    return _applyMatrixOpV(self.DC, C.BL_MATRIX2D_OP_TRANSLATE, x, y);
+    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_TRANSLATE, x, y);
 end
 
 function DrawingContext.scale(self, ...)
@@ -394,14 +407,14 @@ function DrawingContext.scale(self, ...)
                   x = select(1,...)
                   y = x;
                   --print("blcontext.scale: ", x, y)
-                  return _applyMatrixOpV(self.DC, C.BL_MATRIX2D_OP_SCALE, x, y)
+                  return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
               end
           elseif nargs == 2 then
               x = select(1,...)
               y = select(2,...)
 
               if x and y then
-                  return _applyMatrixOpV(self.DC, C.BL_MATRIX2D_OP_SCALE, x, y)
+                  return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
               end
           end 
           
@@ -907,14 +920,14 @@ function DrawingContext.strokeWidth(self, weight)
 end
 
 
-local function calcTextPosition(txt, x, y)
-	local cx, cy = textWidth(txt)
+function DrawingContext.calcTextPosition(self, txt, x, y)
+	local cx, cy = self:textWidth(txt)
 
-	if TextHAlignment == LEFT then
+	if self.TextHAlignment == LEFT then
 		x = x
-	elseif TextHAlignment == MIDDLE then
+	elseif self.TextHAlignment == MIDDLE then
 		x = x - (cx/2)
-	elseif TextHAlignment == RIGHT then
+	elseif self.TextHAlignment == RIGHT then
 		x = x - cx;
 	end
 
@@ -930,7 +943,7 @@ local function calcTextPosition(txt, x, y)
 end
 
 function DrawingContext.text(self, txt, x, y)
-	local x, y = calcTextPosition(txt, x, y)
+	local x, y = self:calcTextPosition(txt, x, y)
 	self.DC:fillUtf8Text(BLPoint(x,y), self.Font, txt, #txt)
 end
 
@@ -949,6 +962,62 @@ end
 
 function DrawingContext.textWidth(self, txt)
 	return self.Font:measureText(txt)
+end
+
+local function calcModeRect(mode, a,b,c,d)
+
+	local x1 = 0;
+	local y1 = 0;
+	local rwidth = 0;
+	local rheight = 0;
+
+	if mode == CORNER then
+		x1 = a;
+		y1 = b;
+		rwidth = c;
+		rheight = d;
+
+	elseif mode == CORNERS then
+		x1 = a;
+		y1 = b;
+		rwidth = c - a + 1;
+		rheight = d - b + 1;
+
+	elseif mode == CENTER then
+		x1 = a - c / 2;
+		y1 = b - d / 2;
+		rwidth = c;
+		rheight = d;
+
+	elseif mode == RADIUS then
+		x1 = a - c;
+		y1 = b - d;
+		rwidth = c * 2;
+		rheight = d * 2;
+	end
+
+	return x1, y1, rwidth, rheight;
+end
+
+function DrawingContext.rect(self, ...)
+	local nargs = select('#',...)
+	if nargs < 4 then return false end
+
+	local x1, y1, rwidth, rheight = calcModeRect(self.RectMode, ...)
+
+	if nargs == 4 then
+		if self.useFill then
+		self:fillRectD(x1, y1, rwidth, rheight)
+		end
+
+		if self.useStroke then
+			self:strokeRectD(BLRect(x1, y1, rwidth, rheight))
+		end
+    elseif nargs == 5 then
+        -- do rounded rect
+	end
+
+	return true;
 end
 
 local function calcEllipseParams(mode, a,b,c,d)

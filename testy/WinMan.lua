@@ -17,6 +17,18 @@
 
 
     window:new()
+
+    A note about Drawing 'out of band'
+    Since we draw based on a framerate, it's important to draw when we want to.
+    In that case, we use the user32 call: RedrawWindow, and all our drawing
+    happens inside the WM_ERASEBKGND message.
+
+    We do this instead of relying on WM_PAINT, because that one is posted and proessed 
+    in a non-deterministic way.  Using Redraw and the background, we can ensure an sync
+    call to drawing, which gets us closer to our frame rate.
+
+    Useful for the future
+    https://blog.getpaint.net/2017/08/12/win32-how-to-get-the-refresh-rate-for-a-window/
 ]]
 local ffi = require("ffi")
 local C = ffi.C 
@@ -27,9 +39,16 @@ local rshift, lshift = bit.rshift, bit.lshift;
 
 local win32 = require("win32")
 local sched = require("scheduler")
+
+
 local BLDIBSection = require("BLDIBSection")
 local GraphicGroup = require("GraphicGroup")
 local Window = require("Window")
+local CheckerGraphic = require("CheckerGraphic")
+local DrawingContext = require("DrawingContext")
+
+
+
 
 local LOWORD = win32.LOWORD
 local HIWORD = win32.HIWORD
@@ -40,11 +59,13 @@ local SWatch = StopWatch();
 
 local appSurface = nil;
 local appContext = nil;
+local appBackground = nil;
 local appImage = nil;
 local appWindowHandle = nil;
 local EnvironmentReady = false;
 local appDC = nil;
-local frameCount = 0;
+frameCount = 0;
+FrameRate = 30;
 
 -- The GraphicGroup representing subsequent windows that
 -- are added to the environment
@@ -67,22 +88,11 @@ end
 
 
 -- Internal functions
--- Drawing and canvas management
--- BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
-local function invalidateWindow(lpRect, bErase)
-    local erase = 1
-    if not bErase then
-        erase = 0
-    end
-
-	local res = C.InvalidateRect(appWindowHandle, lpRect, erase)
-end
-
 function refreshWindow()
-    --[[
+---[[
     local lprcUpdate = nil;	-- const RECT *
 	local hrgnUpdate = nil; -- HRGN
-	local flags = flags or bor(C.RDW_UPDATENOW, C.RDW_INTERNALPAINT);
+	local flags = flags or bor(C.RDW_ERASE, C.RDW_INVALIDATE, C.RDW_ERASENOW);
 
 	local res = C.RedrawWindow(
   		appWindowHandle,
@@ -90,7 +100,15 @@ function refreshWindow()
    		hrgnUpdate,
         flags);
     --]]
-    invalidateWindow(lpRect, false);
+
+--[[
+    local lpcRect = nil;
+    local erase = 0
+	local bResult = C.InvalidateRect(appWindowHandle, lpRect, erase)
+    if bResult == 0 then
+        return false, C.GetLastError();
+    end
+--]]
 
     return true;
 end
@@ -103,6 +121,13 @@ local function handleFrame()
     frameCount = frameCount + 1;
     --print("handleFrame: ", frameCount, #windowGroup.children)
 
+
+    -- Draw whatever our background is first
+    appContext:clear()
+    appBackground:draw(appContext)
+    --appContext:setFillStyle(BLRgba32(0xffcccccc))
+    --appContext:fillAll()
+---[[
     -- iterate through the windows
     -- compositing each one
     appContext:setCompOp(C.BL_COMP_OP_SRC_OVER)
@@ -114,7 +139,7 @@ local function handleFrame()
             appContext:blit(readyBuff, win.x, win.y)
         end
     end
-
+--]]
     -- force a redraw to the screen
     refreshWindow()
 end
@@ -418,9 +443,23 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         res = GestureActivity(hwnd, msg, wparam, lparam)
 
     elseif msg == C.WM_ERASEBKGND then
-        --print("WM_ERASEBKGND")
+        --print("WM_ERASEBKGND: ", frameCount)
         --local hdc = ffi.cast("HDC", wparam); 
-
+        if appSurface then
+            local imgSize = appImage:size()
+            --print("Size: ", imgSize.w, imgSize.h)
+---[[
+            local bResult = C.StretchDIBits(appDC,
+                0,0,
+                imgSize.w,imgSize.h,
+                0,0,
+                imgSize.w, imgSize.h,
+                appSurface.pixelData.data,appSurface.info,
+                C.DIB_RGB_COLORS,C.SRCCOPY)
+            -- the bResult is the number of scanlines drawn
+            -- there's a failure, this will be 0
+--]]
+        end
         res = 0; 
 
     elseif msg == C.WM_PAINT then
@@ -435,7 +474,7 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         if appSurface then
             local imgSize = appImage:size()
             --print("Size: ", imgSize.w, imgSize.h)
----[[
+--[[
             local bResult = C.StretchDIBits(appDC,
                 0,0,
                 imgSize.w,imgSize.h,
@@ -488,7 +527,6 @@ local function msgLoop()
         end
 
         yield();
-
         -- ideally this routine would be a coroutine
         -- at the scheduler level, switching between 
         -- normal scheduled tasks, and windows message looping
@@ -623,13 +661,26 @@ local function main(params)
     -- as it's fairly independent
     appSurface, err = BLDIBSection(params)
     appImage = appSurface.Image
-    appContext = BLContext(appImage)
-    
+    --appContext = BLContext(appImage)
+    params.BackingBuffer = appImage
+    appContext = DrawingContext(params)
+    --appImage = appContext:getReadyBuffer()
+
     -- Fill context with background color to start
     appContext:clear()
-    appContext:setFillStyle(BLRgba32(0x7fcccccc))
+    appContext:setFillStyle(BLRgba32(0xffcccccc))
     appContext:fillAll()
 
+    -- create a graphic that will render the desktop
+    -- background
+    appBackground = CheckerGraphic({
+        width= params.width, 
+        height=params.height,
+        columns = 32,
+        rows = 24,
+        color1 = appContext:color(30),
+        color2 = appContext:color(60)
+    })
 
     FrameRate = params.frameRate or 30;
 
@@ -642,6 +693,7 @@ local function main(params)
     -- Create the actual Window which will represent
     -- the Managed window UI Surface
     appWindowHandle,err = createWin32Window(params)
+
     showWindow();
 
     -- Setup to deal with user inputs

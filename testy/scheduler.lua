@@ -665,6 +665,14 @@ local function runningTime()
 	return SignalWatch:seconds();
 end
 
+local function millis()
+	return SignalWatch:millis();
+end
+
+local function seconds()
+	return SignalWatch:seconds();
+end
+
 local function compareDueTime(task1, task2)
 	if task1.DueTime < task2.DueTime then
 		return true
@@ -816,7 +824,8 @@ local function globalizeKernel(tbl)
 	-- extras
 	rawset(tbl,"getCurrentTaskID", getCurrentTaskID);
     rawset(tbl,"StopWatch", StopWatch);
-
+	rawset(tbl,"seconds", seconds);
+	rawset(tbl,"millis", millis);
 	return tbl;
 end
 

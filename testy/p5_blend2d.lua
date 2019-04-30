@@ -91,6 +91,25 @@ function blendMode(mode)
 	appContext:setCompOp(mode)
 end
 
+-- Modes to be honored by various drawing APIs
+function angleMode(newMode)
+    if newMode ~= DEGREES and newMode ~= RADIANS then 
+        return false 
+    end
+
+    AngleMode = newMode;
+
+    return true;
+end
+
+function ellipseMode(newMode)
+    EllipseMode = newMode;
+end
+
+function rectMode(newMode)
+    RectMode = newMode;
+end
+
 function smooth()
 end
 
