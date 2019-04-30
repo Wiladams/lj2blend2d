@@ -71,7 +71,6 @@ enum  BLPathReverseMode  {
 
 //! Stroke join type.
 enum  BLStrokeJoin  {
-
   BL_STROKE_JOIN_MITER_CLIP = 0,
   BL_STROKE_JOIN_MITER_BEVEL = 1,
   BL_STROKE_JOIN_MITER_ROUND = 2,
@@ -91,20 +90,12 @@ enum  BLStrokeCapPosition  {
 
 //! A presentation attribute defining the shape to be used at the end of open subpaths.
 enum  BLStrokeCap  {
-
   BL_STROKE_CAP_BUTT = 0,
-
   BL_STROKE_CAP_SQUARE = 1,
-
   BL_STROKE_CAP_ROUND = 2,
-
   BL_STROKE_CAP_ROUND_REV = 3,
-
   BL_STROKE_CAP_TRIANGLE = 4,
-
   BL_STROKE_CAP_TRIANGLE_REV = 5,
-
-
   BL_STROKE_CAP_COUNT = 6
 };
 

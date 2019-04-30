@@ -10,7 +10,11 @@
     The intention is to not use the metatype connected to the BLContext itself
     and just rely on this simplified interface instead.
 
+    in most cases it provides straight pass-throughs to the underlying BLContext,
+    but it also provides convenient APIs such as found in P5.
+    
     Some features:
+    Will construct a backing store if necessary
     Enums are encapsulated in DrawingContext
     Where there are multiple forms of interfaces (int and double) double will be favored
 
@@ -20,141 +24,52 @@ local ffi = require("ffi")
 local C = ffi.C 
 
 
-local blapi = require("blend2d.blapi")
+local blapi = require("blend2d.blend2d")
 
-require("blend2d.blfont");
-require("blend2d.blgeometry");
-require("blend2d.blimage");
-require("blend2d.blmatrix");
-require("blend2d.blpath");
-require("blend2d.blrgba");
-require("blend2d.blregion");
-require("blend2d.blvariant");
-require("blend2d.blcontext")
 local enum = require("blend2d.enum")
 
---[=[
--- environment
-touchIsOn = false;
-frameCount = 0;
-focused = false;
-displayWidth = false;
-displayHeight = false;
-windowWidth = false;
-windowHeight = false;
-width = false;
-height = false;
-
--- Mouse state changing live
-mouseX = 0;
-mouseY = 0;
-pMouseX = 0;
-pMouseY = 0;
-winMouseX = false;
-winMouseY = false;
-pwinMouseX = false;
-pwinMouseY = false;
-mouseButton = false;
-mouseIsPressed = false;
--- to be implemented by user code
--- mouseMoved()
--- mouseDragged()
--- mousePressed()
--- mouseReleased()
--- mouseClicked()
--- doubleClicked()
--- mouseWheel()
-
--- Keyboard state changing live
-keyIsPressed = false;
-key = false;
-keyCode = false;
--- to be implemented by client code
--- keyPressed()
--- keyReleased()
--- keyTyped()
-
-
--- Touch events
-touches = 0;
--- touchStarted()
--- touchMoved()
--- touchEnded()
-
-
--- Initial State for modes
-AngleMode = RADIANS;
-ColorMode = RGB;
-RectMode = CORNER;
-EllipseMode = CENTER;
-ShapeMode = POLYGON;
-
-FrameRate = 15;
-LoopActive = true;
-EnvironmentReady = false;
-
--- Typography
-TextSize = 18;
-TextHAlignment = LEFT;
-TextVAlignment = BASELINE;
-TextLeading = 0;
-TextMode = SCREEN;
-
---appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\alger.ttf")
-appFontFace, err = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
---print("appFontFace: ", appFontFace, blerror[err])
-
-appFont, err = appFontFace:createFont(TextSize)
---print("appFont: ", appFont, err)
-
-StrokeWeight = 1;
---]=]
-
-
---[[
-
---]]
 
 
 local DrawingContext = {
--- Constants related to colors
--- colorMode
-RGB = 1;
-HSB = 2;
+    constants = {
+        -- colorMode
+        RGB = 1;
+        HSB = 2;
 
--- rectMode, ellipseMode
-CORNER = 1;
-CORNERS = 2;
-RADIUS = 3;
-CENTER = 4;
+        -- rectMode, ellipseMode
+        CORNER = 1;
+        CORNERS = 2;
+        RADIUS = 3;
+        CENTER = 4;
 
--- kind of close (for polygon)
-STROKE = 0;
-CLOSE = 1;
+        -- kind of close (for polygon)
+        STROKE = 0;
+        CLOSE = 1;
 
--- alignment
-CENTER      = 0x00;
-LEFT        = 0x01;
-RIGHT       = 0x04;
-TOP         = 0x10;
-BOTTOM      = 0x40;
-BASELINE    = 0x80;
+        -- text alignment
+        MIDDLE      = 0x00;
+        LEFT        = 0x01;
+        RIGHT       = 0x04;
+        TOP         = 0x10;
+        BOTTOM      = 0x40;
+        BASELINE    = 0x80;
 
-MODEL = 1;
-SCREEN = 2;
-SHAPE = 3;
+        MODEL = 1;
+        SCREEN = 2;
+        SHAPE = 3;
 
--- GEOMETRY
-POINTS          = 0;
-LINES           = 1;
-LINE_STRIP      = 2;
-LINE_LOOP       = 3;
-POLYGON         = 4;
-QUADS           = 5;
-QUAD_STRIP      = 6;
-TRIANGLES       = 7;
-TRIANGLE_STRIP  = 8;
-TRIANGLE_FAN    = 9;
+        -- GEOMETRY
+        POINTS          = 0;
+        LINES           = 1;
+        LINE_STRIP      = 2;
+        LINE_LOOP       = 3;
+        POLYGON         = 4;
+        QUADS           = 5;
+        QUAD_STRIP      = 6;
+        TRIANGLES       = 7;
+        TRIANGLE_STRIP  = 8;
+        TRIANGLE_FAN    = 9;
+    };
 
     -- Rendering context type.
     BLContextType = enum {
@@ -168,9 +83,9 @@ TRIANGLE_FAN    = 9;
 
     -- Rendering context hint.
     BLContextHint = enum {
-        [0] = "BL_CONTEXT_HINT_RENDERING_QUALITY" = 0,
-        [1] = "BL_CONTEXT_HINT_GRADIENT_QUALITY" = 1,
-        [2] = "BL_CONTEXT_HINT_PATTERN_QUALITY" = 2,
+        [0] = "BL_CONTEXT_HINT_RENDERING_QUALITY",
+        [1] = "BL_CONTEXT_HINT_GRADIENT_QUALITY",
+        [2] = "BL_CONTEXT_HINT_PATTERN_QUALITY",
 
         --[8] = "BL_CONTEXT_HINT_COUNT" = 8
     };
@@ -205,10 +120,10 @@ TRIANGLE_FAN    = 9;
     -- Clip mode.
     BLClipMode = enum {
         [0] = "BL_CLIP_MODE_ALIGNED_RECT";
-        "BL_CLIP_MODE_UNALIGNED_RECT" = 1;
-        "BL_CLIP_MODE_MASK" = 2;
+        "BL_CLIP_MODE_UNALIGNED_RECT";
+        "BL_CLIP_MODE_MASK";
 
-        --BL_CLIP_MODE_COUNT = 3
+        --"BL_CLIP_MODE_COUNT"
     };
 
     -- Composition & blending operator.
@@ -264,9 +179,25 @@ TRIANGLE_FAN    = 9;
         [0] = "BL_RENDERING_QUALITY_ANTIALIAS",
         "BL_RENDERING_QUALITY_COUNT"
     };
+
+
+    -- Path Enums
+    BLStrokeCap = enum {
+        [0] = "BL_STROKE_CAP_BUTT",
+        "BL_STROKE_CAP_SQUARE",
+        "BL_STROKE_CAP_ROUND",
+        "BL_STROKE_CAP_ROUND_REV",
+        "BL_STROKE_CAP_TRIANGLE",
+        "BL_STROKE_CAP_TRIANGLE_REV",
+        "BL_STROKE_CAP_COUNT"
+    };
 }
+
+
+
+
 setmetatable(DrawingContext, {
-    __call (self, ...)
+    __call = function(self, ...)
         return self:new(...)
     end
 })
@@ -283,10 +214,72 @@ function DrawingContext.new(self, w, h)
       return nil, bResult;
     end
 
-    self.DC:clear();
+    -- Initial State information
+    obj.StrokeWeight = 1;
+
+    -- Typography
+    obj.TextSize = 18;
+    obj.TextHAlignment = LEFT;
+    obj.TextVAlignment = BASELINE;
+    obj.TextLeading = 0;
+    obj.TextMode = SCREEN;
+
+    obj.FontFace = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
+    obj.Font = obj.FontFace:createFont(obj.TextSize)
+
+    obj.AngleMode = DrawingContext.constants.RADIANS;
+    obj.ColorMode = DrawingContext.constants.RGB;
+    obj.RectMode = DrawingContext.constants.CORNER;
+    obj.EllipseMode = DrawingContext.constants.RADIUS;
+    obj.ShapeMode = DrawingContext.constants.POLYGON;
 
     return obj;
 end
+
+-- maybe use a local namespace to export
+-- all the constants
+function DrawingContext.exportConstants(self)
+    local enums = {
+        self.BLContextHint,
+        self.BLContextOpType,
+        self.BLContextFlushFlags,
+        self.BLContextCreateFlags,
+        self.BLClipOp,
+        self.BLClipMode,
+        self.BLCompOp,
+        self.BLGradientQuality,
+        self.BLPatternQuality,
+        self.BLRenderingQuality,
+        self.BLStrokeCap,
+    }
+
+
+    local function globalizeTable(tbl)
+        for k,v in pairs(tbl) do
+            _G[v] = k;
+        end
+    end
+
+    for _, tbl in ipairs(enums) do
+        globalizeTable(tbl)
+    end
+
+    for k,v in pairs(self.constants) do
+        _G[k] = v;
+    end
+end
+
+-- Whole canvas drawing functions
+function DrawingContext.clear (self)
+    local bResult = self.DC.impl.virt.clearAll(self.DC.impl)
+
+    if bResult == C.BL_SUCCESS then
+        return self;
+    end
+
+    return false, bResult
+end
+
 
 function DrawingContext.getReadyBuffer(self)
     return self.BackingBuffer;
@@ -409,7 +402,9 @@ function DrawingContext.scale(self, ...)
           return false, "invalid arguments"
 end
 
-      
+--[[
+    Setting Drawing Attributes
+]]
 function DrawingContext.setCompOp (self, compOp)
     --print("setCompOp: ", self, compOp)
     local bResult = blapi.blContextSetCompOp(self.DC, compOp);
@@ -422,17 +417,21 @@ function DrawingContext.setCompOp (self, compOp)
 end
     
 function DrawingContext.setFillStyle (self, obj)
-        if ffi.typeof(obj) == BLRgba32 then
-            return self:setFillStyleRgba32(obj.value)
+    if type(obj) == "number" then
+        return self.DC:setFillStyleRgba32(obj)
+    end
+
+    if ffi.typeof(obj) == BLRgba32 then
+        return self.DC:setFillStyleRgba32(obj.value)
     end
 
     local bResult = blapi.blContextSetFillStyle(self.DC, obj);
     
-    if bResult == C.BL_SUCCESS then
-        return self;
+    if bResult ~= C.BL_SUCCESS then
+        return false, bResult;
     end
 
-    return false, bResult
+    return self
 end
     
 function DrawingContext.setFillStyleRgba32 (self, rgba32)
@@ -445,73 +444,14 @@ function DrawingContext.setFillStyleRgba32 (self, rgba32)
         return false, bResult
 end
 
-function DrawingContext.color(self, ...)
-	local nargs = select('#', ...)
 
-	-- There can be 1, 2, 3, or 4, arguments
-	--	print("Color.new - ", nargs)
-	
-	local r = 0
-	local g = 0
-	local b = 0
-	local a = 255
-	
-	if (nargs == 1) then
-			r = select(1,...)
-			g = r
-			b = r
-			a = 255;
-	elseif nargs == 2 then
-			r = select(1,...)
-			g = r
-			b = r
-			a = select(2,...)
-	elseif nargs == 3 then
-			r = select(1,...)
-			g = select(2,...)
-			b = select(3,...)
-			a = 255
-	elseif nargs == 4 then
-		r = select(1,...)
-		g = select(2,...)
-		b = select(3,...)
-		a = select(4,...)
-    end
-    
-    local pix = BLRgba32()
---print("r,g,b: ", r,g,b)
-    pix.r = r
-    pix.g = g
-    pix.b = b 
-    pix.a = a
-
-	return pix;
-end
-
-function DrawingContext.fill(self, ...)
-	local c = select(1,...)
-
-	if type(c) ~= "cdata" then
-		c = self:color(...)
-	end
-
-	self.FillColor = c;
-    self.DC:setFillStyle(c)
-	self.useFill = true;
-
-	return self;
-end
-
-function DrawingContext.noFill(self)
-	self.useFill = false;
-
-	return self;
-end
 
 --[[
         Actual Drawing
 ]]
-
+--[[
+    Setting Stroke Attributes
+]]
 
 function DrawingContext.setStrokeStartCap (self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self.DC, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
@@ -583,16 +523,10 @@ function DrawingContext.setStrokeWidth (self, width)
     return false, bResult
 end
 
--- Whole canvas drawing functions
-function DrawingContext.clear (self)
-    local bResult = self.DC.impl.virt.clearAll(self.DC.impl)
 
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
-end
+--[[
+    FILLING
+]]
 
 function DrawingContext.fillAll (self)
     local bResult = self.DC.impl.virt.fillAll(self.DC.impl);
@@ -636,7 +570,7 @@ function DrawingContext.fillEllipse (self, ...)
     if nargs == 4 then
         local geo = BLEllipse(...)
             --print("fillEllipse: ", geo.cx, geo.cy, geo.rx, geo.ry)
-        retyrn self:fillGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
+        return self:fillGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
     end
 end
 
@@ -720,13 +654,13 @@ end
       -- the bytes.  With unicode, it's the number of code points.
 function DrawingContext.fillUtf8Text (self, dst, font, text, size)
     size = size or math.huge
-    local bResult = return self.DC.impl.virt.fillTextD(self.DC.impl, dst, font, text, size, C.BL_TEXT_ENCODING_UTF8);
+    local bResult = self.DC.impl.virt.fillTextD(self.DC.impl, dst, font, text, size, C.BL_TEXT_ENCODING_UTF8);
 
-    if bResult == C.BL_SUCCESS then
-        return self;
+    if bResult ~= C.BL_SUCCESS then
+        return false, bResult;
     end
 
-    return false, bResult
+    return self
 end
 
 
@@ -760,7 +694,7 @@ function DrawingContext.strokeGlyphRunD (self, pt, font, glyphRun)
     return false, bResult
 end
 
-function DrawingContext.strokeGlyphRun = DrawingContext.strokeGlyphRunD;
+DrawingContext.strokeGlyphRun = DrawingContext.strokeGlyphRunD;
 
 function DrawingContext.strokeEllipse (self, ...)
     local nargs = select("#",...)
@@ -804,8 +738,8 @@ function DrawingContext.strokeRectD (self, rect)
     return false, bResult 
 end
 
-function DrawingContext.strokeRect(self, x, y, w, y)
-    return self:DrawingContext:strokeRectD(BLRect(x,y,w,h))
+function DrawingContext.strokeRect(self, x, y, w, h)
+    return self:strokeRectD(BLRect(x,y,w,h))
 end
 
 function DrawingContext.strokePathD(self, path)
@@ -858,6 +792,159 @@ end
 --[[
     Simple primitives UI
 ]]
+
+function DrawingContext.color(self, ...)
+	local nargs = select('#', ...)
+
+	-- There can be 1, 2, 3, or 4, arguments
+	--	print("Color.new - ", nargs)
+	
+	local r = 0
+	local g = 0
+	local b = 0
+	local a = 255
+	
+	if (nargs == 1) then
+			r = select(1,...)
+			g = r
+			b = r
+			a = 255;
+	elseif nargs == 2 then
+			r = select(1,...)
+			g = r
+			b = r
+			a = select(2,...)
+	elseif nargs == 3 then
+			r = select(1,...)
+			g = select(2,...)
+			b = select(3,...)
+			a = 255
+	elseif nargs == 4 then
+		r = select(1,...)
+		g = select(2,...)
+		b = select(3,...)
+		a = select(4,...)
+    end
+    
+    local pix = BLRgba32()
+--print("r,g,b: ", r,g,b)
+    pix.r = r
+    pix.g = g
+    pix.b = b 
+    pix.a = a
+
+	return pix;
+end
+
+function DrawingContext.fill(self, ...)
+	local c = select(1,...)
+
+	if type(c) ~= "cdata" then
+		c = self:color(...)
+	end
+
+	self.FillColor = c;
+    self.DC:setFillStyle(c)
+	self.useFill = true;
+
+	return self;
+end
+
+function DrawingContext.noFill(self)
+	self.useFill = false;
+
+	return self;
+end
+
+function DrawingContext.stroke(self, ...)
+	local c = select(1, ...)
+
+	if type(c) ~= "cdata" then
+		c = color(...)
+	end
+
+	self.StrokeColor = c;
+    self.DC:setStrokeStyle(c)
+	self.useStroke = true;
+
+	return true;
+end
+
+function DrawingContext.noStroke(self)
+	self.useStroke = false;
+
+	return true;
+end
+
+
+function DrawingContext.strokeCaps(self, strokeCap)
+	self.DC:setStrokeCaps(strokeCap) ;
+end
+
+function DrawingContext.strokeStartCap(self, cap)
+    self.DC:setStrokeStartCap(cap)
+    return self;
+end
+
+function DrawingContext.strokeEndCap(self, cap)
+    self.DC:setStrokeEndCap(cap)
+    return self;
+end
+
+function DrawingContext.strokeJoin(self, join)
+    self.DC:setStrokeJoin(join)
+end
+
+function DrawingContext.strokeWidth(self, weight)
+    self.StrokeWeight = weight;
+    self.DC:setStrokeWidth(weight);
+end
+
+
+local function calcTextPosition(txt, x, y)
+	local cx, cy = textWidth(txt)
+
+	if TextHAlignment == LEFT then
+		x = x
+	elseif TextHAlignment == MIDDLE then
+		x = x - (cx/2)
+	elseif TextHAlignment == RIGHT then
+		x = x - cx;
+	end
+
+	if self.TextVAlignment == TOP then
+		y = y + cy;
+	elseif self.TextVAlignment == MIDDLE then 
+		y = y + cy / 2
+	elseif self.TextVAlignment == BASELINE then
+		y = y;
+	elseif self.TextVAlignment == BOTTOM then
+		y = y;	end
+	return x, y
+end
+
+function DrawingContext.text(self, txt, x, y)
+	local x, y = calcTextPosition(txt, x, y)
+	self.DC:fillUtf8Text(BLPoint(x,y), self.Font, txt, #txt)
+end
+
+function DrawingContext.textAlign(self, halign, valign)
+	self.TextHAlignment = halign or DrawingContext.constants.LEFT
+	self.TextVAlignment = valign or DrawingContext.constants.BASELINE
+end
+
+function DrawingContext.textLeading(self, leading)
+	self.TextLeading = leading
+end
+
+function DrawingContext.textMode(self, mode)
+	self.TextMode = mode
+end
+
+function DrawingContext.textWidth(self, txt)
+	return self.Font:measureText(txt)
+end
+
 local function calcEllipseParams(mode, a,b,c,d)
 
 	if not d then 
@@ -869,26 +956,26 @@ local function calcEllipseParams(mode, a,b,c,d)
 	local rx = 0;
 	local ry = 0;
 
-	if mode == DrawingContext.CORNER then
+	if mode == CORNER then
 		rx = c / 2;
 		ry = d / 2;
 		cx = a + rx;
 		cy = b + ry;
-	elseif mode == DrawingContext.CORNERS then
+	elseif mode == CORNERS then
 		rx = (c-a)/2;
 		ry = (d-b)/2;
 		cx = a + rx;
 		cy = b + ry;
-	elseif mode == DrawingContext.CENTER then
-		rx = c / 2;
-		ry = d / 2;
+	elseif mode == CENTER then
 		cx = a;
-		cy = b;
-	elseif mode == DrawingContext.RADIUS then
+        cy = b;
+        rx = c / 2;
+		ry = d / 2;
+	elseif mode == RADIUS then
 		cx = a;
 		cy = b;
 		rx = c;
-		ry = d;
+		ry = d or rx;
 	end
 
 	return cx, cy, rx, ry;
@@ -896,8 +983,8 @@ end
 
 function DrawingContext.ellipse(self, cx, cy, rx, ry)
 
-	
-	local cx, cy, rx, ry = calcEllipseParams(EllipseMode, cx, cy, rx, ry)
+	--print("ellipse: ", cx, cy, rx, ry)
+	local cx, cy, rx, ry = calcEllipseParams(self.EllipseMode, cx, cy, rx, ry)
 
 	if self.useFill then
 		self.DC:fillEllipse(cx, cy, rx, ry)
@@ -910,12 +997,17 @@ function DrawingContext.ellipse(self, cx, cy, rx, ry)
 	return self
 end
 
+function DrawingContext.circle(self, cx, cy, r)
+    return self:ellipse(cx, cy, r, r)
+end
+
+
 --[[
     Images
 ]]
 function DrawingContext.blit (self, img, x, y)
     local imgArea = BLRectI(0,0,img:size().w, img:size().h)
-    local bResult = blapi.blContextBlitImageD(self.DC, BLPoint(x,y), img, const BLRectI* imgArea) ;
+    local bResult = blapi.blContextBlitImageD(self.DC, BLPoint(x,y), img, imgArea) ;
     
     if bResult == C.BL_SUCCESS then
         return self;

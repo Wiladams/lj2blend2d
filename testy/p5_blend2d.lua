@@ -735,7 +735,6 @@ function text(txt, x, y)
 end
 
 -- Attributes
-
 function textAlign(halign, valign)
 	TextHAlignment = halign or LEFT
 	TextVAlignment = valign or BASELINE
@@ -757,8 +756,6 @@ function textWidth(txt)
 end
 
 function textFont(fontname)
-	return Processing.Renderer:SetFont(fontname);
-	--return Processing.SetFontName(fontname)
 end
 
 -- Metrics
