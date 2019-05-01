@@ -226,7 +226,7 @@ function DrawingContext.new(self, params)
     obj.TextLeading = 0;
     obj.TextMode = DrawingContext.constants.SCREEN;
 
-    obj.FontFace = BLFontFace:createFromFile("c:\\windows\\fonts\\calibri.ttf")
+    obj.FontFace = BLFontFace:createFromFile("c:\\windows\\fonts\\consola.ttf")
     obj.Font = obj.FontFace:createFont(obj.TextSize)
 
     obj.AngleMode = DrawingContext.constants.RADIANS;

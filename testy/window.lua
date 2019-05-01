@@ -79,7 +79,7 @@ end
 
 function Window.drawBegin(self, ctxt)
     ctxt:clear()
-    ctxt:fill(127,126)
+    ctxt:fill(127,180)
     ctxt:fillAll()
 
     -- draw a black border

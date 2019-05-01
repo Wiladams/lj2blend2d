@@ -14,6 +14,8 @@ function GStructureRecursion.new(self, obj)
     obj.width = obj.width or 720
     obj.height = obj.width or 400
     obj.y = obj.y or obj.height/2
+    obj.x = obj.x or 0
+    
     setmetatable(obj, GStructureRecursion_mt)
 
     return obj;

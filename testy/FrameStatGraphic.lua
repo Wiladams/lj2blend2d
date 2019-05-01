@@ -45,7 +45,7 @@ function FrameStatGraphic.draw(self, ctxt)
     
     -- Draw the text
     ctxt:fill(0)
-    local frameText = string.format("Set Rate: %d Frame: %d  Period: %d Rate: %f    Mouse: %d  %d", 
+    local frameText = string.format("Set Rate: %3d Frame: %5d  Period: %2d Rate: %3.2f    Mouse: %d  %d", 
         FrameRate, frameCount, elapsed, frameCount/seconds(),
         mouseX or 0, mouseY or 0)
 --print("STATS: ", frameText)

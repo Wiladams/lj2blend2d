@@ -5,7 +5,7 @@ local bit = require("bit")
 local bor, band = bit.bor, bit.band
 
 local b2d = require("blend2d.blend2d")
-local blerror = require("blerror")
+local blerror = require("blend2d.blerror")
 
 local BL_FILE_OPEN_SHARE_READ = 0x10000000  -- no worky
 local BL_FILE_OPEN_READ = 0x00000001;       -- worky
