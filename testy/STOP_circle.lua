@@ -5,13 +5,13 @@ local function app(params)
 
     function win1.drawBody(self, ctxt)
         --print("win1:drawBody(): ", self, ctxt)
-
+        ctxt:noStroke()
         ctxt:fill(255,0,0)
-        ctxt:fillEllipse(150, 100, 75,75)
+        ctxt:circle(150, 100, 75)
     end
 
     win1:show()
-    win1:draw()
+
     while true do
         win1:draw()
         yield();

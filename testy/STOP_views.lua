@@ -6,7 +6,12 @@ local GS = require("GGettingStarted")
 
 local graphics = {
     GS.GS1:new();
+    GS.GS2:new();
+    GS.GS3:new();
+    GS.GS4:new();
+    GS.GS5:new();
     GS.GS6:new({width =480, height=480});
+    GS.GS7:new();
 }
 
 local function app(params)

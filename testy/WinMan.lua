@@ -124,8 +124,13 @@ local function handleFrame()
 
 
     -- Draw whatever our background is first
+    -- if the background is a drawable, then draw it
+
     appContext:clear()
-    appBackground:draw(appContext)
+    if appBackground then
+        appBackground:draw(appContext)
+    end
+
     --appContext:setFillStyle(BLRgba32(0xffcccccc))
     --appContext:fillAll()
 ---[[
@@ -656,6 +661,10 @@ function touchOff()
     return false;
 end
 
+function WMSetBackground(bkgnd)
+    appBackground = bkgnd
+end
+
 local function main(params)
 
     -- We can create the app Surface from the beginning
@@ -672,16 +681,7 @@ local function main(params)
     appContext:setFillStyle(BLRgba32(0xffcccccc))
     appContext:fillAll()
 
-    -- create a graphic that will render the desktop
-    -- background
-    appBackground = CheckerGraphic({
-        width= params.width, 
-        height=params.height,
-        columns = 32,
-        rows = 24,
-        color1 = appContext:color(30),
-        color2 = appContext:color(60)
-    })
+
 
     FrameRate = params.frameRate or 30;
 
