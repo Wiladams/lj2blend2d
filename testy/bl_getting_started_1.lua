@@ -16,7 +16,7 @@ local function main()
 
 
   -- Fill some path.
-  local path = BLPathCore();
+  local path = BLPath();
   path:moveTo(26, 31);
   path:cubicTo(642, 132, 587, -136, 25, 464);
   path:cubicTo(882, 404, 144, 267, 27, 31);

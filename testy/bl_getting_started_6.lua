@@ -9,7 +9,7 @@ local Gradient = require("Gradient")
 
 local function main()
 
-  local ctx = DrawingContext:new(480, 480)
+  local ctx = DrawingContext:new({width=480, height=480})
 
   ctx:setCompOp(BL_COMP_OP_SRC_COPY);
   ctx:fillAll();

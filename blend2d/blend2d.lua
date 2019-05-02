@@ -842,6 +842,430 @@ local BLGlyphBuffer_mt = {
 }
 ffi.metatype(BLGlyphBuffer, BLGlyphBuffer_mt)
 
+--[[
+    BLGradient
+]]
+BLGradientStop = ffi.typeof("BLGradientStop")
+BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
+BLRadialGradientValues = ffi.typeof("struct BLRadialGradientValues")
+BLConicalGradientValues = ffi.typeof("struct BLConicalGradientValues")
 
+BLGradientCore = ffi.typeof("struct BLGradientCore")
+BLGradient = BLGradientCore
+local BLGradient_mt = {
+    __gc = function(self)
+        return blapi.blGradientReset(self);
+    end;
+
+    -- This function is only called when you use the 'constructor'
+    -- method of creating a gradient, such as:
+    -- BLGradient(BLLinearValues({0,0,256,256}))
+    -- it is NOT called when you simply do ffi.new("struct BLGradientCore")
+    __new = function(ct, ...)
+        local nargs = select("#", ...)
+        local obj = ffi.new(ct);
+
+        if nargs == 0 then
+            local bResult = blapi.blGradientInit(obj) ;
+        elseif nargs == 1 then
+            local gType = 0
+            local values = select(1,...)
+            if ffi.typeof(values) ==   BLLinearGradientValues then
+                local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
+                if bResult ~= C.BL_SUCCESS then
+                  return false, bResult;
+                end
+            elseif ffi.typeof(values) == BLRadialGradientValues then
+              local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_RADIAL, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
+              if bResult ~= C.BL_SUCCESS then
+                return false, bResult;
+              end
+            elseif ffi.typeof(values) == BLConicalGradientValues then
+              local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_CONICAL, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
+              if bResult ~= C.BL_SUCCESS then
+                return false, bResult;
+              end
+            end
+        elseif nargs == 6 then
+            local bResult = blapi.blGradientInitAs(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...)) ;
+            if bResult ~= C.BL_SUCCESS then
+              return false, bResult;
+            end
+        end
+
+        return obj;
+    end;
+
+    __index = {
+        addStopRgba64 = function(self, offset, argb64)
+          return blapi.blGradientAddStopRgba64(self, offset, argb64);
+        end;
+        
+        addStopRgba32 = function(self, offset, argb32)
+            return blapi.blGradientAddStopRgba32(self, offset, argb32);
+        end;
+
+        addStop = function(self, offset, obj)
+          if type(obj) == "number" then
+            return self:addStopRgba32(offset, obj)
+          elseif ffi.typeof(obj) == BLRgba32 then
+            return self:addStopRgba32(offset, obj.value)
+          end
+        end;
+    };
+}
+ffi.metatype(BLGradient, BLGradient_mt )
+
+--[[
+    BLImage
+]]
+BLImage = ffi.typeof("struct BLImageCore")
+BLImageCore = BLImage
+BLImage_mt = {
+  __gc = function(self)
+      blapi.blImageReset(self)
+  end;
+--[[
+BLResult __cdecl blImageInitAs(BLImageCore* self, int w, int h, uint32_t format) ;
+BLResult __cdecl blImageInitAsFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+BLResult __cdecl blImageAssignMove(BLImageCore* self, BLImageCore* other) ;
+BLResult __cdecl blImageAssignWeak(BLImageCore* self, const BLImageCore* other) ;
+BLResult __cdecl blImageAssignDeep(BLImageCore* self, const BLImageCore* other) ;
+BLResult __cdecl blImageCreate(BLImageCore* self, int w, int h, uint32_t format) ;
+BLResult __cdecl blImageCreateFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+BLResult __cdecl blImageGetData(const BLImageCore* self, BLImageData* dataOut) ;
+BLResult __cdecl blImageMakeMutable(BLImageCore* self, BLImageData* dataOut) ;
+bool     __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
+BLResult __cdecl blImageScale(BLImageCore* dst, const BLImageCore* src, const BLSizeI* size, uint32_t filter, const BLImageScaleOptions* options) ;
+BLResult __cdecl blImageReadFromFile(BLImageCore* self, const char* fileName, const BLArrayCore* codecs) ;
+BLResult __cdecl blImageReadFromData(BLImageCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
+BLResult __cdecl blImageWriteToFile(const BLImageCore* self, const char* fileName, const BLImageCodecCore* codec) ;
+BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, const BLImageCodecCore* codec) ;
+
+--]]
+    __new = function(ct, ...)
+      --print("BLImageCore.__new: ",...)
+      local nargs = select('#', ...)
+      local obj = ffi.new(ct)
+      local bResult = -1;
+
+      if nargs == 0 then
+        -- default constructor
+        bResult = blapi.blImageInit(obj)
+      elseif nargs == 2 then
+        -- width, height
+        local width = select(1,...)
+        local height = select(2,...)
+        bResult = blapi.blImageInitAs(obj, width, height, C.BL_FORMAT_PRGB32)
+        --print("BLImage.__new: ", bResult, width, height)
+      elseif nargs == 3 then
+        -- width, height, format
+        bResult = blapi.blImageInitAs(obj, select(1,...), select(2,...), select(3,...))
+      elseif nargs == 7 then
+        -- w, h, format, pixelData, stride, destroyFunc, destroyData
+        bResult = blapi.blImageInitAsFromData(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...), select(7,...))
+      end
+
+      if bResult ~= C.BL_SUCCESS then
+          return false, bResult;
+      end
+
+      --print("BLImageCore.__new, constructor: ", nargs, bResult)
+      return obj
+    end;
+
+
+    __index = {
+        size = function(self)
+          return self.impl.size;
+        end;
+        
+        -- int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData
+        fromData = function(ct, w, h, format, pixelData, stride, destroyFunc, destroyData)
+
+            local obj = ffi.new(ct)
+
+            local bResult = blapi.blImageInitAsFromData(obj, w, h, format, pixelData, stride, destroyFunc, destroyData) 
+
+            if bResult ~= 0 then
+                return false, bResult
+            end
+
+            return obj
+        end;
+
+        -- reading and writing with codec is done in codec
+        -- instead of in here
+--[[
+        writeToFile = function(self, fileName, codec) 
+          local bResult = blapi.blImageWriteToFile(self, fileName, codec)
+          return bResult == 0 or bResult
+        end;
+
+        readFromFile = function(self, fileName, codecs)
+            codecs = codecs or blapi.blImageCodecBuiltInCodecs()
+            local bResult = blapi.blImageReadFromFile(self, fileName, codecs) ;
+
+            if bResult == C.BL_SUCCESS then
+                return true
+            end
+
+            return false, bResult
+        end;
+--]]
+    };
+
+    __tostring = function(self)
+      return string.format("BLImage(%d,%d)", self.impl.size.w, self.impl.size.h)
+    end;
+}
+ffi.metatype(BLImage, BLImage_mt)
+
+
+--[[
+    BLImageCodec
+]]
+BLImageCodec = ffi.typeof("BLImageCodecCore")
+BLImageCodecCore = BLImageCodec
+local BLImageCodec_mt = {
+  __gc = function(self)
+    blapi.blImageCodecReset(self)
+  end;
+
+  __new = function (ct, moniker, codecs)
+    local obj = ffi.new(ct)
+    local bResult = blapi.blImageCodecInit(obj);
+    if bResult ~= C.BL_SUCCESS then
+        return false, bResult;
+    end
+
+    if moniker then
+      codecs = codecs or blapi.blImageCodecBuiltInCodecs();
+      local bResult = blapi.blImageCodecFindByName(obj, codecs, moniker) ;
+      
+      if bResult ~= C.BL_SUCCESS then
+        return false, bResult;
+      end
+    end
+
+
+    return obj;
+  end;
+--[[
+
+BLResult __cdecl blImageCodecAssignWeak(BLImageCodecCore* self, const BLImageCodecCore* other) ;
+BLResult __cdecl blImageCodecFindByName(BLImageCodecCore* self, const BLArrayCore* codecs, const char* name) ;
+BLResult __cdecl blImageCodecFindByData(BLImageCodecCore* self, const BLArrayCore* codecs, const void* data, size_t size) ;
+uint32_t __cdecl blImageCodecInspectData(const BLImageCodecCore* self, const void* data, size_t size) ;
+BLResult __cdecl blImageCodecCreateDecoder(const BLImageCodecCore* self, BLImageDecoderCore* dst) ;
+BLResult __cdecl blImageCodecCreateEncoder(const BLImageCodecCore* self, BLImageEncoderCore* dst) ;
+BLArrayCore* __cdecl blImageCodecBuiltInCodecs(void) ;
+]]
+  __index = {
+      findByName = function(self, name, codecs)
+          local obj = BLImageCodec();
+          codecs = codecs or blapi.blImageCodecBuiltInCodecs();
+          local bResult = blapi.blImageCodecFindByName(obj, codecs, name) ;
+
+          if bResult ~= C.BL_SUCCESS then
+              return false, bResult;
+          end
+
+          return obj;
+      end;
+
+      writeImageToFile = function(self, img, fileName)
+        local bResult = blapi.blImageWriteToFile(img, fileName, self)
+        return bResult == 0 or bResult
+      end;
+
+      readImageFromFile = function(ct, fileName, codecs)
+        --print("readImageFromFile: ", tc, fileName, codecs)
+
+          local img = BLImage();
+          codecs = codecs or blapi.blImageCodecBuiltInCodecs()
+          local bResult = blapi.blImageReadFromFile(img, fileName, codecs) ;
+
+          if bResult ~= C.BL_SUCCESS then
+              return false, bResult
+          end
+
+          return img
+      end;
+  };
+}
+ffi.metatype(BLImageCodec, BLImageCodec_mt)
+
+BLMatrix2D = ffi.typeof("struct BLMatrix2D")
+
+
+--[[
+    BLPath
+]]
+
+BLPath = ffi.typeof("struct BLPathCore")
+
+local pathCommands = {
+
+getSize = blapi.blPathGetSize ;
+getCapacity = blapi.blPathGetCapacity ;
+getCommandData = blapi.blPathGetCommandData ;
+getVertexData = blapi.blPathGetVertexData ;
+clear = blapi.blPathClear ;
+shrink = blapi.blPathShrink ;
+reserve = blapi.blPathReserve ;
+modifyOp = blapi.blPathModifyOp  ;
+assignMove = blapi.blPathAssignMove  ;
+addignWeak = blapi.blPathAssignWeak  ;
+assignDeep = blapi.blPathAssignDeep  ;
+setVertexAt = blapi.blPathSetVertexAt  ;
+moveTo = blapi.blPathMoveTo  ;
+lineTo = blapi.blPathLineTo  ;
+polyTo = blapi.blPathPolyTo  ;
+quadTo = blapi.blPathQuadTo  ;
+cubicTo = blapi.blPathCubicTo  ;
+smoothQuadTo = blapi.blPathSmoothQuadTo  ;
+smoothCubicTo = blapi.blPathSmoothCubicTo  ;
+arcTo = blapi.blPathArcTo  ;
+arcQuadrantTo = blapi.blPathArcQuadrantTo  ;
+ellipticArcTo = blapi.blPathEllipticArcTo  ;
+close = blapi.blPathClose ;
+addGeometry = blapi.blPathAddGeometry  ;
+addBoxI = blapi.blPathAddBoxI  ;
+addBoxD = blapi.blPathAddBoxD  ;
+addRectI = blapi.blPathAddRectI  ;
+addRectD = blapi.blPathAddRectD  ;
+addPath = blapi.blPathAddPath  ;
+addTranslatedPath = blapi.blPathAddTranslatedPath  ;
+addTransformedPath = blapi.blPathAddTransformedPath  ;
+addReversedPath = blapi.blPathAddReversedPath  ;
+strokePath = blapi.blPathAddStrokedPath ;
+translate = blapi.blPathTranslate  ;
+transform = blapi.blPathTransform  ;
+fitTo = blapi.blPathFitTo  ;
+equals = blapi.blPathEquals ;
+getInfoFlags = blapi.blPathGetInfoFlags ;
+getControlBox = blapi.blPathGetControlBox ;
+getBoundingBox = blapi.blPathGetBoundingBox ;
+getFigureRange = blapi.blPathGetFigureRange ;
+getLastVertex = blapi.blPathGetLastVertex ;
+getClosestVertex = blapi.blPathGetClosestVertex ;
+pathHitTest = blapi.blPathHitTest ;
+}
+local BLPath_mt = {
+    __gc = function(self)
+        local bResult = blapi.blPathReset(self);
+        return bResult == C.BL_SUCCESS or bResult
+    end;
+
+    __new = function(ct, ...)
+        local obj = ffi.new(ct);
+        local bResult = blapi.blPathInit(obj);
+        if bResult ~= C.BL_SUCCESS then
+          return false, "error with blPathInit: "..tostring(bResult)
+        end
+
+        return obj;
+    end;
+
+    __index = function(self, key)
+        local pcmd = pathCommands[key]
+        --print("Path.__index: ", self, key, pcmd)
+
+        return pcmd
+    end;
+}
+ffi.metatype(BLPath, BLPath_mt)
+
+--[[
+    BLPattern
+]]
+BLPattern = ffi.typeof("struct BLPatternCore")
+BLPatternCore = BLPattern
+local BLPattern_mt = {
+    __gc = function(self)
+        blapi.blPatternReset(self) ;
+    end;
+
+  --  BLResult __cdecl blPatternInit(BLPatternCore* self) ;
+--BLResult __cdecl blPatternInitAs(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
+
+    __new = function(ct, ...)
+        local nargs = select('#', ...)
+        local obj = ffi.new(ct)
+        if nargs == 0 then
+            blapi.blPatternInit(obj) ;
+        elseif nargs == 1 then
+            blapi.blPatternInitAs(obj, select(1,...), nil, 0, nil);
+        end
+
+        return obj;
+    end;
+
+    __index = {
+        _applyMatrixOp = function(self, opType, opData)
+            local bResult = blapi.blPatternApplyMatrixOp(self, opType, opData) ;
+            return bResult == C.BL_SUCCESS or bResult
+        end;
+    };
+
+    __eq = function(self, other)
+        return blapi.blPatternEquals(self, other) ;
+    end;
+}
+ffi.metatype(BLPattern, BLPattern_mt)
+
+
+--[[
+    BLRandom
+]]
+
+BLRandom = ffi.typeof("struct BLRandom")
+ffi.metatype(BLRandom, {
+    __index = {
+        __new = function(ct, ...)
+            local obj = ffi.new(ct)
+            blapi.blRandomReset(obj, math.random(1, 65535))
+
+            return obj;
+        end;
+
+        reset = function(self, seed)
+            return blapi.blRandomReset(self, seed)
+        end;
+      
+        nextUInt32 = function(self)
+            return blapi.blRandomNextUInt32(self);
+        end;
+
+        nextUInt64 = function(self)
+            return blapi.blRandomNextUInt64(self);
+        end;
+
+        nextDouble = function(self)
+            return blapi.blRandomNextDouble(self);
+        end;
+
+    }
+})
+
+--[[
+    BLRgba
+]]
+BLRgba32 = ffi.typeof("struct BLRgba32")
+BLRgba64 = ffi.typeof("struct BLRgba64")
+
+
+--[[
+    BLString
+]]
+
+BLString = ffi.typeof("struct BLStringCore")
+ffi.metatype(BLString, {
+  -- make easy conversion using tostring()
+  __tostring = function(self)
+    return ffi.string(self.impl.data, self.impl.size)
+  end;
+})
 
 return blapi

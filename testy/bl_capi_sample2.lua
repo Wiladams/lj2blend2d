@@ -8,12 +8,12 @@ local b2d = require("blend2d.blend2d")
 
 
 local function main() 
-    local img = BLImageCore(256, 256, C.BL_FORMAT_PRGB32);
+    local img = BLImage(256, 256, C.BL_FORMAT_PRGB32);
 
-    local ctx = BLContextCore(img);
+    local ctx = BLContext(img);
 
     local values = BLLinearGradientValues({ 0, 0, 256, 256 });
-    local gradient = BLGradientCore(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
+    local gradient = BLGradient(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
 
 
     gradient:addStopRgba32(0.0, 0xFFFFFFFF);
@@ -35,11 +35,9 @@ local function main()
 
     ctx:finish();
 
-    codec = BLImageCodecCore();
+    codec = BLImageCodec();
 
-    b2d.blImageCodecFindByName(codec, b2d.blImageCodecBuiltInCodecs(), "BMP");
-    img:writeToFile("bl-capi-sample2.bmp", codec);
-
+    BLImageCodec("BMP"):writeImageToFile(img, "output/bl-capi-sample2.bmp")
 end
 
 main()

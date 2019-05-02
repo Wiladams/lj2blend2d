@@ -206,10 +206,10 @@ local DrawingContext_mt = {
 }
 
 
-function DrawingContext.new(self, params)
-    obj = params or {}
+function DrawingContext.new(self, obj)
+    obj = obj or {}
 
-    obj.BackingBuffer = obj.BackingBuffer or BLImage(params.width, params.height)
+    obj.BackingBuffer = obj.BackingBuffer or BLImage(obj.width, obj.height)
     obj.DC = obj.DC or ffi.new("struct BLContextCore")
     local bResult = blapi.blContextInitAs(obj.DC, obj.BackingBuffer, nil)
     if bResult ~= C.BL_SUCCESS then

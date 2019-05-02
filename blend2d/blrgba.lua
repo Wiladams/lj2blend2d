@@ -44,7 +44,6 @@ struct BLRgba32 {
 };
 ]]
 end
-BLRgba32 = ffi.typeof("struct BLRgba32")
 
 --! 64-bit RGBA color (16-bit per component) stored as `0xAAAARRRRGGGGBBBB`.
 if BL_BUILD_BYTE_ORDER == 1234 then     -- little endian
@@ -76,7 +75,6 @@ struct BLRgba64 {
 };
 ]]
 end
-BLRgba64 = ffi.typeof("struct BLRgba64")
 
 --! 128-bit RGBA color stored as 4 32-bit floating point values in [RGBA] order.
 ffi.cdef[[

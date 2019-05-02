@@ -11,7 +11,7 @@ local ffi = require("ffi")
 if not BLEND2D_BLRUNTIME_H then
 BLEND2D_BLRUNTIME_H = true
 
-require("blend2d.blapi")
+--require("blend2d.blapi")
 
 ffi.cdef[[
 //! Runtime limits.

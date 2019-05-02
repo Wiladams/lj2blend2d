@@ -112,13 +112,6 @@ struct BLMatrix2D {
   };
 };
 ]]
-BLMatrix2D = ffi.typeof("struct BLMatrix2D")
 
---[[
-//! Array of functions for transforming points indexed by `BLMatrixType`. Each
-//! function is optimized for the respective type. This is mostly used internally,
-//! but exported for users that can take advantage of Blend2D SIMD optimziations.
-BL_API_C BLMapPointDArrayFunc blMatrix2DMapPointDArrayFuncs[BL_MATRIX2D_TYPE_COUNT];
---]]
 
 end -- BLEND2D_BLMATRIX_H

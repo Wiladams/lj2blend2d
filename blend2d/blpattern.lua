@@ -61,53 +61,6 @@ struct BLPatternCore {
   BLPatternImpl* impl;
 };
 ]]
-BLPattern = ffi.typeof("struct BLPatternCore")
-BLPatternCore = BLPattern
-local BLPattern_mt = {
-    __gc = function(self)
-        blapi.blPatternReset(self) ;
-    end;
 
-  --  BLResult __cdecl blPatternInit(BLPatternCore* self) ;
---BLResult __cdecl blPatternInitAs(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
-
-    __new = function(ct, ...)
-        local nargs = select('#', ...)
-        local obj = ffi.new(ct)
-        if nargs == 0 then
-            blapi.blPatternInit(obj) ;
-        elseif nargs == 1 then
-            blapi.blPatternInitAs(obj, select(1,...), nil, 0, nil);
-        end
-
-        return obj;
-    end;
-
-    __index = {
-        _applyMatrixOp = function(self, opType, opData)
-            local bResult = blapi.blPatternApplyMatrixOp(self, opType, opData) ;
-            return bResult == C.BL_SUCCESS or bResult
-        end;
-    };
-
-    __eq = function(self, other)
-        return blapi.blPatternEquals(self, other) ;
-    end;
-}
-ffi.metatype(BLPattern, BLPattern_mt)
-
-
-
---[[
-
-BLResult __cdecl blPatternAssignMove(BLPatternCore* self, BLPatternCore* other) ;
-BLResult __cdecl blPatternAssignWeak(BLPatternCore* self, const BLPatternCore* other) ;
-BLResult __cdecl blPatternAssignDeep(BLPatternCore* self, const BLPatternCore* other) ;
-BLResult __cdecl blPatternCreate(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
-BLResult __cdecl blPatternSetImage(BLPatternCore* self, const BLImageCore* image, const BLRectI* area) ;
-BLResult __cdecl blPatternSetArea(BLPatternCore* self, const BLRectI* area) ;
-BLResult __cdecl blPatternSetExtendMode(BLPatternCore* self, uint32_t extendMode) ;
-bool     __cdecl blPatternEquals(const BLPatternCore* a, const BLPatternCore* b) ;
-]]
 
 end -- BLEND2D_BLPATTERN_H

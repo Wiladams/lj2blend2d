@@ -30,7 +30,7 @@ local function main()
   ctx:finish();
 
   -- Lets use some built-in codecs provided by Blend2D.
-  img:writeToFile("output/web_example1.bmp", BLImageCodec:findByName("BMP"));
+  BLImageCodec("BMP"):writeImageToFile(img, "output/web_example1.bmp")
 end
 
 main()

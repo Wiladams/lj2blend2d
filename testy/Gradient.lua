@@ -20,6 +20,20 @@ local function addStops(gradient, stops)
     return gradient
 end
 
+--[[
+    You can create a linear gradient in one fell swoop by specifying
+    all the value and stops information at once.  
+
+    The radial and conical gradients use a similar construct
+
+    local gr1 = LinearGradient({values = {0, 0, 256, 256},
+        stops = {
+            {offset = 0.0, uint32 = 0xFFFFFFFF},
+            {offset = 0.5, uint32 = 0xFFFFAF00},
+            {offset = 1.0, uint32 = 0xFFFF0000}
+        }
+    })
+]]
 local function LinearGradient(params)
     if not params then
         return nil, "must specify gradient parameters"

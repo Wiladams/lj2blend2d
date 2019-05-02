@@ -10,7 +10,7 @@ local Gradient = require("Gradient")
 
 
 local function main() 
-    local ctx = DrawingContext:new(256, 256)
+    local ctx = DrawingContext:new({width=256, height=256})
 
     local gradient = Gradient.LinearGradient({values = {0, 0, 256, 256}, 
         stops = {
@@ -26,7 +26,6 @@ local function main()
     ctx:setCompOp(BL_COMP_OP_EXCLUSION)
     ctx:fill(BLRgba32(0xFF00FFFF))
     --ctx:noStroke()
-    --ctx:fillEllipse(128, 128, 64, 64)
     ctx:circle(128, 128, 64)
 
     BLImageCodec("BMP"):writeImageToFile(ctx:getReadyBuffer(), "output/bl-capi-sample.bmp")

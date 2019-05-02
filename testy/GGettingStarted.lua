@@ -16,7 +16,7 @@ function GS1.new(self, obj)
     obj = obj or {}
     obj.Frame = obj.Frame or {x=0, y=0, width = 480, height=480}
 
-    obj.path = BLPathCore();
+    obj.path = BLPath();
     obj.path:moveTo(26, 31);
     obj.path:cubicTo(642, 132, 587, -136, 25, 464);
     obj.path:cubicTo(882, 404, 144, 267, 27, 31);
