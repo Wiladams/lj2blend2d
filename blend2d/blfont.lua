@@ -98,46 +98,7 @@ struct BLFontLoaderCore {
 };
 ]]
 
-BLFontLoader = ffi.typeof("struct BLFontLoaderCore")
-BLFontLoader_mt = {
-  __gc = function(self)
-    blapi.blFontLoaderReset(self);
-  end;
 
-  __index = {
-    -- Meant to be called as: BLFontLoader:createFromFile(filename)
-    createFromFile = function(ct, filename)
-      local obj = ffi.new(ct);
-      local bResult = blapi.blFontLoaderInit(obj);
-      if bResult ~= C.BL_SUCCESS then
-        return nil, bResult
-      end
-
-      bResult = blapi.blFontLoaderCreateFromFile(obj, filename)
-      if bResult ~= C.BL_SUCCESS then
-        return nil, bResult
-      end
-
-      return obj;
-    end;
-
-    dataByIndex = function(self, faceIndex)
-      --BLFontDataImpl* __cdecl blFontLoaderDataByFaceIndex(BLFontLoaderCore* self, uint32_t faceIndex) ;
-      local impl = blapi.blFontLoaderDataByFaceIndex(self, faceIndex) ;
-
-    end;
-  };
-}
-ffi.metatype(BLFontLoader, BLFontLoader_mt)
-
---[[
-BLResult __cdecl blFontLoaderAssignMove(BLFontLoaderCore* self, BLFontLoaderCore* other) ;
-BLResult __cdecl blFontLoaderAssignWeak(BLFontLoaderCore* self, const BLFontLoaderCore* other) ;
-bool     __cdecl blFontLoaderEquals(const BLFontLoaderCore* a, const BLFontLoaderCore* b) ;
-BLResult __cdecl blFontLoaderCreateFromDataArray(BLFontLoaderCore* self, const BLArrayCore* dataArray) ;
-BLResult __cdecl blFontLoaderCreateFromData(BLFontLoaderCore* self, const void* data, size_t size, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-BLFontDataImpl* __cdecl blFontLoaderDataByFaceIndex(BLFontLoaderCore* self, uint32_t faceIndex) ;
---]]
 
 
 ffi.cdef[[
@@ -214,67 +175,7 @@ struct BLFontFaceCore {
   BLFontFaceImpl* impl;
 };
 ]]
-BLFontFace = ffi.typeof("struct BLFontFaceCore")
-BLFontFaceCore = BLFontFace;
-BLFontFace_mt = {
-    __gc = function(self)
-        local bResult = blapi.blFontFaceReset(self);
-        return bResult == C.BL_SUCCESS;
-    end;
 
-    __new = function(ct, ...)
-        print("BLFontFace.__new")
-        local obj = ffi.new(ct)
-        local bResult = blapi.blFontFaceInit(obj)
-        if bResult ~= C.BL_SUCCESS then
-            return false, "failed blFontFaceInit"
-        end
-        return obj;
-    end;
-
-    __index = {
-        -- Use as; BLFontFace:createFromFile(filename)
-        createFromFile = function(ct, fileName)
-            --print("BLFontFace.createFromFile: ", ct, fileName)
-            local obj = ffi.new(ct)
-
-            local bResult = blapi.blFontFaceInit(obj)
-            if bResult ~= C.BL_SUCCESS then
-                return nil, "failed blFontFaceInit"
-            end
-
-            local bResult = blapi.blFontFaceCreateFromFile(obj, fileName) ;
-            --print("blFontFaceCreateFromFile: ", bResult)
-
-            if bResult ~= C.BL_SUCCESS then
-              return nil, bResult 
-            end
-
-            return obj;
-        end;
-
-        -- Use like this
-        -- fontFace:createSizedFont(15)
-        createFont = function(self, size)
-            if not tonumber(size) then
-              return false, "size must be a number"
-            end
-
-            local font, err = BLFont();
-            if not font then
-              return nil, err 
-            end
-
-            local bResult = blapi.blFontCreateFromFace(font, self, size) ;
-            if bResult ~= C.BL_SUCCESS then
-              return false;
-            end
-
-            return font;
-        end;
-    }
-}
-ffi.metatype(BLFontFace, BLFontFace_mt)
 
 ffi.cdef[[
 
@@ -316,88 +217,6 @@ struct BLFontCore {
   BLFontImpl* impl;
 };
 ]]
-BLFont = ffi.typeof("struct BLFontCore")
-BLFontCore = BLFont
-BLFont_mt = {
-    __gc = function(self)
-        local bResult = blapi.blFontReset(self)
-        return bResult == C.BL_SUCCESS or bResult;
-    end;
 
-    __new = function(ct, ...)
-        local obj = ffi.new(ct)
-        local bResult = blapi.blFontInit(obj)
-        if bResult ~= C.BL_SUCCESS then
-            return false, "error initializing font"
-        end
-
-        return obj
-    end;
-
-    __index = {
-        getTextMetrics = function(self, glyphBuff, metrics)
-            metrics = metrics or BLTextMetrics();
-            local bResult = blapi.blFontGetTextMetrics(self, glyphBuff, metrics) ;
-            if bResult ~= C.BL_SUCCESS then
-              return false, bResult;
-            end
-
-            return metrics;
-        end;
-
-        shape = function(self, gbuff)
-            local bResult = blapi.blFontShape(self, gbuff) ;
-            if bResult ~= C.BL_SUCCESS then
-                return false, bResult
-            end
-
-            return true;
-        end;
-
-        measureText = function(self, txt)
-            local gbuff = BLGlyphBuffer()
-            --local metrics = BLTextMetrics()
-
-            gbuff:setText(txt)
-            self:shape(gbuff)
-
-            local metrics, err = self:getTextMetrics(gbuff)
-
-            if not metrics then
-              return false, err;
-            end
-
-            local cx = metrics.boundingBox.x1 - metrics.boundingBox.x0;
-            local cy = self.impl.metrics.size;
-
-            return cx, cy
-        end;
-
-
-    }
---[[
-
-BLResult __cdecl blFontAssignMove(BLFontCore* self, BLFontCore* other) ;
-BLResult __cdecl blFontAssignWeak(BLFontCore* self, const BLFontCore* other) ;
-bool     __cdecl blFontEquals(const BLFontCore* a, const BLFontCore* b) ;
-BLResult __cdecl blFontCreateFromFace(BLFontCore* self, const BLFontFaceCore* face, float size) ;
-BLResult __cdecl blFontShape(const BLFontCore* self, BLGlyphBufferCore* buf) ;
-BLResult __cdecl blFontMapTextToGlyphs(const BLFontCore* self, BLGlyphBufferCore* buf, BLGlyphMappingState* stateOut) ;
-BLResult __cdecl blFontPositionGlyphs(const BLFontCore* self, BLGlyphBufferCore* buf, uint32_t positioningFlags) ;
-BLResult __cdecl blFontApplyKerning(const BLFontCore* self, BLGlyphBufferCore* buf) ;
-BLResult __cdecl blFontApplyGSub(const BLFontCore* self, BLGlyphBufferCore* buf, size_t index, BLBitWord lookups) ;
-BLResult __cdecl blFontApplyGPos(const BLFontCore* self, BLGlyphBufferCore* buf, size_t index, BLBitWord lookups) ;
-BLResult __cdecl blFontGetMatrix(const BLFontCore* self, BLFontMatrix* out) ;
-BLResult __cdecl blFontGetMetrics(const BLFontCore* self, BLFontMetrics* out) ;
-BLResult __cdecl blFontGetDesignMetrics(const BLFontCore* self, BLFontDesignMetrics* out) ;
-BLResult __cdecl blFontGetTextMetrics(const BLFontCore* self, BLGlyphBufferCore* buf, BLTextMetrics* out) ;
-BLResult __cdecl blFontGetGlyphBounds(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLBoxI* out, size_t count) ;
-BLResult __cdecl blFontGetGlyphAdvances(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLGlyphPlacement* out, size_t count) ;
-BLResult __cdecl blFontGetGlyphOutlines(const BLFontCore* self, uint32_t glyphId, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
-BLResult __cdecl blFontGetGlyphRunOutlines(const BLFontCore* self, const BLGlyphRun* glyphRun, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
-
-]]
-}
-ffi.metatype(BLFont, BLFont_mt)
 
 end -- BLEND2D_BLFONT_H

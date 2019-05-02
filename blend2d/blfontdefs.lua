@@ -768,6 +768,5 @@ struct BLTextMetrics {
   BLBox boundingBox;
 };
 ]]
-BLTextMetrics = ffi.typeof("struct BLTextMetrics")
 
 end --// BLEND2D_BLFONTDEFS_H
