@@ -12,25 +12,27 @@
 
 -- Global things
 -- Constants
-HALF_PI = math.pi / 2
-PI = math.pi
-QUARTER_PI = math.pi/4
-TWO_PI = math.pi * 2
-TAU = TWO_PI
+local exports = {
+    HALF_PI = math.pi / 2;
+    PI = math.pi;
+    QUARTER_PI = math.pi/4;
+    TWO_PI = math.pi * 2;
+    TAU = math.pi * 2;
 
--- angleMode
-DEGREES = 1;
-RADIANS = 2;
+    -- angleMode
+    DEGREES = 1;
+    RADIANS = 2;
+}
 
-function lerp(low, high, x)
+function exports.lerp(low, high, x)
     return low + x*(high-low)
 end
 
-function mag(x, y)
-    return sqrt(x*x +y*y)
+function exports.mag(x, y)
+    return math.sqrt(x*x +y*y)
 end
 
-function map(x, olow, ohigh, rlow, rhigh, withinBounds)
+function exports.map(x, olow, ohigh, rlow, rhigh, withinBounds)
     rlow = rlow or olow
     rhigh = rhigh or ohigh
     local value = rlow + (x-olow)*((rhigh-rlow)/(ohigh-olow))
@@ -42,69 +44,51 @@ function map(x, olow, ohigh, rlow, rhigh, withinBounds)
     return value;
 end
 
---[[
-function noise(x,y,z)
-    if z ~= nil then
-        return simplex.Noise3(x,y,z)
-    end
-
-    if y and z ~= nil then
-        return simplex.Noise2(x,y)
-    end
-
-    if x ~= 0 then 
-        return simplex.Noise1(x)
-    end
-
-    return 0
-end
---]]
-
-function sq(x)
+function exports.sq(x)
     return x*x
 end
 
-abs = math.abs
-asin = math.asin
-acos = math.acos
-atan = math.atan
+exports.abs = math.abs
+exports.asin = math.asin
+exports.acos = math.acos
+exports.atan = math.atan
 
-function atan2(y,x)
-    return atan(y/x)
+function exports.atan2(y,x)
+    return math.atan(y/x)
 end
 
-ceil = math.ceil
+exports.ceil = math.ceil
 
-function constrain(x, low, high)
+function exports.constrain(x, low, high)
     return math.min(math.max(x, low), high)
 end
-clamp = constrain
-cos = math.cos
+exports.clamp = exports.constrain
+exports.cos = math.cos
 
-degrees = math.deg
+exports.degrees = math.deg
 
-function dist(x1, y1, x2, y2)
-    return math.sqrt(sq(x2-x1) + sq(y2-y1))
+function exports.dist(x1, y1, x2, y2)
+    return math.sqrt(exports.sq(x2-x1) + exports.sq(y2-y1))
 end
 
-exp = math.exp
-floor = math.floor
-log = math.log
-max = math.max
-min = math.min
+exports.exp = math.exp
+exports.floor = math.floor
+exports.log = math.log
+exports.max = math.max
+exports.min = math.min
 
-function norm(val, low, high)
-    return map(value, low, high, 0, 1)
+function exports.norm(val, low, high)
+    return exports.map(value, low, high, 0, 1)
 end
 
-function pow(x,y)
+function exports.pow(x,y)
     return x^y;
 end
 
-radians = math.rad
-random = math.random
+exports.radians = math.rad
+exports.random = math.random
 
-function round(n)
+function exports.round(n)
 	if n >= 0 then
 		return floor(n+0.5)
 	end
@@ -112,5 +96,7 @@ function round(n)
 	return ceil(n-0.5)
 end
 
-sin = math.sin
-sqrt = math.sqrt
+exports.sin = math.sin
+exports.sqrt = math.sqrt
+
+return exports

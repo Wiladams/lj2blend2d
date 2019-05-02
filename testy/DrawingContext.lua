@@ -27,7 +27,7 @@ local C = ffi.C
 local blapi = require("blend2d.blend2d")
 
 local enum = require("blend2d.enum")
-
+local maths = require("maths")
 
 
 local DrawingContext = {
@@ -853,6 +853,15 @@ function DrawingContext.color(self, ...)
     pix.a = a
 
 	return pix;
+end
+
+function DrawingContext.lerpColor(self, from, to, f)
+	local r = maths.lerp(from.r, to.r, f)
+	local g = maths.lerp(from.g, to.g, f)
+	local b = maths.lerp(from.b, to.b, f)
+	local a = maths.lerp(from.a, to.a, f)
+	
+	return color(r,g,b,a)
 end
 
 function DrawingContext.fill(self, ...)
