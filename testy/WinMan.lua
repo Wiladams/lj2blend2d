@@ -90,28 +90,48 @@ end
 
 -- Internal functions
 function refreshWindow()
----[[
+
+    -- doing the RedrawWindow method, with RDW_ERASENOW ensures that the 
+    -- WM_ERASEBKGND message is sent and dealt with synchronously, so we make
+    -- sure we're not waiting for WM_PAINT messages, which can show up at random
+    -- times, not based on our animation clock.
     local lprcUpdate = nil;	-- const RECT *
 	local hrgnUpdate = nil; -- HRGN
 	local flags = flags or bor(C.RDW_ERASE, C.RDW_INVALIDATE, C.RDW_ERASENOW);
 
-	local res = C.RedrawWindow(
+	local success = C.RedrawWindow(
   		appWindowHandle,
   		lprcUpdate,
    		hrgnUpdate,
-        flags);
-    --]]
+        flags)~= 0;
 
+    -- Using the UpdateLayeredWindow approach can be even more useful as we can
+    -- create a bitmap that represents the backing store of the window, and just
+    -- allow windows to compose that.  We can extend the appImage to contain the complete
+    -- side of the window plus chrome, and then it can be this bitmap.
 --[[
-    local lpcRect = nil;
-    local erase = 0
-	local bResult = C.InvalidateRect(appWindowHandle, lpRect, erase)
-    if bResult == 0 then
-        return false, C.GetLastError();
-    end
---]]
+    local hdcDst = nil;     -- default palette is fine
+    local pptDst = nil;     -- we're not changing position
+    local psize  = nil;     -- we're not repositioning the window
+    local hdcSrc = nil;     -- we're doing drawing, so this should be set
+    local pptSrc = nil;
+    local crKey = 0;
+    local pblend = ffi.new("BLENDFUNCTION");
+    pblend.BlendOp = C.AC_SRC_OVER;
+    pblend.BlendFlags = 0
+    pblend.SourceConstantAlpha = 255;
+    pblend.AlphaFormat = C.AC_SRC_ALPHA;
 
-    return true;
+    local dwFlags = C.ULW_ALPHA;
+
+    local success = C.UpdateLayeredWindow(appWindowHandle, hdcDst,
+        pptDst, psize, hdcSrc, pptSrc,
+        crKey,
+        pblend,
+        dwFlags) ~= 0;
+    
+]]
+    return success;
 end
 
 
@@ -427,7 +447,7 @@ local ps = ffi.new("PAINTSTRUCT");
 local function WindowProc(hwnd, msg, wparam, lparam)
     --print(string.format("WindowProc: msg: 0x%x, %s", msg, wmmsgs[msg]), wparam, lparam)
 
-    local res = 1;
+    local res = 0;
 
     if msg == C.WM_DESTROY then
 
@@ -467,32 +487,24 @@ local function WindowProc(hwnd, msg, wparam, lparam)
 --]]
         end
         res = 0; 
-
     elseif msg == C.WM_PAINT then
-        -- bitblt backing store to client area
-        --print("WindowProc.WM_PAINT:", wparam, lparam)
+        -- multiple WM_PAINT commands can be issued
+        -- while dragging the window around, but the msgLoop
+        -- is not involved as windowProc is called directly
+        -- in order to properly update the framecount, we need
+        -- to use a system timer, and handle WM_TIMER messages
+        --print("WindowProc.WM_PAINT:", frameCount, wparam, lparam)
 
         local ps = ffi.new("PAINTSTRUCT");
 		local hdc = C.BeginPaint(hwnd, ps);
+--[=[
         --print("PAINT: ", hdc, ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
-
 
         if appSurface then
             local imgSize = appImage:size()
             --print("Size: ", imgSize.w, imgSize.h)
---[[
-            local bResult = C.StretchDIBits(appDC,
-                0,0,
-                imgSize.w,imgSize.h,
-                0,0,
-                imgSize.w, imgSize.h,
-                appSurface.pixelData.data,appSurface.info,
-                C.DIB_RGB_COLORS,C.SRCCOPY)
-            -- the bResult is the number of scanlines drawn
-            -- there's a failure, this will be 0
---]]
         end
-
+--]=]
         C.EndPaint(hwnd, ps);
         res = 0
 
@@ -503,8 +515,6 @@ local function WindowProc(hwnd, msg, wparam, lparam)
 	return res
 end
 jit.off(WindowProc)
-
-
 
 
 local function msgLoop()
@@ -540,10 +550,33 @@ local function msgLoop()
         -- with tasks, rather than being scheduled at the end
         -- of the ready list
         --coroutine.yield(true)
-    end
-       
+    end   
 end
 
+--[[
+-- From NewTOAPIA
+function WMSetWindowAlpha(hwnd, alpha)
+
+    int res1;
+
+    local res1 = C.GetWindowLong(hwnd, C.GWL_EXSTYLE);
+
+    -- If the alpha is == 255, then turn off layered window
+    if 255 == alpha then
+        C.SetWindowLong(hwnd, C.GWL_EXSTYLE, band(res1, bnot(~C.WS_EX_LAYERED));
+        return true;
+    end
+
+    -- If we are here, then opacity is less than 255 (opaque), so
+    -- we need to first ensure the window is a layered window.
+    C.SetWindowLong(hwnd, C.GWL_EXSTYLE, bor(res1 , C.WS_EX_LAYERED));
+
+    -- Next we setup the alpha value.
+    local res2 = C.SetLayeredWindowAttributes(hwnd, 0, alpha, C.LWA_ALPHA);
+
+    return true;
+end
+--]]
 
 local function createWin32Window(params)
     params = params or {width=1024, height=768, title="GraphicApplication"}
@@ -565,18 +598,18 @@ local function createWin32Window(params)
     end
 
     -- create an instance of a window
-    winHandle, err = win32.CreateWindowHandle(winclassname, 
-        params.title, 
-        params.width, params.height, 
-        winstyle, 
-        x, y)
-    
-    --print("appWindowHandle, err: ", winHandle, err)
+    params.winclass = params.class or winclassname
+    params.winstyle = params.winstyle or winstyle
+    params.winxstyle = params.winxstyle or 0
+    params.x = params.x or 0
+    params.y = params.y or 0
+    winHandle, err = win32.CreateWindowHandle(params)
 
     if not winHandle then
-        print("TRIPPING")
+        print("NO WINDOW HANDLE: ", err)
         return false, err
     end
+
     appDC = C.GetDC(winHandle)
     
     return winHandle

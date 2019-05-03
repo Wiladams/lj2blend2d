@@ -640,12 +640,13 @@ function DrawingContext.fillRoundRect (self, ...)
         
     if nargs < 1 then return false end
 
-    local rrect = select(1,...)
+    local rect = select(1,...)
 
     if nargs == 1 then
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
     elseif nargs == 2 then
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rr)
+          local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(2,...))
+          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     elseif nargs == 3 then
           local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(3,...))
           return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
@@ -759,6 +760,27 @@ end
 
 function DrawingContext.strokeRect(self, x, y, w, h)
     return self:strokeRectD(BLRect(x,y,w,h))
+end
+
+function DrawingContext.strokeRoundRect (self, ...)
+    local nargs = select('#', ...)
+        
+    if nargs < 1 then return false end
+
+    local rect = select(1,...)
+
+    if nargs == 1 then
+          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
+    elseif nargs == 2 then
+          local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(2,...))
+          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+    elseif nargs == 3 then
+          local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(3,...))
+          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+    elseif nargs == 5 then
+          local rrect = BLRoundRect(select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(5,...))
+          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+    end
 end
 
 function DrawingContext.strokePathD(self, path)
@@ -971,6 +993,19 @@ end
 
 function DrawingContext.textWidth(self, txt)
 	return self.Font:measureText(txt)
+end
+
+function DrawingContext.textSize(self, asize)
+    local afont, err = self.FontFace:createFont(asize)
+
+	if not afont then 
+		return false, err;
+	end
+
+	self.Font = afont
+	self.TextSize = asize
+
+	return true;
 end
 
 local function calcModeRect(mode, a,b,c,d)

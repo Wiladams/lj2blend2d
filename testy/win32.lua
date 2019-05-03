@@ -94,6 +94,9 @@ int QueryPerformanceFrequency(int64_t * lpFrequency);
 
 -- windef
 ffi.cdef[[
+typedef DWORD   COLORREF;
+typedef DWORD   *LPCOLORREF;
+
 typedef struct tagPOINT
 {
     LONG  x;
@@ -105,7 +108,13 @@ typedef struct tagPOINTS
     SHORT   x;
     SHORT   y;
 } POINTS, *PPOINTS, *LPPOINTS;
-    
+
+typedef struct tagSIZE
+{
+    LONG        cx;
+    LONG        cy;
+} SIZE, *PSIZE, *LPSIZE;
+
 typedef struct tagRECT
 {
     LONG    left;
@@ -122,6 +131,9 @@ ffi.cdef[[
 static const int CS_VREDRAW         = 0x0001;
 static const int CS_HREDRAW         = 0x0002;
 static const int CS_OWNDC           = 0x0020;
+
+// Extended Window Styles
+static const int WS_EX_LAYERED           = 0x00080000;
 
 // Window styles
 static const int WS_OVERLAPPED       = 0x00000000;
@@ -248,6 +260,14 @@ typedef struct tagBITMAPINFO {
     BITMAPINFOHEADER    bmiHeader;
     RGBQUAD             bmiColors[1];
 } BITMAPINFO,  *LPBITMAPINFO, *PBITMAPINFO;
+
+typedef struct _BLENDFUNCTION
+{
+    BYTE   BlendOp;
+    BYTE   BlendFlags;
+    BYTE   SourceConstantAlpha;
+    BYTE   AlphaFormat;
+}BLENDFUNCTION,*PBLENDFUNCTION;
 ]]
 
 
@@ -281,6 +301,11 @@ BOOL ShowWindow(HWND hWnd, int nCmdShow);
 BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
 BOOL RedrawWindow(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
 BOOL ScreenToClient(HWND hWnd, LPPOINT lpPoint);
+BOOL UpdateLayeredWindow(HWND hWnd, HDC hdcDst, POINT* pptDst, SIZE* psize, 
+    HDC hdcSrc, POINT* pptSrc, 
+    COLORREF crKey, 
+    BLENDFUNCTION* pblend, 
+    DWORD dwFlags);
 
 // Touch Related founctions
 
@@ -562,19 +587,30 @@ function exports.RegisterWindowClass(wndclassname, msgproc, style)
 end
 
 -- create a simple window handle
-function exports.CreateWindowHandle(winclass, wintitle, width, height, winstyle, x, y)
-	wintitle = wintitle or "Window";
-	winstyle = winstyle or C.WS_OVERLAPPEDWINDOW;
-	x = x or C.CW_USEDEFAULT;
-	y = y or C.CW_USEDEFAULT;
+function exports.CreateWindowHandle(params)
+    params.title = params.title or "Window";
+    params.winstyle = params.winstyle or C.WS_OVERLAPPEDWINDOW;
+    params.winxstyle = params.winxstyle or 0;
+    params.x = params.x or C.CW_USEDEFAULT;
+    params.y = params.y or C.CW_USEDEFAULT;
+
+    
+    --wintitle = wintitle or "Window";
+    --local winxstyle = C.WS_EX_LAYERED;
+    --local winxstyle = 0;
+
+	--winstyle = winstyle or C.WS_OVERLAPPEDWINDOW;
+	--x = x or C.CW_USEDEFAULT;
+	--y = y or C.CW_USEDEFAULT;
 
 	local hInst = C.GetModuleHandleA(nil);
 	local hWnd = C.CreateWindowExA(
-		0,
-		winclass,
-		wintitle,
-		winstyle,
-		x, y,width, height,
+		params.winxstyle,
+		params.winclass,
+		params.title,
+		params.winstyle,
+        params.x, params.y,
+        params.width, params.height,
 		nil,	
 		nil,	
 		hInst,

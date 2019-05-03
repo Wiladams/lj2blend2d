@@ -794,7 +794,7 @@ local function createWindow(params)
     height = params.height;
 
     -- You MUST register a window class before you can use it.
-    local winclassname = "bs2appwindow"
+    local winclassname = "p5appwindow"
     local winatom, err = win32.RegisterWindowClass(winclassname, WindowProc)
 
     if not winatom then
@@ -803,16 +803,13 @@ local function createWindow(params)
     end
 
     -- create an instance of a window
-    winHandle, err = win32.CreateWindowHandle(winclassname, 
-        params.title, 
-        params.width, params.height, 
-        winstyle, 
-        x, y)
-    
-    --print("appWindowHandle, err: ", winHandle, err)
+    params.winclass = params.class or winclassname
+    params.x = params.x or 0
+    params.y = params.y or 0
+    winHandle, err = win32.CreateWindowHandle(params)
 
     if not winHandle then
-        print("TRIPPING")
+        print("unable to create window handle: ", err)
         return false, err
     end
     appDC = C.GetDC(winHandle)
