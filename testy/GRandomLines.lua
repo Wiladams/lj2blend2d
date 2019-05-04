@@ -1,16 +1,27 @@
 local floor = math.floor
 local random = math.random
+local pLightGray = 163
 
-GRandomLines:draw(self, ctx)
+local GRandomLines = {}
+GRandomLines.__index = GRandomLines
 
-	ctx:background(pLightGray);
+function GRandomLines.new(self, obj)
+    obj = obj or {}
+    obj.width = obj.width or 320
+    obj.height = obj.height or 240
+    setmetatable(obj, GRandomLines)
 
-	for i = 1, 100 do
+    return obj;
+end
+
+function GRandomLines.draw(self, ctx)
+
+	for i = 1, 300 do
 	
-		local x1 = random((width - 1));
-		local y1 = random((height - 1));
-		local x2 = random((width - 1));
-		local y2 = random((height - 1));
+		local x1 = random((self.width - 1));
+		local y1 = random((self.height - 1));
+		local x2 = random((self.width - 1));
+		local y2 = random((self.height - 1));
 
 		local r = floor(random(0,255));
 		local g = floor(random(0,255));
@@ -22,8 +33,10 @@ GRandomLines:draw(self, ctx)
 		ctx:strokeWidth(1.0);
 		ctx:line(x1, y1, x2, y2);
 
-		ctx:strokeWidth(8.0);
+		--ctx:strokeWidth(8.0);
 		ctx:circle(x1, y1, 4);
 		ctx:circle(x2, y2, 4);
-	}
+    end
 end
+
+return GRandomLines
