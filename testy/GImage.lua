@@ -1,5 +1,6 @@
 -- A graphic image
 -- Basically has a size and image
+require("blend2d.blend2d")
 
 local GImage = {}
 local GImage_mt = {
@@ -17,7 +18,9 @@ function GImage.new(self, obj)
 
     obj.x = obj.x or 0
     obj.y = obj.y or 0
-    obj.imageArea = obj.imageArea or BLRectI({0,0,obj.image:size().w, obj.image:size().h})
+    obj.width = obj.width or obj.image:size().w
+    obj.height = obj.height or obj.image:size().h
+    obj.imageArea = obj.imageArea or BLRectI({obj.x,obj.y,obj.width, obj.height})
     obj.Frame = obj.Frame or BLRect({0,0,obj.width, obj.height})
 
     setmetatable(obj, GImage_mt)
@@ -25,9 +28,38 @@ function GImage.new(self, obj)
     return obj;
 end
 
+function GImage.createFromFile(self, filename)
+    local img, err = BLImageCodec:readImageFromFile(filename)
+    if not img then
+        return nil, err
+    end
+
+    return GImage:new({image = img, Frame = BLRect({0,0,img:size().w, img:size().h})})
+end
+
+--[[
+    Sets where the image will be displayed within the context
+    of the graphics context
+]]
+function GImage.setFrame(self, x,y,width,height)
+    self.Frame = BLRect({x,y,width, height})
+    
+    return self;
+end
+
+function GImage.moveTo(self, x, y)
+    self.Frame.x = x;
+    self.Frame.y = y;
+end
+
 function GImage.draw(self, ctx)
     --print("Gimage.draw")
     ctx:stretchBlt(self.Frame, self.image, self.imageArea)
+end
+
+function GImage.subImage(self, x,y,w,h)
+    local imgArea = BLRectI(x,y,w,h)
+    GImage:new({image = self.image, width = w, height = h, imageArea = imgArea})
 end
 
 return GImage

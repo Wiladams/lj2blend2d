@@ -4,6 +4,8 @@ local winman = require("WinMan")
 
 local spiroapp = require("STOP_spiroapp")
 local framestatapp = require("STOP_framestat")
+local keyboardapp = require("STOP_CompKeyboard")
+
 local GImage = require("GIMage")
 
 local desktopWidth = 1200
@@ -21,6 +23,7 @@ local function startup()
     spawn(framestatapp, {x=0, y=0, width=1200, height=20})
     spawn(spiroapp,{x=100, y=100, width=640, height=480})
     --spawn(spiroapp, {x=300, y=400, width=400, height=400})
+    spawn(keyboardapp, {x= 280, y = 600, width=640, height=290})
 end
 
 winman {width = desktopWidth, height=desktopHeight, startup = startup}
