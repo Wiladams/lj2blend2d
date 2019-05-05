@@ -29,6 +29,10 @@ function setup()
 
 end
 
+function keyPressed(event)
+    print("keyPressed: ", string.format("0x%2x", keyCode))
+end
+
 go({width=256, height=256})
 
 

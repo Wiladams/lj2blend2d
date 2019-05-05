@@ -14,7 +14,6 @@ local function main()
   ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
   ctx:fillAll();
 
-
   -- Fill some path.
   local path = BLPath();
   path:moveTo(26, 31);
@@ -24,7 +23,6 @@ local function main()
 
   ctx:setCompOp(C.BL_COMP_OP_SRC_OVER);
   ctx:setFillStyle(BLRgba32(0xFFFFFFFF));
-  --ctx:setFillStyleRgba32(BLRgba32(0xFFFFFFFF).value);
   ctx:fillPath(path);
 
   -- Detach the rendering context from `img`.
@@ -32,7 +30,6 @@ local function main()
 
 
   BLImageCodec("BMP"):writeImageToFile(img, "output/bl-getting-started-1.bmp")
-
 end
 
 main()

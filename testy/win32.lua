@@ -323,6 +323,8 @@ int PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax,
 int TranslateMessage(const MSG *lpMsg);
 LRESULT DispatchMessageA(const MSG *lpMsg);
 
+BOOL GetKeyboardState(PBYTE lpKeyState);
+
 // Windows paint
 HDC BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);
 int EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
