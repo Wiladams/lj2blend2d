@@ -34,15 +34,16 @@ function GScaleTest.new(self, obj)
 end
 
 function GScaleTest.draw(self, ctx)
-    ctx:noStroke()
-    ctx:fill(255, 127,127)
-    ctx:rect(0,0,94,292)
+    --ctx:noStroke()
+    --ctx:fill(255, 127,127)
+    --ctx:rect(0,0,94,292)
 
     ctx:push()
         ctx:fill(230)
-        ctx:strokeWidth(0.1)
+        ctx:strokeWidth(1)
         
         ctx:scale(scaleX, scaleY)
+        ctx:setTransformBeforeStroke();
         ctx:fillRectD(0,0,whiteKeyWidth, whiteKeyHeight)
         ctx:stroke(255,0,0)
         ctx:strokeRectD(0,0,whiteKeyWidth, whiteKeyHeight)

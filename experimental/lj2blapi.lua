@@ -14,7 +14,7 @@ local bit = require("bit")
 local band, bor = bit.band, bit.bor
 local lshift, rshift = bit.lshift, bit.rshift
 
-local enum = require("blend2d.enum")
+local enum = require("enum")
 
 -- platform Byte ordering
 if (__ARMEB__) or (__MIPSEB__) or 

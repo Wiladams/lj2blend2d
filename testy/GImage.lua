@@ -58,8 +58,8 @@ function GImage.draw(self, ctx)
 end
 
 function GImage.subImage(self, x,y,w,h)
-    local imgArea = BLRectI(x,y,w,h)
-    GImage:new({image = self.image, width = w, height = h, imageArea = imgArea})
+    local imageArea = BLRectI(x,y,w,h)
+    GImage:new({image = self.image, width = w, height = h, imageArea = imageArea})
 end
 
 return GImage

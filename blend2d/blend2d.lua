@@ -1,10 +1,12 @@
 local ffi = require("ffi")
 local C = ffi.C 
 
+local SIZE_MAX = 0xffffffffffffffffULL;
+
 local blapi = require("blend2d.blend2d_ffi")
 
 -- blcontext types
-BLContextCreateOptions = ffi.new("struct BLContextCreateOptions")
+BLContextCreateInfo = ffi.new("struct BLContextCreateInfo")   -- BLContextCreateOptions
 BLContextCookie = ffi.typeof("struct BLContextCookie")
 BLContextHints = ffi.typeof("struct BLContextHints")
 BLContextState = ffi.typeof("struct BLContextState")
@@ -594,7 +596,8 @@ BLFontFace_mt = {
                 return nil, "failed blFontFaceInit"
             end
 
-            local bResult = blapi.blFontFaceCreateFromFile(obj, fileName) ;
+            local readFlags = C.BL_FILE_OPEN_READ;
+            local bResult = blapi.blFontFaceCreateFromFile(obj, fileName, readFlags) ;
             --print("blFontFaceCreateFromFile: ", bResult)
 
             if bResult ~= C.BL_SUCCESS then
@@ -1006,6 +1009,7 @@ local BLImageCodec_mt = {
   end;
 
   __new = function (ct, moniker, codecs)
+    --print("BLImageCodec.__new: ", ct, moniker, codecs)
     local obj = ffi.new(ct)
     local bResult = blapi.blImageCodecInit(obj);
     if bResult ~= C.BL_SUCCESS then
@@ -1013,32 +1017,19 @@ local BLImageCodec_mt = {
     end
 
     if moniker then
-      codecs = codecs or blapi.blImageCodecBuiltInCodecs();
-      local bResult = blapi.blImageCodecFindByName(obj, codecs, moniker) ;
-      
+      local bResult = blapi.blImageCodecFindByName(obj, moniker, #moniker, nil)
       if bResult ~= C.BL_SUCCESS then
         return false, bResult;
       end
     end
 
-
     return obj;
   end;
---[[
 
-BLResult __cdecl blImageCodecAssignWeak(BLImageCodecCore* self, const BLImageCodecCore* other) ;
-BLResult __cdecl blImageCodecFindByName(BLImageCodecCore* self, const BLArrayCore* codecs, const char* name) ;
-BLResult __cdecl blImageCodecFindByData(BLImageCodecCore* self, const BLArrayCore* codecs, const void* data, size_t size) ;
-uint32_t __cdecl blImageCodecInspectData(const BLImageCodecCore* self, const void* data, size_t size) ;
-BLResult __cdecl blImageCodecCreateDecoder(const BLImageCodecCore* self, BLImageDecoderCore* dst) ;
-BLResult __cdecl blImageCodecCreateEncoder(const BLImageCodecCore* self, BLImageEncoderCore* dst) ;
-BLArrayCore* __cdecl blImageCodecBuiltInCodecs(void) ;
-]]
   __index = {
       findByName = function(self, name, codecs)
           local obj = BLImageCodec();
-          codecs = codecs or blapi.blImageCodecBuiltInCodecs();
-          local bResult = blapi.blImageCodecFindByName(obj, codecs, name) ;
+          local bResult = blapi.blImageCodecFindByName(obj, name, #name, codecs) ;
 
           if bResult ~= C.BL_SUCCESS then
               return false, bResult;
@@ -1056,9 +1047,8 @@ BLArrayCore* __cdecl blImageCodecBuiltInCodecs(void) ;
         --print("readImageFromFile: ", tc, fileName, codecs)
 
           local img = BLImage();
-          codecs = codecs or blapi.blImageCodecBuiltInCodecs()
-          local bResult = blapi.blImageReadFromFile(img, fileName, codecs) ;
-
+          --codecs = codecs or blapi.blImageCodecBuiltInCodecs()
+          local bResult = blapi.blImageReadFromFile(img, fileName, codecs);
           if bResult ~= C.BL_SUCCESS then
               return false, bResult
           end

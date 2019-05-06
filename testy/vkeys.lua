@@ -1,4 +1,4 @@
-local enum = require("blend2d.enum")
+local enum = require("enum")
 
 local vkeys = enum {
 -- Virtual Keys, Standard Set

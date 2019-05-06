@@ -22,7 +22,7 @@ WMSetBackground(bkgnd)
 local function startup()
     --spawn(framestatapp, {x=0, y=0, width=1200, height=20})
     --spawn(keyboardapp, {x= 280, y = 600, width=640, height=290})
-    --spawn(pianoapp, {x= 280, y = 200, width=640, height=290})
+    spawn(pianoapp, {x= 280, y = 200, width=640, height=290})
 end
 
 winman {width = desktopWidth, height=desktopHeight, startup = startup}

@@ -48,6 +48,7 @@ end
 function GPianoKeyboard.draw(self, ctx)
     ctx:push()
     ctx:scale(self.scale.x, self.scale.y)
+    ctx:setTransformBeforeStroke();
 
     ctx:strokeWidth(1)
     --print("GPianoKeyboard.draw")

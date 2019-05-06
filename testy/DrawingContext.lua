@@ -26,7 +26,7 @@ local C = ffi.C
 
 local blapi = require("blend2d.blend2d")
 
-local enum = require("blend2d.enum")
+local enum = require("enum")
 local maths = require("maths")
 
 
@@ -477,6 +477,25 @@ end
 --[[
     Setting Stroke Attributes
 ]]
+function DrawingContext.setTransformBeforeStroke(self)
+    local blResult = blapi.blContextSetStrokeTransformOrder(self.DC, C.BL_STROKE_TRANSFORM_ORDER_BEFORE);
+
+    if bResult ~= C.BL_SUCCESS then
+        return false, blResult;
+    end
+
+    return self;
+end
+
+function DrawingContext.setTransformAfterStroke(self)
+    local blResult = blapi.blContextSetStrokeTransformOrder(self.DC, C.BL_STROKE_TRANSFORM_ORDER_AFTER);
+
+    if bResult ~= C.BL_SUCCESS then
+        return false, blResult;
+    end
+
+    return self;
+end
 
 function DrawingContext.setStrokeStartCap (self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self.DC, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;

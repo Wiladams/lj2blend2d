@@ -3,7 +3,7 @@ package.path = "../?.lua;"..package.path;
 local ffi = require("ffi")
 
 local blapi = require("blend2d.blend2d")
-local enum = require("blend2d.enum")
+local enum = require("enum")
 
 local BLMatrix2DType = enum {
 
