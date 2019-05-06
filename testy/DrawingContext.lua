@@ -362,6 +362,24 @@ function DrawingContext.rectMode(self, newMode)
 end
 
 
+-- Matrix operations
+function DrawingContext.resetTransform(self)
+    local bResult = self:_applyMatrixOp(C.BL_MATRIX2D_OP_RESET, nil);
+    if bResult ~= C.BL_SUCCESS then
+        return false, bResult
+    end
+
+    return self
+end
+
+function DrawingContext.userToMeta(self)
+    local bResult = self.DC.impl.virt.userToMeta(self.DC.impl)
+    if bResult ~= C.BL_SUCCESS then
+        return false, bResult;
+    end
+
+    return self;
+end
 
 -- Applies a matrix operation to the current transformation matrix (internal).
 function DrawingContext._applyMatrixOp (self, opType, opData)
@@ -375,6 +393,7 @@ end
       
 function DrawingContext._applyMatrixOpV(self, opType, ...)
         local opData = ffi.new("double[?]",select('#',...), {...});
+        --print("_applyMatrixOpV: ", opData[0], opData[1])
         local bResult = self.DC.impl.virt.matrixOp(self.DC.impl, opType, opData);
         if bResult == C.BL_SUCCESS then
             return self;
@@ -398,27 +417,14 @@ function DrawingContext.translate (self, x, y)
     return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_TRANSLATE, x, y);
 end
 
-function DrawingContext.scale(self, ...)
-          local nargs = select('#',...)
-          --print("nargs: ", nargs)
-          local x, y = 1, 1;
-          if nargs == 1 then
-              if typeof(select(1,...) == "number") then
-                  x = select(1,...)
-                  y = x;
-                  --print("blcontext.scale: ", x, y)
-                  return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
-              end
-          elseif nargs == 2 then
-              x = select(1,...)
-              y = select(2,...)
+function DrawingContext.scale(self, x, y)
+    y = y or x
 
-              if x and y then
-                  return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
-              end
-          end 
-          
-          return false, "invalid arguments"
+    if not x and y then
+        return false, "at least one axis must be specified"
+    end
+
+    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
 end
 
 --[[
@@ -748,14 +754,25 @@ function DrawingContext.strokeRectI (self, rect)
     return false, bResult    
 end
 
-function DrawingContext.strokeRectD (self, rect)
+function DrawingContext.strokeRectD (self, ...)
+    local nargs = select('#',...)
+    local rect = select(1,...)
+
+    if nargs == 4 then
+        rect = BLRect(...)
+    end
+
+    if not rect then
+        return false;
+    end
+
     local bResult = self.DC.impl.virt.strokeRectD(self.DC.impl, rect);
     
-    if bResult == C.BL_SUCCESS then
-        return self;
+    if bResult ~= C.BL_SUCCESS then
+        return nil, bResult;
     end
-    
-    return false, bResult 
+
+    return self;
 end
 
 function DrawingContext.strokeRect(self, x, y, w, h)
@@ -950,9 +967,56 @@ function DrawingContext.strokeWidth(self, weight)
     self.DC:setStrokeWidth(weight);
 end
 
+--[[
+
+]]
+function DrawingContext.loadFont(self, faceFilename)
+	local fontDir = "c:\\windows\\fonts\\"
+	local fontfile = fontDir..faceFilename;
+
+	aFace, err = BLFontFace:createFromFile(fontfile)
+	if not aFace then
+		return false, err
+	end
+
+    self.FontFace = aFace;
+    -- select font of current font size
+
+    self:textSize(self.TextSize)
+end
+
+function DrawingContext.textSize(self, asize)
+    local afont, err = self.FontFace:createFont(asize)
+
+	if not afont then 
+		return false, err;
+	end
+
+	self.Font = afont
+	self.TextSize = asize
+
+	return true;
+end
+
+function DrawingContext.textWidth(self, txt)
+	return self.Font:measureText(txt)
+end
+
+function DrawingContext.textAlign(self, halign, valign)
+	self.TextHAlignment = halign or DrawingContext.constants.LEFT
+	self.TextVAlignment = valign or DrawingContext.constants.BASELINE
+end
+
+function DrawingContext.textLeading(self, leading)
+	self.TextLeading = leading
+end
+
+function DrawingContext.textMode(self, mode)
+	self.TextMode = mode
+end
 
 function DrawingContext.calcTextPosition(self, txt, x, y)
-	local cx, cy = self:textWidth(txt)
+    local cx, cy = self.Font:measureText(txt)
 
 	if self.TextHAlignment == LEFT then
 		x = x
@@ -978,36 +1042,16 @@ function DrawingContext.text(self, txt, x, y)
 	self.DC:fillUtf8Text(BLPoint(x,y), self.Font, txt, #txt)
 end
 
-function DrawingContext.textAlign(self, halign, valign)
-	self.TextHAlignment = halign or DrawingContext.constants.LEFT
-	self.TextVAlignment = valign or DrawingContext.constants.BASELINE
-end
 
-function DrawingContext.textLeading(self, leading)
-	self.TextLeading = leading
-end
 
-function DrawingContext.textMode(self, mode)
-	self.TextMode = mode
-end
 
-function DrawingContext.textWidth(self, txt)
-	return self.Font:measureText(txt)
-end
 
-function DrawingContext.textSize(self, asize)
-    local afont, err = self.FontFace:createFont(asize)
 
-	if not afont then 
-		return false, err;
-	end
 
-	self.Font = afont
-	self.TextSize = asize
 
-	return true;
-end
-
+--[[
+    Rectangles
+]]
 local function calcModeRect(mode, a,b,c,d)
 
 	local x1 = 0;
@@ -1043,22 +1087,16 @@ local function calcModeRect(mode, a,b,c,d)
 	return x1, y1, rwidth, rheight;
 end
 
-function DrawingContext.rect(self, ...)
-	local nargs = select('#',...)
-	if nargs < 4 then return false end
+function DrawingContext.rect(self, a,b,c,d)
 
-	local x1, y1, rwidth, rheight = calcModeRect(self.RectMode, ...)
+	local x1, y1, rwidth, rheight = calcModeRect(self.RectMode, a,b,c,d)
 
-	if nargs == 4 then
-		if self.useFill then
-		self:fillRectD(x1, y1, rwidth, rheight)
-		end
+	if self.useFill then
+	    self:fillRectD(x1, y1, rwidth, rheight)
+	end
 
-		if self.useStroke then
-			self:strokeRectD(BLRect(x1, y1, rwidth, rheight))
-		end
-    elseif nargs == 5 then
-        -- do rounded rect
+	if self.useStroke then
+		self:strokeRectD(BLRect(x1, y1, rwidth, rheight))
 	end
 
 	return true;

@@ -13,8 +13,8 @@ end
 
 local radius = 20
 local s1, s2;
-local gravity = 5.0;    -- 9.0
-local mass = 2.5;       -- 2.0
+local gravity = 4.0;    -- 9.0
+local mass = 1.75;       -- 2.0
 
 local Spring2D = {}
 setmetatable(Spring2D, {

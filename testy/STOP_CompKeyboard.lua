@@ -13,8 +13,7 @@ local function app(params)
         ctxt:stroke(BLRgba32(0xff000000))
         ctxt:strokeWidth(4)
         ctxt:strokeRect(0,0,self.width, self.height)
-    
-        -- draw title bar
+
     end
     
     local kbd = keyboard:new()

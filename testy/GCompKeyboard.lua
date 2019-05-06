@@ -26,7 +26,7 @@ function GKeyboard.new(self, obj)
     obj.keysState = ffi.new("BYTE[256]")
     obj.showKeyState = true;
     obj.linear = Gradient.LinearGradient({
-        values = {0, 0, 0, self.unit};
+        values = {obj.unit/2, 0, obj.unit/2, obj.unit};
         stops = {
           {offset = 0, uint32 = 0xFFFFFFFF},
           {offset = 1, uint32 = 0xFF1F7FFF}
@@ -72,8 +72,8 @@ function GKeyboard.draw(self, ctx)
         local rrect = BLRoundRect(key.frame.x,key.frame.y,key.frame.width, key.frame.height, 3, 3)
         local crect = insetRect(rrect,self.unit*0.30,self.unit*0.30)
 
-        ctx:fill(127)
-        --ctx:setFillStyle(self.linear)
+        --ctx:fill(127)
+        ctx:setFillStyle(self.linear)
         ctx:fillRoundRect(rrect)    
         ctx:strokeRoundRect(rrect)
 

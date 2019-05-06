@@ -9,34 +9,7 @@ BLContextCookie = ffi.typeof("struct BLContextCookie")
 BLContextHints = ffi.typeof("struct BLContextHints")
 BLContextState = ffi.typeof("struct BLContextState")
 
---[=[
-BLContextCore_mt.__index = function(self, key)
-    print("BLContextCore_mt:__index: ", key)
 
-    -- first look in the implemenation for a field
-    local success, info = pcall(function() return self.impl[key] end)
-    if success then
-        return info 
-    end
-
---[[
-      -- finally look for something in the virtual table
-      -- then look in the virtual table for a function
-      success, info = pcall(function() return self.impl.virt[key] end)
-      if success then
-          return info 
-      end
---]]
-    -- look for a private implementation
-    local info rawget(BLContextCore_mt, key)
-    print("Info: ", key, info)
-    for k,v in pairs(BLContextCore_mt) do 
-      print(k,v)
-    end
-
-    return info
-end
---]=]
 BLContext = ffi.typeof("struct BLContextCore")
 ffi.metatype(BLContext, {
     __gc = function(self)
@@ -1096,7 +1069,98 @@ BLArrayCore* __cdecl blImageCodecBuiltInCodecs(void) ;
 }
 ffi.metatype(BLImageCodec, BLImageCodec_mt)
 
+--[[
+--BLResult __cdecl blMatrix2DSetIdentity(BLMatrix2D* self) ;
+--BLResult __cdecl blMatrix2DSetTranslation(BLMatrix2D* self, double x, double y) ;
+--BLResult __cdecl blMatrix2DSetSkewing(BLMatrix2D* self, double x, double y) ;
+--BLResult __cdecl blMatrix2DSetRotation(BLMatrix2D* self, double angle, double cx, double cy) ;
+BLResult __cdecl blMatrix2DApplyOp(BLMatrix2D* self, uint32_t opType, const void* opData) ;
+--BLResult __cdecl blMatrix2DInvert(BLMatrix2D* dst, const BLMatrix2D* src) ;
+--uint32_t __cdecl blMatrix2DGetType(const BLMatrix2D* self) ;
+--BLResult __cdecl blMatrix2DMapPointDArray(const BLMatrix2D* self, BLPoint* dst, const BLPoint* src, size_t count) ;
+--]]
+
 BLMatrix2D = ffi.typeof("struct BLMatrix2D")
+local BLMatrix2D_mt = {
+    __tostring = function(self)
+        local tbl = {}
+        table.insert(tbl, string.format("%3.2f  %3.2f", self.m00, self.m01))
+        table.insert(tbl, string.format("%3.2f  %3.2f", self.m10, self.m11))
+        table.insert(tbl, string.format("%3.2f  %3.2f", self.m20, self.m21))
+        return table.concat(tbl, "\n")
+    end;
+
+    __index = {
+        -- Constructors
+        createIdentity = function(self)
+          local m1 = BLMatrix2D();
+          blapi.blMatrix2DSetIdentity(m1)
+          return m1
+        end;
+
+        createScaling = function(self, sx, sy)
+          local m1 = BLMatrix2D()
+          blapi.blMatrix2DSetScaling(m1, sx, sy)
+          return m1
+        end;
+
+        createSkewing = function(self, skx, sky)
+          local m1 = BLMatrix2D()
+          blapi.blMatrix2DSetSkewing(m1, skx, sky) ;
+          return m1;
+        end;
+
+        createTranslation = function(self, x, y)
+          local m1 = BLMatrix2D();
+          blapi.blMatrix2DSetTranslation(m1, x, y)
+          return m1;
+        end;
+
+        createRotation = function(self, angle, cx, cy)
+          local m1 = BLMatrix2D()
+          blapi.blMatrix2DSetRotation(m1, angle, cx, cy)     -- 45 degrees
+          return m1
+        end;
+
+        createInverse = function(self)
+          local dst = ffi.new("struct BLMatrix2D")
+          blapi.blMatrix2DInvert(dst, self) ;
+          return dst
+        end;
+
+        -- Matrix operations
+        applyOperation = function(self, opType, opData)
+          local bResult = blapi.blMatrix2DApplyOp(self, opType, opData) ;
+
+        end;
+
+        getType = function(self)
+          return blapi.blMatrix2DGetType(self) ;
+        end;
+
+        -- apply the current transformation to an array of points
+        -- should accept a lua table as a matter of convenience
+        transformPoints = function(self, dstPts, srcPts, count)
+          local bResult = blapi.blMatrix2DMapPointDArray(self, dstPts, srcPts, count) ;
+          if bResult ~= C.BL_SUCCESS then
+            return false, bResult;
+          end
+
+          return self;
+        end;
+
+        -- transform a single point
+        transformSinglePoint = function(self, srcPt)
+          local dstPoint = ffi.new("BLPoint")
+          local bResult = blapi.blMatrix2DMapPointDArray(self, dstPoint, srcPt, 1)
+          if bResult ~= C.BL_SUCCESS then
+            return false, bResult;
+          end
+          return dstPoint
+        end;
+    };
+}
+ffi.metatype("struct BLMatrix2D", BLMatrix2D_mt)
 
 
 --[[
