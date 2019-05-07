@@ -57,7 +57,7 @@ local HIWORD = win32.HIWORD
 local SWatch = StopWatch();
 
 
-
+-- Global Stuff
 local appSurface = nil;
 local appContext = nil;
 local appBackground = nil;
@@ -67,6 +67,9 @@ local EnvironmentReady = false;
 local appDC = nil;
 frameCount = 0;
 FrameRate = 30;
+
+mouseX = 0;
+mouseY = 0;
 
 -- The GraphicGroup representing subsequent windows that
 -- are added to the environment
