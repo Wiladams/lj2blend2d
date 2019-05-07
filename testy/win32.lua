@@ -184,6 +184,7 @@ static const int SRCCOPY           =  0x00CC0020; /* dest = source              
 ffi.cdef[[
 // Types
 typedef HANDLE HDC;
+typedef HANDLE HGDIOBJ;
 typedef HANDLE HWND;
 typedef HANDLE HICON;
 typedef HANDLE HCURSOR;
@@ -331,6 +332,10 @@ int EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
 
 // wingdi
 HDC GetDC(HWND hWnd);
+int ReleaseDC(HWND hWnd,HDC  hDC);
+HDC CreateCompatibleDC(HDC hdc);
+HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h);
+
 HBITMAP CreateDIBSection(HDC hdc, const BITMAPINFO *pbmi, UINT usage, void **ppvBits, HANDLE hSection, DWORD offset);
 int  BitBlt(  HDC hdc,  int x,  int y,  int cx,  int cy,  HDC hdcSrc,  int x1,  int y1,  uint32_t rop);
 int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHeight,  

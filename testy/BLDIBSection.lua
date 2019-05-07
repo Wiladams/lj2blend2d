@@ -99,6 +99,9 @@ function BLDIBSection.new(self, params)
         return nil, err
     end
 
+    DIB.DC = C.CreateCompatibleDC(nil)
+    C.SelectObject(DIB.DC, DIB.GDIHandle)
+
     -- bind DIB to BLImage
     local img, err = self:bindBLImage(DIB)
 

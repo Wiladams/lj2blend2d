@@ -29,4 +29,4 @@ local function startup()
     spawn(keyboardapp, {x= 280, y = 600, width=640, height=290})
 end
 
-winman {width = desktopWidth, height=desktopHeight, startup = startup}
+winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=30}

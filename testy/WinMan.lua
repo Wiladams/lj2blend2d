@@ -474,7 +474,7 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         if appSurface then
             local imgSize = appImage:size()
             --print("Size: ", imgSize.w, imgSize.h)
----[[
+--[[
             local bResult = C.StretchDIBits(appDC,
                 0,0,
                 imgSize.w,imgSize.h,
@@ -484,6 +484,15 @@ local function WindowProc(hwnd, msg, wparam, lparam)
                 C.DIB_RGB_COLORS,C.SRCCOPY)
             -- the bResult is the number of scanlines drawn
             -- there's a failure, this will be 0
+--]]
+
+            -- BitBlt is probably hardware accelerated
+            -- StretchDIBits might also be hardware accelerated
+            -- but, we don't need stretching, so we'll go with the slightly
+            -- easier bitblt
+---[[
+            local bResult  C.BitBlt(  appWindowDC,  0,  0,  imgSize.w,  imgSize.h,  
+                appSurface.DC,  0,  0,  C.SRCCOPY);
 --]]
         end
         res = 0; 
@@ -507,7 +516,6 @@ local function WindowProc(hwnd, msg, wparam, lparam)
 --]=]
         C.EndPaint(hwnd, ps);
         res = 0
-
     else
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
@@ -727,8 +735,9 @@ local function main(params)
     -- Create the actual Window which will represent
     -- the Managed window UI Surface
     appWindowHandle,err = createWin32Window(params)
-
+ 
     showWindow();
+    appWindowDC = C.GetDC(appWindowHandle)
 
     -- Setup to deal with user inputs
     setupUIHandlers();
