@@ -234,9 +234,7 @@ function GS7.draw(self, ctx)
 end
 
 
-
-
-return {
+local exports = {
     GS1 = GS1;
     GS2 = GS2;
     GS3 = GS3;
@@ -245,3 +243,5 @@ return {
     GS6 = GS6;
     GS7 = GS7;
 }
+
+return exports

@@ -1160,30 +1160,47 @@ ffi.metatype("struct BLMatrix2D", BLMatrix2D_mt)
 BLPath = ffi.typeof("struct BLPathCore")
 
 local pathCommands = {
+  assignMove = blapi.blPathAssignMove  ;
+  addignWeak = blapi.blPathAssignWeak  ;
+  assignDeep = blapi.blPathAssignDeep  ;
+  equals = blapi.blPathEquals ;
 
+  -- meta commands
+  clear = blapi.blPathClear;
+  close = blapi.blPathClose ;
+  fitTo = blapi.blPathFitTo  ;
+  shrink = blapi.blPathShrink ;
+  reserve = blapi.blPathReserve ;
+  modifyOp = blapi.blPathModifyOp  ;
+  setVertexAt = blapi.blPathSetVertexAt  ;
+  translate = blapi.blPathTranslate  ;
+  transform = blapi.blPathTransform  ;
+  pathHitTest = blapi.blPathHitTest ;
+
+  -- Getting stuff
 getSize = blapi.blPathGetSize ;
 getCapacity = blapi.blPathGetCapacity ;
 getCommandData = blapi.blPathGetCommandData ;
 getVertexData = blapi.blPathGetVertexData ;
-clear = blapi.blPathClear ;
-shrink = blapi.blPathShrink ;
-reserve = blapi.blPathReserve ;
-modifyOp = blapi.blPathModifyOp  ;
-assignMove = blapi.blPathAssignMove  ;
-addignWeak = blapi.blPathAssignWeak  ;
-assignDeep = blapi.blPathAssignDeep  ;
-setVertexAt = blapi.blPathSetVertexAt  ;
+getInfoFlags = blapi.blPathGetInfoFlags ;
+getControlBox = blapi.blPathGetControlBox ;
+getBoundingBox = blapi.blPathGetBoundingBox ;
+getFigureRange = blapi.blPathGetFigureRange ;
+getLastVertex = blapi.blPathGetLastVertex ;
+getClosestVertex = blapi.blPathGetClosestVertex ;
+
+  -- extending path
+arcTo = blapi.blPathArcTo  ;
+arcQuadrantTo = blapi.blPathArcQuadrantTo  ;
+cubicTo = blapi.blPathCubicTo  ;
+ellipticArcTo = blapi.blPathEllipticArcTo  ;
 moveTo = blapi.blPathMoveTo  ;
 lineTo = blapi.blPathLineTo  ;
 polyTo = blapi.blPathPolyTo  ;
 quadTo = blapi.blPathQuadTo  ;
-cubicTo = blapi.blPathCubicTo  ;
 smoothQuadTo = blapi.blPathSmoothQuadTo  ;
 smoothCubicTo = blapi.blPathSmoothCubicTo  ;
-arcTo = blapi.blPathArcTo  ;
-arcQuadrantTo = blapi.blPathArcQuadrantTo  ;
-ellipticArcTo = blapi.blPathEllipticArcTo  ;
-close = blapi.blPathClose ;
+
 addGeometry = blapi.blPathAddGeometry  ;
 addBoxI = blapi.blPathAddBoxI  ;
 addBoxD = blapi.blPathAddBoxD  ;
@@ -1193,18 +1210,8 @@ addPath = blapi.blPathAddPath  ;
 addTranslatedPath = blapi.blPathAddTranslatedPath  ;
 addTransformedPath = blapi.blPathAddTransformedPath  ;
 addReversedPath = blapi.blPathAddReversedPath  ;
+
 strokePath = blapi.blPathAddStrokedPath ;
-translate = blapi.blPathTranslate  ;
-transform = blapi.blPathTransform  ;
-fitTo = blapi.blPathFitTo  ;
-equals = blapi.blPathEquals ;
-getInfoFlags = blapi.blPathGetInfoFlags ;
-getControlBox = blapi.blPathGetControlBox ;
-getBoundingBox = blapi.blPathGetBoundingBox ;
-getFigureRange = blapi.blPathGetFigureRange ;
-getLastVertex = blapi.blPathGetLastVertex ;
-getClosestVertex = blapi.blPathGetClosestVertex ;
-pathHitTest = blapi.blPathHitTest ;
 }
 local BLPath_mt = {
     __gc = function(self)

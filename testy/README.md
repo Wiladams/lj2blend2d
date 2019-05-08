@@ -37,3 +37,29 @@ end
 
 return app
 ```
+
+A STOPlet is run in an environment that includes a scheduler and window manager.  That environment typically looks like this:
+
+```lua
+package.path = "../?.lua;"..package.path;
+
+local winman = require("WinMan")
+
+local circleapp = require("STOP_circle")
+
+
+local function startup()
+    spawn(circleapp, {x=10, y=10, width=320, height=240})
+end
+
+winman {width = 640, height=480, startup = startup}
+```
+
+The "WinMan" file is the critical one in that it creates the "Windows", provides the UI events, and includes the scheduler which makes spawning and signaling trivial.
+
+There is a convencient file: test_STOP
+Which can be used to launch any STOPlet individually, and trivially.
+
+c:\> luajit test_STOP STOP_circle
+
+The idea behind WinMan is that it provides a 'desktop' environment.  Ideally, there would be a STOPlet which configured a basic desktop with the ability to launch other stoplets from within the desktop environment.  A simple search bar, or a file browser would probably be a good first addition to the desktop space.
