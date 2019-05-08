@@ -1,7 +1,17 @@
 --[[
-    Minimum required to put a window on the screen and do some
-    very basic drawing
+    This single file is meant to be enough win32 to put a window up on the screen
+    and draw a pixel buffer into it.
+
+    It contains most of the common int and pointer types, and is aware of 32 and 64-bit
+    versions.
+
+    All manner of input; mouse, keyboard, touch, gesture, joystick, are supported.
+
+    What's not in here are things like DirectX, Winmm, file system, and the like.  The intention
+    would be that you would take this basic win32.lua, include it in your project, then add the
+    bindings that you want for your specific application needs.
 ]]
+
 local ffi = require("ffi")
 local C = ffi.C 
 local bit = require("bit")
@@ -175,6 +185,17 @@ static const int WS_OVERLAPPEDWINDOW = WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_TH
 static const int CW_USEDEFAULT      = 0x80000000;
 static const int COLOR_WINDOW          =  5;
 
+// Layered Window Constants
+static const int  LWA_COLORKEY          =  0x00000001;
+static const int  LWA_ALPHA             =  0x00000002;
+
+
+static const int  ULW_COLORKEY          =  0x00000001;
+static const int  ULW_ALPHA             =  0x00000002;
+static const int  ULW_OPAQUE            =  0x00000004;
+
+static const int  ULW_EX_NORESIZE       =  0x00000008;
+
 // GDI constants
 static const int BI_RGB       = 0;
 static const int DIB_RGB_COLORS     = 0; /* color table in RGBs */
@@ -261,7 +282,9 @@ typedef struct tagBITMAPINFO {
     BITMAPINFOHEADER    bmiHeader;
     RGBQUAD             bmiColors[1];
 } BITMAPINFO,  *LPBITMAPINFO, *PBITMAPINFO;
+]]
 
+ffi.cdef[[
 typedef struct _BLENDFUNCTION
 {
     BYTE   BlendOp;
@@ -269,6 +292,10 @@ typedef struct _BLENDFUNCTION
     BYTE   SourceConstantAlpha;
     BYTE   AlphaFormat;
 }BLENDFUNCTION,*PBLENDFUNCTION;
+
+static const int AC_SRC_OVER                = 0x00;
+static const int AC_SRC_ALPHA               = 0x01;
+
 ]]
 
 
@@ -597,18 +624,13 @@ end
 function exports.CreateWindowHandle(params)
     params.title = params.title or "Window";
     params.winstyle = params.winstyle or C.WS_OVERLAPPEDWINDOW;
-    params.winxstyle = params.winxstyle or 0;
+    params.winxstyle = params.winxstyle or 0;   --C.WS_EX_LAYERED;
     params.x = params.x or C.CW_USEDEFAULT;
     params.y = params.y or C.CW_USEDEFAULT;
 
     
-    --wintitle = wintitle or "Window";
-    --local winxstyle = C.WS_EX_LAYERED;
-    --local winxstyle = 0;
 
 	--winstyle = winstyle or C.WS_OVERLAPPEDWINDOW;
-	--x = x or C.CW_USEDEFAULT;
-	--y = y or C.CW_USEDEFAULT;
 
 	local hInst = C.GetModuleHandleA(nil);
 	local hWnd = C.CreateWindowExA(

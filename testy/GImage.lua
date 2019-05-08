@@ -57,6 +57,11 @@ function GImage.draw(self, ctx)
     ctx:stretchBlt(self.Frame, self.image, self.imageArea)
 end
 
+function GImage.moveTo(self, x, y)
+    self.Frame.x = x;
+    self.Frame.y = y;
+end
+
 function GImage.subImage(self, x,y,w,h)
     local imageArea = BLRectI(x,y,w,h)
     GImage:new({image = self.image, width = w, height = h, imageArea = imageArea})

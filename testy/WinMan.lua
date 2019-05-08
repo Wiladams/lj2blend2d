@@ -56,20 +56,27 @@ local HIWORD = win32.HIWORD
 
 local SWatch = StopWatch();
 
-
--- Global Stuff
-local appSurface = nil;
-local appContext = nil;
-local appBackground = nil;
-local appImage = nil;
-local appWindowHandle = nil;
-local EnvironmentReady = false;
-local appDC = nil;
+--[[
+    Global state for applications
+]]
 frameCount = 0;
 FrameRate = 30;
 
 mouseX = 0;
 mouseY = 0;
+
+
+-- Internal State
+local appSurface = nil;
+local appContext = nil;
+local appBackground = nil;
+local appImage = nil;
+local appWindowHandle = nil;
+local appWindowDC = nil;
+local EnvironmentReady = false;
+local appDC = nil;
+
+
 
 -- The GraphicGroup representing subsequent windows that
 -- are added to the environment
@@ -94,7 +101,7 @@ end
 -- Internal functions
 function refreshWindow()
 
-    -- doing the RedrawWindow method, with RDW_ERASENOW ensures that the 
+    -- doing the RedrawWindow() method, with RDW_ERASENOW ensures that the 
     -- WM_ERASEBKGND message is sent and dealt with synchronously, so we make
     -- sure we're not waiting for WM_PAINT messages, which can show up at random
     -- times, not based on our animation clock.
@@ -102,6 +109,7 @@ function refreshWindow()
 	local hrgnUpdate = nil; -- HRGN
 	local flags = flags or bor(C.RDW_ERASE, C.RDW_INVALIDATE, C.RDW_ERASENOW);
 
+    -- force an immediate redraw of the window
 	local success = C.RedrawWindow(
   		appWindowHandle,
   		lprcUpdate,
@@ -111,7 +119,7 @@ function refreshWindow()
     -- Using the UpdateLayeredWindow approach can be even more useful as we can
     -- create a bitmap that represents the backing store of the window, and just
     -- allow windows to compose that.  We can extend the appImage to contain the complete
-    -- side of the window plus chrome, and then it can be this bitmap.
+    -- size of the window plus chrome, and then it can be this bitmap.
 --[[
     local hdcDst = nil;     -- default palette is fine
     local pptDst = nil;     -- we're not changing position

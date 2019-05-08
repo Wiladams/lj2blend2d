@@ -15,7 +15,7 @@ local function app(params)
 
         ctxt:stretchBlt(dstRect, img.image, imgArea)
 
-        local subArea = BLRectI(mouseX, mouseY, 16,16)
+        local subArea = BLRectI(mouseX, mouseY, 32,32)
         local subDst = BLRect(mouseX, mouseY, 128, 128)
         ctxt:stretchBlt(subDst, img.image, subArea)
     end
