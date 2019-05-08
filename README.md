@@ -69,6 +69,54 @@ All of the 'getting-started' samples from the blend2d samples repo are replicate
 
 https://github.com/blend2d/bl-samples
 
+Here is an example of the first 'getting-started' in its entirety, from the test directory.
+
+```lua
+package.path = "../?.lua;"..package.path;
+
+local ffi = require("ffi")
+local C = ffi.C 
+
+
+local b2d = require("blend2d.blend2d")
+
+local function main()
+  local img = BLImage(480, 480)
+  local ctx, err = BLContext(img)
+
+  -- Clear the image.
+  ctx:setCompOp(C.BL_COMP_OP_SRC_COPY);
+  ctx:fillAll();
+
+  -- Fill some path.
+  local path = BLPath();
+  path:moveTo(26, 31);
+  path:cubicTo(642, 132, 587, -136, 25, 464);
+  path:cubicTo(882, 404, 144, 267, 27, 31);
+
+
+  ctx:setCompOp(C.BL_COMP_OP_SRC_OVER);
+  ctx:setFillStyle(BLRgba32(0xFFFFFFFF));
+  ctx:fillPath(path);
+
+  -- Detach the rendering context from `img`.
+  ctx:finish();
+
+  BLImageCodec("BMP"):writeImageToFile(img, "output/bl-getting-started-1.bmp")
+end
+
+main()
+```
+
+It looks fairly similar to the C++ interface, and feels just as convenient.
+
 At this point, if you want to use the most basic ffi style of binding, it is complete, and located in a single file 'blend2d_ffi'.  If you want a little more convenience, you can use the blend2d.lua file (probably most typical).  If you want to go on quite a journey, you can look at all the things in the testy directory.
 
 
+The roadmap:
+
+- Track The changes in blend2d as it moves from beta to release
+- Continue adding conveniences to the blend2d.lua interface
+- Work on the DrawingContext and other tidbits in the testy directory
+- Create as many interestesting use cases/tests as possible to find any bugs
+- Have fun
