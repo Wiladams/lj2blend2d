@@ -10,7 +10,7 @@ local function app(params)
     local subimg = img:subImage(0,0,16,16)
     
     function win1.drawBody(self, ctxt)
-        local dstRect = BLRect(0,0,params.width, params.height)
+        local dstRect = BLRect(0,0,self.frame.width, self.frame.height)
         local imgArea = BLRectI(0,0,img.Frame.w, img.Frame.h)
 
         ctxt:stretchBlt(dstRect, img.image, imgArea)

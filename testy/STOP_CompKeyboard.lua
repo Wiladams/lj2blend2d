@@ -12,7 +12,7 @@ local function app(params)
         -- draw a black border
         ctxt:stroke(BLRgba32(0xff000000))
         ctxt:strokeWidth(4)
-        ctxt:strokeRect(0,0,self.width, self.height)
+        ctxt:strokeRect(0,0,self.frame.width, self.frame.height)
 
     end
     

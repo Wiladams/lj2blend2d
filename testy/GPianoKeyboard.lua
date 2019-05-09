@@ -51,6 +51,8 @@ function GPianoKeyboard.draw(self, ctx)
     ctx:setTransformBeforeStroke();
 
     ctx:strokeWidth(1)
+    ctx:stroke(0)
+    
     --print("GPianoKeyboard.draw")
     for _, key in ipairs(octaveLoc) do
         --print(key, key.frame.x, key.frame.y, key.frame.width, key.frame.height)

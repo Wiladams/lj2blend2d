@@ -141,4 +141,4 @@ function keyTyped(event)
     end
 end
 
-go {width = 1200, height=1080, frameRate=30}
+go {width = 1920, height=1280, frameRate=30}

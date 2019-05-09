@@ -29,7 +29,7 @@ local rshift, lshift = bit.rshift, bit.lshift;
 local win32 = require("win32")
 local sched = require("scheduler")
 local BLDIBSection = require("BLDIBSection")
-local blerror = require("blend2d.blerror")
+local blerror = require("blerror")
 require("p5_blend2d")
 
 local LOWORD = win32.LOWORD

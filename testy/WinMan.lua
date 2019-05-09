@@ -81,9 +81,33 @@ local appDC = nil;
 -- The GraphicGroup representing subsequent windows that
 -- are added to the environment
 local windowGroup = {}
+local wmFocusWindow = nil;
+local wmLastMouseWindow = nil;
 
-function WMTopmostWindowAt(framelist, x, y)
+
+function WMScreenToWin(win, x, y)
+    return x-win.frame.x, y-win.frame.y
+end
+
+function WMSetFocus(win)
+    if win then
+        if wmFocusWindow then
+            wmFocusWindow:loseFocus()
+        end
+        win:gainFocus()
+    else
+        if wmFocusWindow then
+            wmFocusWindow:loseFocus()
+        end
+    end
+
+    wmFocusWindow = win
+end
+
+function WMWindowAt(x, y)
     local function contains(frame, x, y)
+        return x >= frame.x and x < frame.x+frame.width and
+            y >= frame.y and y < frame.y+frame.height
     end
 
     for i = #windowGroup, 1, -1 do
@@ -95,6 +119,7 @@ function WMTopmostWindowAt(framelist, x, y)
 
     return nil;
 end
+
 
 -- Global Functions
 -- Create a WinMan window
@@ -208,8 +233,8 @@ local function wm_mouse_event(hwnd, msg, wparam, lparam)
     mouseY = tonumber(rshift(band(lparam, 0xffff0000),16));
 
     local event = {
-        x = mouseX;
-        y = mouseY;
+        screenX = mouseX;
+        screenY = mouseY;
         control = band(wparam, C.MK_CONTROL) ~= 0;
         shift = band(wparam, C.MK_SHIFT) ~= 0;
         lbutton = band(wparam, C.MK_LBUTTON) ~= 0;
@@ -221,44 +246,96 @@ local function wm_mouse_event(hwnd, msg, wparam, lparam)
 
     mousePressed = event.lbutton or event.rbutton or event.mbutton;
 
-    return event;
-end
-
-function MouseActivity(hwnd, msg, wparam, lparam)
-    local res = 0;
-
-    local event = wm_mouse_event(hwnd, msg, wparam, lparam)
-
-
-    if msg == ffi.C.WM_MOUSEMOVE  then
+    if msg == C.WM_MOUSEMOVE  then
         event.activity = 'mousemove'
         if mousePressed then
-            signalAll('gap_mousedrag')
+            --signalAll('gap_mousedrag')
         end
-        signalAll('gap_mousemove', event)
-    elseif msg == ffi.C.WM_LBUTTONDOWN or 
-        msg == ffi.C.WM_RBUTTONDOWN or
-        msg == ffi.C.WM_MBUTTONDOWN or
-        msg == ffi.C.WM_XBUTTONDOWN then
+        --signalAll('gap_mousemove', event)
+    elseif msg == C.WM_LBUTTONDOWN or 
+        msg == C.WM_RBUTTONDOWN or
+        msg == C.WM_MBUTTONDOWN or
+        msg == C.WM_XBUTTONDOWN then
         event.activity = 'mousedown';
-        signalAll('gap_mousedown', event)
-    elseif msg == ffi.C.WM_LBUTTONUP or
-        msg == ffi.C.WM_RBUTTONUP or
-        msg == ffi.C.WM_MBUTTONUP or
-        msg == ffi.C.WM_XBUTTONUP then
+        --signalAll('gap_mousedown', event)
+    elseif msg == C.WM_LBUTTONUP or
+        msg == C.WM_RBUTTONUP or
+        msg == C.WM_MBUTTONUP or
+        msg == C.WM_XBUTTONUP then
         event.activity = 'mouseup'
-        signalAll('gap_mouseup', event)
-        signalAll('gap_mouseclick', event)
-    elseif msg == ffi.C.WM_MOUSEWHEEL then
+        --signalAll('gap_mouseup', event)
+        --signalAll('gap_mouseclick', event)
+    elseif msg == C.WM_MOUSEWHEEL then
         event.activity = 'mousewheel';
-        signalAll('gap_mousewheel', event)
-    elseif msg == ffi.C.WM_MOUSELEAVE then
+        --signalAll('gap_mousewheel', event)
+    elseif msg == C.WM_MOUSELEAVE then
+        event.activity = "mouseleave"
         --print("WM_MOUSELEAVE")
     else
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
+        return false, res
     end
 
-    return res;
+    return event;
+end
+
+--[[
+    Here in MouseActivity, we're concerned with dealing with event
+    propagation.  Here we decide which window has 'focus', where events
+    are sent to, when they are used to change focus, etc.
+
+    One key operation is to turn the mouse eventfrom 'screen' coordinates
+    to window coordinates.  That way the window can deal with the mouse
+    actvity in their own coordinate space.
+--]]
+function MouseActivity(hwnd, msg, wparam, lparam)
+    local res = 0;
+
+    local event, res = wm_mouse_event(hwnd, msg, wparam, lparam)
+
+    if not event then
+        return res;
+    end
+
+
+    -- find topmost window for mouse
+    local win = WMWindowAt(mouseX, mouseY)
+    --print("mouse: ", mouseX, mouseY, win)
+    
+    if win then
+        local x, y = WMScreenToWin(win, mouseX, mouseY)
+        event.x = x;
+        event.y = y;
+    end
+
+    if event.activity == "mousemove" then
+        if win then
+            if win == wmFocusWindow then
+                win:mouseEvent(event)
+            else
+                event.activity = "mousehover"
+                win:mouseEvent(event)
+            end
+        end
+    elseif event.activity == "mouseup" then
+        if win then
+            if win == wmFocusWindow then
+                win:mouseEvent(event)
+            else
+                WMSetFocus(win)
+            end
+        else
+            WMSetFocus(nil)
+        end
+    else
+        if win and win == wmFocusWindow then
+            win:mouseEvent(event)
+        end
+    end
+
+    wmLastMouseWindow = win;
+
+    return 0;
 end
 
 
