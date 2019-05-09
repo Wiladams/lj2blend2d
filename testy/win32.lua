@@ -88,19 +88,7 @@ local WORD = ffi.typeof("WORD")
 local DWORD_PTR = ffi.typeof("DWORD_PTR")
 
 
--- libloaderapi
-ffi.cdef[[
-typedef HANDLE HMODULE;
 
-HMODULE  GetModuleHandleA(const char * lpModuleName);
-]]
-
-
--- profileapi
-ffi.cdef[[
-int QueryPerformanceCounter(int64_t * lpPerformanceCount);
-int QueryPerformanceFrequency(int64_t * lpFrequency);
-]]
 
 -- windef
 ffi.cdef[[
@@ -317,62 +305,6 @@ typedef TOUCHINPUT const * PCTOUCHINPUT;
 ]]
 
 ffi.cdef[[
-DWORD __stdcall GetLastError(void);
-
-LRESULT DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-ATOM RegisterClassExA(const WNDCLASSEXA *);
-HWND CreateWindowExA(DWORD dwExStyle, const char * lpClassName, const char * lpWindowName, DWORD dwStyle,
-     int X, int Y, int nWidth, int nHeight,
-     HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, void * lpParam);
-BOOL DestroyWindow(HWND hWnd);
-BOOL ShowWindow(HWND hWnd, int nCmdShow);
-BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
-BOOL RedrawWindow(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
-BOOL ScreenToClient(HWND hWnd, LPPOINT lpPoint);
-BOOL UpdateLayeredWindow(HWND hWnd, HDC hdcDst, POINT* pptDst, SIZE* psize, 
-    HDC hdcSrc, POINT* pptSrc, 
-    COLORREF crKey, 
-    BLENDFUNCTION* pblend, 
-    DWORD dwFlags);
-
-// Touch Related founctions
-
-// RegisterTouchWindow flag values
-static const int TWF_FINETOUCH      = 0x00000001;
-static const int TWF_WANTPALM       = 0x00000002;
-
-BOOL RegisterTouchWindow(HWND hwnd, ULONG ulFlags);
-BOOL UnregisterTouchWindow(HWND hwnd);
-BOOL IsTouchWindow(HWND hwnd, PULONG pulFlags);
-
-// Regular Windows messaging
-void PostQuitMessage(int nExitCode);
-int PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
-int TranslateMessage(const MSG *lpMsg);
-LRESULT DispatchMessageA(const MSG *lpMsg);
-
-BOOL GetKeyboardState(PBYTE lpKeyState);
-
-// Windows paint
-HDC BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);
-int EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
-
-// wingdi
-HDC GetDC(HWND hWnd);
-int ReleaseDC(HWND hWnd,HDC  hDC);
-HDC CreateCompatibleDC(HDC hdc);
-HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h);
-
-HBITMAP CreateDIBSection(HDC hdc, const BITMAPINFO *pbmi, UINT usage, void **ppvBits, HANDLE hSection, DWORD offset);
-int  BitBlt(  HDC hdc,  int x,  int y,  int cx,  int cy,  HDC hdcSrc,  int x1,  int y1,  uint32_t rop);
-int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHeight,  
-    int xSrc,  int ySrc,  int SrcWidth,  int SrcHeight,
-    const void * lpBits,  const BITMAPINFO * lpbmi,  UINT iUsage,  DWORD rop);
-
-BOOL Rectangle( HDC hdc,  int left,  int top,  int right,  int bottom);
-]]
-
-ffi.cdef[[
 static const int MK_LBUTTON         = 0x0001;
 static const int MK_RBUTTON         = 0x0002;
 static const int MK_SHIFT           = 0x0004;
@@ -449,13 +381,6 @@ static const int WM_GESTURENOTIFY                = 0x011A;
 
 ]]
 
-
-
-
--- Conversion of touch input coordinates to pixels
-
-function exports.TOUCH_COORD_TO_PIXEL(l) return ((l) / 100) end
-
 ffi.cdef[[
 /*
  * Touch input flag values (TOUCHINPUT.dwFlags)
@@ -476,12 +401,9 @@ static const int TOUCHINPUTMASKF_TIMEFROMSYSTEM  = 0x0001;  // the dwTime field 
 static const int TOUCHINPUTMASKF_EXTRAINFO       = 0x0002;  // the dwExtraInfo field is valid
 static const int TOUCHINPUTMASKF_CONTACTAREA     = 0x0004;  // the cxContact and cyContact fields are valid
 
-// hTouchInput - input event handle; from touch message lParam
-// cInputs - number of elements in the array
-// pInputs - array of touch inputs
-// cbSize - sizeof(TOUCHINPUT)
-BOOL GetTouchInputInfo(HTOUCHINPUT hTouchInput, UINT cInputs, PTOUCHINPUT pInputs, int cbSize);                           
-BOOL CloseTouchInputHandle(HTOUCHINPUT hTouchInput);                   // input event handle; from touch message lParam
+// RegisterTouchWindow flag values
+static const int TWF_FINETOUCH      = 0x00000001;
+static const int TWF_WANTPALM       = 0x00000002;
 
 ]]
 
@@ -550,15 +472,80 @@ typedef struct tagGESTURENOTIFYSTRUCT {
 } GESTURENOTIFYSTRUCT, *PGESTURENOTIFYSTRUCT;
 ]]
 
---[[
-/*
- * Gesture argument helpers
- *   - Angle should be a double in the range of -2pi to +2pi
- *   - Argument should be an unsigned 16-bit value
- */
-function exports.GID_ROTATE_ANGLE_TO_ARGUMENT(_arg_)     ((USHORT)((((_arg_) + 2.0 * 3.14159265) / (4.0 * 3.14159265)) * 65535.0))
-function exports.GID_ROTATE_ANGLE_FROM_ARGUMENT(_arg_)   ((((double)(_arg_) / 65535.0) * 4.0 * 3.14159265) - 2.0 * 3.14159265)
+
+-- libloaderapi
+ffi.cdef[[
+typedef HANDLE HMODULE;
+
+HMODULE  GetModuleHandleA(const char * lpModuleName);
 ]]
+
+-- profileapi
+ffi.cdef[[
+int QueryPerformanceCounter(int64_t * lpPerformanceCount);
+int QueryPerformanceFrequency(int64_t * lpFrequency);
+]]
+
+ffi.cdef[[
+DWORD __stdcall GetLastError(void);
+
+LRESULT DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+ATOM RegisterClassExA(const WNDCLASSEXA *);
+HWND CreateWindowExA(DWORD dwExStyle, const char * lpClassName, const char * lpWindowName, DWORD dwStyle,
+     int X, int Y, int nWidth, int nHeight,
+     HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, void * lpParam);
+BOOL DestroyWindow(HWND hWnd);
+BOOL ShowWindow(HWND hWnd, int nCmdShow);
+BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
+BOOL RedrawWindow(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
+BOOL ScreenToClient(HWND hWnd, LPPOINT lpPoint);
+BOOL UpdateLayeredWindow(HWND hWnd, HDC hdcDst, POINT* pptDst, SIZE* psize, 
+    HDC hdcSrc, POINT* pptSrc, 
+    COLORREF crKey, 
+    BLENDFUNCTION* pblend, 
+    DWORD dwFlags);
+
+
+// Touch Related founctions
+BOOL RegisterTouchWindow(HWND hwnd, ULONG ulFlags);
+BOOL UnregisterTouchWindow(HWND hwnd);
+BOOL IsTouchWindow(HWND hwnd, PULONG pulFlags);
+
+// Regular Windows messaging
+void PostQuitMessage(int nExitCode);
+int PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
+int TranslateMessage(const MSG *lpMsg);
+LRESULT DispatchMessageA(const MSG *lpMsg);
+
+BOOL GetKeyboardState(PBYTE lpKeyState);
+
+// Windows paint
+HDC BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);
+int EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
+
+// wingdi
+HDC GetDC(HWND hWnd);
+int ReleaseDC(HWND hWnd,HDC  hDC);
+HDC CreateCompatibleDC(HDC hdc);
+HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h);
+
+HBITMAP CreateDIBSection(HDC hdc, const BITMAPINFO *pbmi, UINT usage, void **ppvBits, HANDLE hSection, DWORD offset);
+int  BitBlt(  HDC hdc,  int x,  int y,  int cx,  int cy,  HDC hdcSrc,  int x1,  int y1,  uint32_t rop);
+int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHeight,  
+    int xSrc,  int ySrc,  int SrcWidth,  int SrcHeight,
+    const void * lpBits,  const BITMAPINFO * lpbmi,  UINT iUsage,  DWORD rop);
+
+BOOL Rectangle( HDC hdc,  int left,  int top,  int right,  int bottom);
+
+// hTouchInput - input event handle; from touch message lParam
+// cInputs - number of elements in the array
+// pInputs - array of touch inputs
+// cbSize - sizeof(TOUCHINPUT)
+BOOL GetTouchInputInfo(HTOUCHINPUT hTouchInput, UINT cInputs, PTOUCHINPUT pInputs, int cbSize);                           
+BOOL CloseTouchInputHandle(HTOUCHINPUT hTouchInput);                   // input event handle; from touch message lParam
+
+]]
+
 
 ffi.cdef[[
 /*
@@ -587,8 +574,22 @@ CloseGestureInfoHandle(
      HGESTUREINFO hGestureInfo);
 ]]
 
+
 function exports.LOWORD(l)         return  WORD(band(DWORD_PTR(l) , 0xffff)) end
 function exports.HIWORD(l)         return  WORD(band(rshift(DWORD_PTR(l) , 16) , 0xffff)) end
+
+-- Conversion of touch input coordinates to pixels
+function exports.TOUCH_COORD_TO_PIXEL(l) return ((l) / 100) end
+--[[
+/*
+ * Gesture argument helpers
+ *   - Angle should be a double in the range of -2pi to +2pi
+ *   - Argument should be an unsigned 16-bit value
+ */
+function exports.GID_ROTATE_ANGLE_TO_ARGUMENT(_arg_)     ((USHORT)((((_arg_) + 2.0 * 3.14159265) / (4.0 * 3.14159265)) * 65535.0))
+function exports.GID_ROTATE_ANGLE_FROM_ARGUMENT(_arg_)   ((((double)(_arg_) / 65535.0) * 4.0 * 3.14159265) - 2.0 * 3.14159265)
+]]
+
 
 -- Convenience functions
 function exports.RegisterWindowClass(wndclassname, msgproc, style)
@@ -627,10 +628,6 @@ function exports.CreateWindowHandle(params)
     params.winxstyle = params.winxstyle or 0;   --C.WS_EX_LAYERED;
     params.x = params.x or C.CW_USEDEFAULT;
     params.y = params.y or C.CW_USEDEFAULT;
-
-    
-
-	--winstyle = winstyle or C.WS_OVERLAPPEDWINDOW;
 
 	local hInst = C.GetModuleHandleA(nil);
 	local hWnd = C.CreateWindowExA(
