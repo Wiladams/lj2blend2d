@@ -31,16 +31,16 @@ end
 
 -- Font specific details
 -- from BLFontMetrics
-local GGlyphInfo.new(self)
+function GGlyphInfo.new(self)
     obj = obj or {
-        Frame = {
+        frame = {
             x = 240;
             y = 80;
             width = 360;
             height = 360;
         };
     }
-    obj.Bounds= obj.Bounds or  {
+    obj.bounds= obj.bounds or  {
             x = 0;
             y = 0;
             width = 360;
@@ -57,7 +57,7 @@ function detailArea.drawBegin(self)
     strokeWeight(2)
     stroke(0)
     fill(0xdd)
-    rect(0, 0, self.Frame.width, self.Frame.height)
+    rect(0, 0, self.frame.width, self.frame.height)
 end
 
 function detailArea.drawBody(self)
@@ -72,7 +72,7 @@ end
 
 function detailArea.draw(self)
     push()
-    translate(self.Frame.x, self.Frame.y)
+    translate(self.frame.x, self.frame.y)
 
     self:drawBegin()
     self:drawBody()

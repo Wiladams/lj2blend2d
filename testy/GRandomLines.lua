@@ -6,9 +6,10 @@ local GRandomLines = {}
 GRandomLines.__index = GRandomLines
 
 function GRandomLines.new(self, obj)
-    obj = obj or {}
-    obj.width = obj.width or 320
-    obj.height = obj.height or 240
+	obj = obj or {}
+	
+	if not obj.frame then return nil end
+	
     setmetatable(obj, GRandomLines)
 
     return obj;
@@ -18,10 +19,10 @@ function GRandomLines.draw(self, ctx)
 
 	for i = 1, 300 do
 	
-		local x1 = random((self.width - 1));
-		local y1 = random((self.height - 1));
-		local x2 = random((self.width - 1));
-		local y2 = random((self.height - 1));
+		local x1 = random((self.frame.width - 1));
+		local y1 = random((self.frame.height - 1));
+		local x2 = random((self.frame.width - 1));
+		local y2 = random((self.frame.height - 1));
 
 		local r = floor(random(0,255));
 		local g = floor(random(0,255));

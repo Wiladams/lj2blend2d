@@ -2,43 +2,43 @@
 GPianoKeyboard = {}
 GPianoKeyboard.__index = GPianoKeyboard
 
-local yoffset = 0;
-local xoffset = 0;
+local ymargin = 0;
+local xmargin = 0;
+local keyGap = 0;
 
 -- scale width, height
-local whiteKeyWidth = 0.143
+local whiteKeyWidth = 0.143     -- 1/7 (there are 7 white keys in an octave)
+local wkHalf = whiteKeyWidth/2
 local whiteKeyHeight = 1
 
--- scale 2,2
---local whiteKeyWidth = 45;
---local whiteKeyHeight = 140;
-
--- scale 1:1
---local whiteKeyWidth = 90;
---local whiteKeyHeight = 280;
-
--- scale 0.5, 0.5
---local whiteKeyWidth = 180;
---local whiteKeyHeight = 560;
-
-
-
-local whiteKeyGap = 0;
+local blackKeyWidth = 0.083     -- whiteKeyWidth * .583 (black keyss are 1.4/2.4)
+local blackKeyHeight = 0.666    -- .618
+local bkHalf = blackKeyWidth/2
 
 local octaveLoc = {
-    {name = "C", kind = "white", frame = {x=xoffset + 0*whiteKeyWidth+whiteKeyGap, y=yoffset, width=whiteKeyWidth, height=whiteKeyHeight}};
-    {name = "D", kind = "white", frame = {x=xoffset + 1*whiteKeyWidth+whiteKeyGap, y=yoffset, width=whiteKeyWidth, height=whiteKeyHeight}};
-    {name = "E", kind = "white", frame = {x=xoffset + 2*whiteKeyWidth+whiteKeyGap, y=yoffset, width=whiteKeyWidth, height=whiteKeyHeight}};
-    {name = "F", kind = "white", frame = {x=xoffset + 3*whiteKeyWidth+whiteKeyGap, y=yoffset, width=whiteKeyWidth, height=whiteKeyHeight}};
-    {name = "G", kind = "white", frame = {x=xoffset + 4*whiteKeyWidth+whiteKeyGap, y=yoffset, width=whiteKeyWidth, height=whiteKeyHeight}};
-    {name = "A", kind = "white", frame = {x=xoffset + 5*whiteKeyWidth+whiteKeyGap, y=yoffset, width=whiteKeyWidth, height=whiteKeyHeight}};
-    {name = "B", kind = "white", frame = {x=xoffset + 6*whiteKeyWidth+whiteKeyGap, y=yoffset, width=whiteKeyWidth, height=whiteKeyHeight}};
+    -- white keys
+    {name = "C", kind = "white", frame = {x=xmargin + 0*(whiteKeyWidth+keyGap), y = ymargin, width=whiteKeyWidth, height=whiteKeyHeight}};
+    {name = "D", kind = "white", frame = {x=xmargin + 1*(whiteKeyWidth+keyGap), y = ymargin, width=whiteKeyWidth, height=whiteKeyHeight}};
+    {name = "E", kind = "white", frame = {x=xmargin + 2*(whiteKeyWidth+keyGap), y = ymargin, width=whiteKeyWidth, height=whiteKeyHeight}};
+    {name = "F", kind = "white", frame = {x=xmargin + 3*(whiteKeyWidth+keyGap), y = ymargin, width=whiteKeyWidth, height=whiteKeyHeight}};
+    {name = "G", kind = "white", frame = {x=xmargin + 4*(whiteKeyWidth+keyGap), y = ymargin, width=whiteKeyWidth, height=whiteKeyHeight}};
+    {name = "A", kind = "white", frame = {x=xmargin + 5*(whiteKeyWidth+keyGap), y = ymargin, width=whiteKeyWidth, height=whiteKeyHeight}};
+    {name = "B", kind = "white", frame = {x=xmargin + 6*(whiteKeyWidth+keyGap), y = ymargin, width=whiteKeyWidth, height=whiteKeyHeight}};
+
+    -- sharp keys
+    {name = "C#", kind = "black", frame = {x=xmargin + (1*(1/7))-bkHalf, y = ymargin, width=blackKeyWidth, height=blackKeyHeight}};
+    {name = "D#", kind = "black", frame = {x=xmargin + (2*(1/7))-bkHalf, y = ymargin, width=blackKeyWidth, height=blackKeyHeight}};
+    {name = "F#", kind = "black", frame = {x=xmargin + (4*(1/7))-bkHalf, y = ymargin, width=blackKeyWidth, height=blackKeyHeight}};
+    {name = "G#", kind = "black", frame = {x=xmargin + (5*(1/7))-bkHalf, y = ymargin, width=blackKeyWidth, height=blackKeyHeight}};
+    {name = "A#", kind = "black", frame = {x=xmargin + (6*(1/7))-bkHalf, y = ymargin, width=blackKeyWidth, height=blackKeyHeight}};
 
 }
 
+
+
 function GPianoKeyboard.new(self, obj)
     local obj = obj or {}
-    obj.scale = obj.scale or {x=1, y=1}
+    obj.scale = obj.scale or {x=obj.frame.width, y=obj.frame.height}
 
     setmetatable(obj, GPianoKeyboard)
 
@@ -52,7 +52,7 @@ function GPianoKeyboard.draw(self, ctx)
 
     ctx:strokeWidth(1)
     ctx:stroke(0)
-    
+
     --print("GPianoKeyboard.draw")
     for _, key in ipairs(octaveLoc) do
         --print(key, key.frame.x, key.frame.y, key.frame.width, key.frame.height)

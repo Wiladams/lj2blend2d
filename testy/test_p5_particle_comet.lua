@@ -29,8 +29,8 @@ local Particle_mt = {
 
 function Particle.new(self, position)
   local obj = {
-    acceleration = PVector(0, 0.05);
-    velocity = PVector(random(-1.0, 1.0), random(-1.0, 0));
+    acceleration = PVector(0, 0.08);
+    velocity = PVector(random(-1.0, 1.0), random(-2.0, 0));
     position = PVector(position);
     lifespan = 255;
   }
@@ -156,4 +156,4 @@ function keyPressed()
     reset();
 end
 
-go {width =1024, height=768, frameRate = 30, title="Particle Comet"}
+go {width =1280, height=1024, frameRate = 30, title="Particle Comet"}

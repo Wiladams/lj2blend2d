@@ -30,7 +30,7 @@ local graphic = require(graphicname)
 local function app(params)
     local win1 = WMCreateWindow(params.x, params.y, params.width, params.height)
 
-    win1:add(graphic:new(params))
+    win1:add(graphic:new({frame = params}))
     win1:show()
 
     while true do

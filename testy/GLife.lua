@@ -23,12 +23,11 @@ GLife.__index = GLife;
 function GLife.new(self, obj)
     obj = obj or {}
 
+    obj.w = obj.w or GLife.w
+
     -- Calculate columns and rows
-    obj.columns = floor(obj.width/GLife.w);
-    obj.rows = floor(obj.height/GLife.w);
-
-
-
+    obj.columns = floor(obj.frame.width/obj.w);
+    obj.rows = floor(obj.frame.height/obj.w);
 
     obj.board = Array2D(obj.rows, obj.columns)
     obj.next = Array2D(obj.rows, obj.columns)
@@ -108,7 +107,7 @@ function GLife.draw(self, ctx)
                 ctx:fill(255); 
             end
 
-            ctx:rect(i*GLife.w, j*GLife.w, GLife.w, GLife.w);
+            ctx:rect(i*self.w, j*self.w, self.w, self.w);
         end
     end
 end

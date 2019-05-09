@@ -1,16 +1,17 @@
 local Drawable = require("Drawable")
 
 local GraphicGroup = Drawable:new()
-GraphicGroup.__index = GraphicGroup
 
 
 function GraphicGroup.new(self, obj)
     obj = obj or {}
 
-    obj.Frame = obj.Frame or {x=0,y=0,width=0,height=0};
+    obj.frame = obj.frame or {x=0,y=0,width=0,height=0};
     obj.children = {};
 
     setmetatable(obj, self)
+    self.__index = self;
+
     return obj;
 end
 

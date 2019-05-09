@@ -92,7 +92,7 @@ end
 
 
 function Window.mouseEvent(self, event)
-    print("Window.mouseEvent: ", event.activity, event.x, event.y)
+    --print("Window.mouseEvent: ", event.activity, event.x, event.y)
 end
 
 function Window.add(self, child, after)
