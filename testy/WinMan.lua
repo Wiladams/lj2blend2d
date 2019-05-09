@@ -82,14 +82,24 @@ local appDC = nil;
 -- are added to the environment
 local windowGroup = {}
 
+function WMTopmostWindowAt(framelist, x, y)
+    local function contains(frame, x, y)
+    end
+
+    for i = #windowGroup, 1, -1 do
+        win = windowGroup[i]
+        if contains(win.frame, x, y) then
+            return win
+        end
+    end
+
+    return nil;
+end
+
 -- Global Functions
 -- Create a WinMan window
 function WMCreateWindow(x,y, w, h)
-    local win = Window:new {
-        x = x,
-        y=y,
-        width = w,
-        height = h}
+    local win = Window:new {frame = {x = x,y=y,width = w,height = h}}
 
     table.insert(windowGroup, win)
     --windowGroup:add(win)
@@ -118,7 +128,10 @@ function refreshWindow()
 
     -- Using the UpdateLayeredWindow approach can be even more useful as we can
     -- create a bitmap that represents the backing store of the window, and just
-    -- allow windows to compose that.  We can extend the appImage to contain the complete
+    -- allow windows to compose that.  This would save us one Blt of the appImage
+    -- to the Window DC, because the AppImage would just be handed to the window
+    -- compositor directly.
+    -- We can extend the appImage to contain the complete
     -- size of the window plus chrome, and then it can be this bitmap.
 --[[
     local hdcDst = nil;     -- default palette is fine
@@ -162,9 +175,6 @@ local function handleFrame()
         appBackground:draw(appContext)
     end
 
-    --appContext:setFillStyle(BLRgba32(0xffcccccc))
-    --appContext:fillAll()
----[[
     -- iterate through the windows
     -- compositing each one
     appContext:setCompOp(C.BL_COMP_OP_SRC_OVER)
@@ -173,10 +183,10 @@ local function handleFrame()
         --print(win)
         local readyBuff = win:getReadyBuffer()
         if readyBuff then
-            appContext:blit(readyBuff, win.x, win.y)
+            appContext:blit(readyBuff, win.frame.x, win.frame.y)
         end
     end
---]]
+
     -- force a redraw to the screen
     refreshWindow()
 end
@@ -485,26 +495,13 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         if appSurface then
             local imgSize = appImage:size()
             --print("Size: ", imgSize.w, imgSize.h)
---[[
-            local bResult = C.StretchDIBits(appDC,
-                0,0,
-                imgSize.w,imgSize.h,
-                0,0,
-                imgSize.w, imgSize.h,
-                appSurface.pixelData.data,appSurface.info,
-                C.DIB_RGB_COLORS,C.SRCCOPY)
-            -- the bResult is the number of scanlines drawn
-            -- there's a failure, this will be 0
---]]
 
             -- BitBlt is probably hardware accelerated
             -- StretchDIBits might also be hardware accelerated
             -- but, we don't need stretching, so we'll go with the slightly
             -- easier bitblt
----[[
             local bResult  C.BitBlt(  appWindowDC,  0,  0,  imgSize.w,  imgSize.h,  
                 appSurface.DC,  0,  0,  C.SRCCOPY);
---]]
         end
         res = 0; 
     elseif msg == C.WM_PAINT then
@@ -517,14 +514,7 @@ local function WindowProc(hwnd, msg, wparam, lparam)
 
         local ps = ffi.new("PAINTSTRUCT");
 		local hdc = C.BeginPaint(hwnd, ps);
---[=[
-        --print("PAINT: ", hdc, ps.rcPaint.left, ps.rcPaint.top,ps.rcPaint.right, ps.rcPaint.bottom)
 
-        if appSurface then
-            local imgSize = appImage:size()
-            --print("Size: ", imgSize.w, imgSize.h)
-        end
---]=]
         C.EndPaint(hwnd, ps);
         res = 0
     else

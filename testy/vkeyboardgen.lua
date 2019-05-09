@@ -2,7 +2,11 @@ package.path = "../?.lua;"..package.path;
 
 --[[
     Generate computer keyboard layouts from some structured information
-]]
+    You would want to do this to play with generating new graphics that 
+    represent a keyboard.
+    
+    Usage: luajit vkeyboardgen.lua  outfilename.lua
+--]]
 local vkeys = require("vkeys")
 
 

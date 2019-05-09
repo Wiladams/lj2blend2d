@@ -86,7 +86,7 @@ enum BLRuntimeCleanupFlags {
 -- ============================================================================
 -- [BLRuntime - BuildInfo]
 -- ============================================================================
-if BL_BUILD_BYTE_ORDER == 1234 then
+if ffi.abi("le") then
 ffi.cdef[[
 //! Blend2D build information.
 struct BLRuntimeBuildInfo {

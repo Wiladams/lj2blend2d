@@ -21,18 +21,15 @@ function Window.new(self, obj)
     end
 
     -- must have a width and height
-    if not obj.width or not obj.height then
-        return nil, "must specify window dimensions"
+    if not obj.frame then
+        return nil, "must specify a frame"
     end
-
-    obj.x = obj.x or 0
-    obj.y = obj.y or 0
 
     obj.isShown = true;
     
     -- add a drawing context
     --print("Window.new: ", obj.width, obj.height)
-    obj.DC = DrawingContext:new({width = obj.width, height = obj.height});
+    obj.DC = DrawingContext:new({width = obj.frame.width, height = obj.frame.height});
     obj.children = {};
 
 
@@ -85,7 +82,7 @@ function Window.drawBegin(self, ctxt)
     -- draw a black border
     ctxt:stroke(BLRgba32(0xff000000))
     ctxt:strokeWidth(4)
-    ctxt:strokeRect(0,0,self.width, self.height)
+    ctxt:strokeRect(0,0,self.frame.width, self.frame.height)
 
     -- draw title bar
 end

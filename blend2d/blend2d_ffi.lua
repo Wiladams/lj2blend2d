@@ -2285,6 +2285,63 @@ enum BLRuntimeCleanupFlags {
   BL_RUNTIME_CLEANUO_THREAD_POOL = 0x00000010u,
   BL_RUNTIME_CLEANUP_EVERYTHING = 0xFFFFFFFFu
 };
+]]
+
+--[[
+  BUGBUG
+
+  This is drop in surgery to original file to deal with 
+endianness
+--]]
+if ffi.abi("le") then
+  ffi.cdef[[
+  //! Blend2D build information.
+  struct BLRuntimeBuildInfo {
+    union {
+      //! Blend2D version stored as `((MAJOR << 16) | (MINOR << 8) | PATCH)`.
+      uint32_t version;
+  
+      //! Decomposed Blend2D version so its easier to access without bit shifting.
+      struct {
+        uint8_t patchVersion;
+        uint8_t minorVersion;
+        uint16_t majorVersion;
+      };
+    };
+  
+    //! Blend2D build type, see `BLRuntimeBuildType`.
+    uint32_t buildType;
+  
+    //! Identification of the C++ compiler used to build Blend2D.
+    char compilerInfo[24];
+  };
+  ]]
+else
+  ffi.cdef[[
+          //! Blend2D build information.
+          struct BLRuntimeBuildInfo {
+            union {
+              //! Blend2D version stored as `((MAJOR << 16) | (MINOR << 8) | PATCH)`.
+              uint32_t version;
+          
+              //! Decomposed Blend2D version so its easier to access without bit shifting.
+              struct {
+                uint16_t majorVersion;
+                uint8_t minorVersion;
+                uint8_t patchVersion;
+              };
+            };
+          
+            //! Blend2D build type, see `BLRuntimeBuildType`.
+            uint32_t buildType;
+          
+            //! Identification of the C++ compiler used to build Blend2D.
+            char compilerInfo[24];
+  };
+  ]]
+end
+
+--[[
 struct BLRuntimeBuildInfo {
   union {
     
@@ -2306,6 +2363,9 @@ struct BLRuntimeBuildInfo {
   uint32_t reserved[2];
   char compilerInfo[32];
 };
+--]]
+
+ffi.cdef[[
 struct BLRuntimeSystemInfo {
   uint32_t cpuArch;
   uint32_t cpuFeatures;

@@ -924,9 +924,14 @@ BLImage_mt = {
   __gc = function(self)
       blapi.blImageReset(self)
   end;
+
+  __eq = function(self, other)
+    local bResult = blapi.blImageEquals(self, other)
+    return bResult
+  end;
+
+
 --[[
-BLResult __cdecl blImageInitAs(BLImageCore* self, int w, int h, uint32_t format) ;
-BLResult __cdecl blImageInitAsFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
 BLResult __cdecl blImageAssignMove(BLImageCore* self, BLImageCore* other) ;
 BLResult __cdecl blImageAssignWeak(BLImageCore* self, const BLImageCore* other) ;
 BLResult __cdecl blImageAssignDeep(BLImageCore* self, const BLImageCore* other) ;
@@ -936,9 +941,7 @@ BLResult __cdecl blImageGetData(const BLImageCore* self, BLImageData* dataOut) ;
 BLResult __cdecl blImageMakeMutable(BLImageCore* self, BLImageData* dataOut) ;
 bool     __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
 BLResult __cdecl blImageScale(BLImageCore* dst, const BLImageCore* src, const BLSizeI* size, uint32_t filter, const BLImageScaleOptions* options) ;
-BLResult __cdecl blImageReadFromFile(BLImageCore* self, const char* fileName, const BLArrayCore* codecs) ;
 BLResult __cdecl blImageReadFromData(BLImageCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
-BLResult __cdecl blImageWriteToFile(const BLImageCore* self, const char* fileName, const BLImageCodecCore* codec) ;
 BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, const BLImageCodecCore* codec) ;
 
 --]]
