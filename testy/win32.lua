@@ -535,7 +535,7 @@ int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHe
     int xSrc,  int ySrc,  int SrcWidth,  int SrcHeight,
     const void * lpBits,  const BITMAPINFO * lpbmi,  UINT iUsage,  DWORD rop);
 
-BOOL Rectangle( HDC hdc,  int left,  int top,  int right,  int bottom);
+//BOOL Rectangle( HDC hdc,  int left,  int top,  int right,  int bottom);
 
 // hTouchInput - input event handle; from touch message lParam
 // cInputs - number of elements in the array

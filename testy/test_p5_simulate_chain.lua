@@ -3,6 +3,8 @@ package.path = "../?.lua;"..package.path;
 require("p5")
 
 local stats = require("p5ui.P5Status")()
+local Gradient = require("Gradient")
+local RadialGradient = Gradient.RadialGradient
 
 local function randomColor()
     local r = random(30,255)
@@ -10,6 +12,13 @@ local function randomColor()
     local b = random(30,255)
     return color(r,g,b,126)
 end
+
+local radial = RadialGradient({values = {20, 20, 20, 20, 20},
+    stops = {
+        {offset = 0.0, uint32 = 0xFFFFFFFF},
+        {offset = 1.0, uint32 = 0xFFFF6F3F}
+    }
+})
 
 local radius = 20
 local s1, s2;

@@ -4,7 +4,7 @@ local keyboard = require("GCompKeyboard")
 local function app(params)
     local win1 = WMCreateWindow(params.x, params.y, params.width, params.height)
 
-    function win1.drawBegin(self, ctxt)
+    function win1.drawBody(self, ctxt)
         ctxt:clear()
         ctxt:fill(180)
         ctxt:fillAll()
@@ -16,7 +16,7 @@ local function app(params)
 
     end
     
-    local kbd = keyboard:new()
+    local kbd = keyboard:new({frame={x=10, y = 10, width = 640, height=290}})
     win1:add(kbd)
     win1:show()
 

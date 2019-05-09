@@ -22,19 +22,19 @@ function Drawable.new(self, obj)
     return obj;
 end
 
-function Drawable.drawBegin(self, ctxt)
+function Drawable.drawBackground(self, ctxt)
 end
 
 function Drawable.drawBody(self, ctxt)
 end
 
-function Drawable.drawEnd(self, ctxt)
+function Drawable.drawForeground(self, ctxt)
 end
 
 function Drawable.draw(self, ctxt)
-    self:drawBegin(ctxt)
+    self:drawBackground(ctxt)
     self:drawBody(ctxt)
-    self:drawEnd(ctxt)
+    self:drawForeground(ctxt)
 end
 
 

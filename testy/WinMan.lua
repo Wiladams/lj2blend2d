@@ -317,6 +317,15 @@ function MouseActivity(hwnd, msg, wparam, lparam)
                 win:mouseEvent(event)
             end
         end
+    elseif event.activity == "mousedown" then
+        if win then
+            if win ~= wmFocusWindow then
+                WMSetFocus(win)
+            end
+            win:mouseEvent(event)
+        else
+            WMSetFocus(nil)
+        end
     elseif event.activity == "mouseup" then
         if win then
             if win == wmFocusWindow then

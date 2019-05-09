@@ -1,5 +1,7 @@
 local ffi = require("ffi")
 
+local GraphicGroup = require("GraphicGroup")
+
 ffi.cdef[[
 struct Point {
     double x;
@@ -47,40 +49,22 @@ local function test_array()
 end
 
 local function test_class()
-    local Drawable = {
-        Bounds = {x = 0; y = 0; width = 1; height = 1;};
-    }
+    local SubGroup = GraphicGroup:new()
 
-    function Drawable.new(self, obj)
-        obj = obj or {}
+    function SubGroup.new(self, obj)
+        local obj = GraphicGroup:new(obj)
+
         setmetatable(obj, self)
         self.__index = self;
+    
         return obj;
     end
 
-    function Drawable:drawBegin()
-    end
+    local s1 = SubGroup:new({frame={x=10,y=10,w=100,h=100}})
+    local s2 = SubGroup:new({frame={x=20,y=20,w=200,h=200}})
 
-    function Drawable:drawBody()
-        print("Drawable.drawBody")
-    end
-
-    function Drawable:drawEnd()
-    end
-
-    function Drawable:draw()
-        self:drawBegin()
-        self:drawBody()
-        self:drawEnd()
-    end
-
-    local GRectangle = Drawable:new()
-    function GRectangle:drawBody()
-        rect(self.Frame.x, self.Frame.y, self.Frame.width, self.Frame.height)
-    end
-
-    local aRect = GRectangle:new {Frame = {x=10, y=10, width = 100, height=100}}
-    aRect:draw()
+    print("s1: ", s1.frame.x, s1.frame.y)
+    print("s2: ", s2.frame.x, s2.frame.y)
 end
 
 
