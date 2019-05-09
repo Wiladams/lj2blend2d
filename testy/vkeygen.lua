@@ -112,7 +112,7 @@ local function generateFrames(keyLayout, unit, obj)
     obj = obj or {}
 
     local xmargin = 4
-    local xgap = 2
+    local xgap = 0
     local rowoffset = 4
     local ygap = 2
 

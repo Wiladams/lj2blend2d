@@ -287,6 +287,21 @@ function DrawingContext.clear (self)
 end
 
 
+
+function DrawingContext.background(self, ...)
+	local c = select(1,...)
+	if type(c) ~= "cdata" then
+		c = self:color(...)
+	end
+
+    BackgroundColor = c;
+
+    self:save()
+    self.DC:setFillStyle(BackgroundColor)
+    self.DC:fillAll();
+    self:restore()
+end
+
 function DrawingContext.getReadyBuffer(self)
     return self.BackingBuffer;
 end

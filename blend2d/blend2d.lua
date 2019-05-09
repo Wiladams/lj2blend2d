@@ -826,8 +826,8 @@ BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
 BLRadialGradientValues = ffi.typeof("struct BLRadialGradientValues")
 BLConicalGradientValues = ffi.typeof("struct BLConicalGradientValues")
 
-BLGradientCore = ffi.typeof("struct BLGradientCore")
-BLGradient = BLGradientCore
+BLGradient = ffi.typeof("struct BLGradientCore")
+BLGradientCore = BLGradient
 local BLGradient_mt = {
     __gc = function(self)
         return blapi.blGradientReset(self);
@@ -887,6 +887,29 @@ local BLGradient_mt = {
           elseif ffi.typeof(obj) == BLRgba32 then
             return self:addStopRgba32(offset, obj.value)
           end
+        end;
+
+        getType = function(self)
+          local bResult = blapi.blGradientGetType(self)
+          if bResult ~= C.BL_SUCCESS then
+            return false, bResult;
+          end
+
+          return bResult;
+        end;
+
+        setValues = function(self, values)
+          -- depends on the type as to which kind of values we're setting
+          -- we'll just assume the type has not changed
+          local index = 0;
+          local n = ffi.sizeof(values)/ffi.sizeof("double")
+          local bResult = blapi.blGradientSetValues(self, index, ffi.cast("const double *", values), n) ;
+
+          if bResult ~= C.BL_SUCCESS then
+            return false, bResult;
+          end
+
+          return self
         end;
     };
 }

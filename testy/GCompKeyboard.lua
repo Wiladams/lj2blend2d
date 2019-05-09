@@ -7,7 +7,8 @@ local C = ffi.C
 
 local vkeys = require("vkeys")
 local Gradient = require("Gradient")
-local keylayout = require("ansikeylayout")
+--local keylayout = require("ansikeylayout")
+local keylayout = require("ansikeystrict")
 
 local function insetRect(rrect, cx, cy)
     local dx = cx/2
@@ -28,8 +29,9 @@ function GKeyboard.new(self, obj)
     obj.linear = Gradient.LinearGradient({
         values = {obj.unit/2, 0, obj.unit/2, obj.unit};
         stops = {
-          {offset = 0, uint32 = 0xFFFFFFFF},
-          {offset = 1, uint32 = 0xFF1F7FFF}
+            {offset = 0.0, uint32 = 0xFFCCCCCC},
+            {offset = 1.0, uint32 = 0xFF7f7f7f},
+--            {offset = 1.0, uint32 = 0xFFCCCCCC},
         }
       });
 
@@ -72,16 +74,27 @@ function GKeyboard.draw(self, ctx)
         local rrect = BLRoundRect(key.frame.x,key.frame.y,key.frame.width, key.frame.height, 3, 3)
         local crect = insetRect(rrect,self.unit*0.30,self.unit*0.30)
 
-        --ctx:fill(127)
+        -- need to adjust values of linear gradient
+        local cx = key.frame.x + key.frame.width/2;
+        local cy = key.frame.y + key.frame.height/2;
+        local r = key.frame.height/2
+        local values = BLRadialGradientValues(cx, cy, cx, key.frame.y+key.frame.height, r)
+        --local values = BLLinearGradientValues(cx, cy, cx, key.frame.y+key.frame.height)
+        self.linear:setValues(values)
         ctx:setFillStyle(self.linear)
         ctx:fillRoundRect(rrect)    
+        ctx:setFillStyle(BLRgba32(0))
+
+        ctx:stroke(0)
         ctx:strokeRoundRect(rrect)
 
-        ctx:fill(255, 126)
+
+        ctx:fill(255, 0x6f)
         ctx:fillRoundRect(crect)
 
         ctx:fill(0)
         ctx:text(key.caption, key.frame.x+key.frame.width/2, key.frame.y+key.frame.height/2)
+
     end
 end
 
