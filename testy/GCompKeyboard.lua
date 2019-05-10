@@ -26,11 +26,11 @@ function GKeyboard.new(self, obj)
     obj.unit = obj.unit or 40
     obj.keysState = ffi.new("BYTE[256]")
     obj.showKeyState = true;
-    obj.linear = Gradient.LinearGradient({
-        values = {obj.unit/2, 0, obj.unit/2, obj.unit};
+    obj.gradient = Gradient.RadialGradient({
+        values = {obj.unit/2, obj.unit/2, obj.unit/2, obj.unit/2, obj.unit};
         stops = {
-            {offset = 0.0, uint32 = 0xFFCCCCCC},
-            {offset = 1.0, uint32 = 0xFF7f7f7f},
+            {offset = 0.0, uint32 = 0xFF4f4f4f},
+            {offset = 1.0, uint32 = 0xFF9f9f9f},
 --            {offset = 1.0, uint32 = 0xFFCCCCCC},
         }
       });
@@ -77,11 +77,11 @@ function GKeyboard.draw(self, ctx)
         -- need to adjust values of linear gradient
         local cx = key.frame.x + key.frame.width/2;
         local cy = key.frame.y + key.frame.height/2;
-        local r = key.frame.height/2
-        local values = BLRadialGradientValues(cx, cy, cx, key.frame.y+key.frame.height, r)
+        local r = key.frame.height
+        local values = BLRadialGradientValues(cx, cy, cx, cy, r)
         --local values = BLLinearGradientValues(cx, cy, cx, key.frame.y+key.frame.height)
-        self.linear:setValues(values)
-        ctx:setFillStyle(self.linear)
+        self.gradient:setValues(values)
+        ctx:setFillStyle(self.gradient)
         ctx:fillRoundRect(rrect)    
         ctx:setFillStyle(BLRgba32(0))
 
