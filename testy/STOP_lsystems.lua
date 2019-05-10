@@ -3,35 +3,51 @@ local cos, sin = math.cos, math.sin
 local random = math.random
 local radians = math.rad
 
--- TURTLE STUFF:
-local x, y; -- the current position of the turtle
-local currentangle = 0; -- which way the turtle is pointing
-local step = 20; -- how much the turtle moves with each 'F'
-local angle = 90; -- how much the turtle turns with a '-' or '+'
+local GLSystem = {}
+GLSystem.__index = GLSystem
 
--- LINDENMAYER STUFF (L-SYSTEMS)
-local thestring = 'A'; -- "axiom" or start of the string
-local numloops = 5; -- how many iterations to pre-compute
-local therules = {}; -- array for rules
-therules[1] = {'A', '-BF+AFA+FB-'}; -- first rule
-therules[2] = {'B', '+AF-BFB-FA+'}; -- second rule
+function GLSystem.new(self, obj)
+  obj = obj or {}
 
-local whereinstring = 1; -- where in the L-system are we?
+  -- TURTLE STUFF:
+  obj.x = obj.x or 0
+  obj.y = obj.y or obj.frame.height
+  obj.currentangle = 0;
+  obj.step = 20;
+  obj.angle = 90;
 
+  -- LINDENMAYER STUFF (L-SYSTEMS)
+  obj.thestring = 'A'; -- "axiom" or start of the string
+  obj.numloops = 5; -- how many iterations to pre-compute
+  obj.therules = {}; -- array for rules
+  obj.therules[1] = {'A', '-BF+AFA+FB-'}; -- first rule
+  obj.therules[2] = {'B', '+AF-BFB-FA+'}; -- second rule
+
+  obj.whereinstring = 1; -- where in the L-system are we?
+
+  setmetatable(obj, GLSystem)
+
+  -- COMPUTE THE L-SYSTEM
+  for i = 1, obj.numloops do
+    obj.thestring = obj:lindenmayer(obj.thestring);
+  end
+
+  return obj;
+end
 
 
 
 
 -- interpret an L-system
-function lindenmayer(s)
+function GLSystem.lindenmayer(self, s)
   local outputstring = ''; -- start a blank output string
 
   -- iterate through 'therules' looking for symbol matches:
   for i = 1, #s do
     local ismatch = false; -- by default, no match
-    for j = 1, #therules do
-      if string.sub(s,i,i) == therules[j][1]  then
-        outputstring = outputstring..therules[j][2]; -- write substitution
+    for j = 1, #self.therules do
+      if string.sub(s,i,i) == self.therules[j][1]  then
+        outputstring = outputstring..self.therules[j][2]; -- write substitution
         ismatch = true; -- we have a match, so don't copy over symbol
         break; -- get outta this for() loop
       end
@@ -46,21 +62,21 @@ function lindenmayer(s)
 end
 
 -- this is a custom function that draws turtle commands
-function drawIt(ctx, k) 
+function GLSystem.drawIt(self, ctx, k) 
 
   if (k=='F') then -- draw forward
     -- polar to cartesian based on step and currentangle:
-    local x1 = x + step*cos(radians(currentangle));
-    local y1 = y + step*sin(radians(currentangle));
-    ctx:line(x, y, x1, y1); -- connect the old and the new
+    local x1 = self.x + self.step*cos(radians(self.currentangle));
+    local y1 = self.y + self.step*sin(radians(self.currentangle));
+    ctx:line(self.x, self.y, x1, y1); -- connect the old and the new
 
     -- update the turtle's position:
-    x = x1;
-    y = y1;
+    self.x = x1;
+    self.y = y1;
   elseif (k == '+') then
-    currentangle = currentangle + angle; -- turn left
+    self.currentangle = self.currentangle + self.angle; -- turn left
   elseif (k == '-') then
-    currentangle = currentangle - angle; -- turn right
+    self.currentangle = self.currentangle - self.angle; -- turn right
   end
 
   -- give me some random color values:
@@ -79,48 +95,52 @@ function drawIt(ctx, k)
 
   -- draw the stuff:
   ctx:fill(r, g, b, a);
-  ctx:ellipse(x, y, radius, radius);
+  ctx:ellipse(self.x, self.y, radius, radius);
+end
+
+function GLSystem.draw(self, ctx)
+    --print("win1.draw: ", ctx)
+    --if not ctx then return end
+    -- draw the current character in the string:
+    self:drawIt(ctx, string.sub(self.thestring, self.whereinstring, self.whereinstring));
+  
+    -- increment the point for where we're reading the string.
+    -- wrap around at the end.
+    self.whereinstring = self.whereinstring +1;
+    if (self.whereinstring > #self.thestring) then
+      self.whereinstring = 1;
+    end
 end
 
 local function app(params)
   local win1 = WMCreateWindow(params.x, params.y, params.width, params.height)
+  
+  -- negate drawing the default background
+  function win1.drawBackground(self, ctx)
+  end
 
+  local sys = GLSystem:new({frame={x=0, y=0, width=params.width, height=params.height}})
+
+  -- draw a background
   local ctx = win1:getDrawingContext()
   ctx:background(255)
   ctx:stroke(0)
 
-  
-    -- start the x and y position at lower-left corner
-    x = 0;
-    y = height-1;
-  
-    -- COMPUTE THE L-SYSTEM
-    for i = 1, numloops do
-      thestring = lindenmayer(thestring);
-    end
-
-  function win1.drawBackground(self, ctx)
-    --print("win1.draw: ", ctx)
-    --if not ctx then return end
-    -- draw the current character in the string:
-    drawIt(ctx, string.sub(thestring, whereinstring, whereinstring));
-  
-    -- increment the point for where we're reading the string.
-    -- wrap around at the end.
-    whereinstring = whereinstring +1;
-    if (whereinstring > #thestring) then
-      whereinstring = 1;
-    end
-  
-  end
-
+  win1:add(sys)
 
   win1:show()
 
-  while true do
-      win1:draw()
-      yield();
+  local function drawproc()
+    win1:draw()
   end
+
+  -- we can use the system scheduler to do interesting
+  -- things
+  periodic(1000/200, drawproc)
+  --while true do
+  --    win1:draw()
+  --    yield();
+  --end
 end
 
 return app
