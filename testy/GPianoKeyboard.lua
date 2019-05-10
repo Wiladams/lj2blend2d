@@ -1,4 +1,23 @@
 
+--[[
+    A graphic of a piano keyboard.
+    The graphic is drawn to a unit 1x1.  That is, the highest x or y value is 1.  This
+    allows it to be scaled to any size when drawn, by simply scaling.  You can provide
+    the scaling when constructing, or by transforming the drawing context.
+
+    As the keys represent a single octave, multiple of them can be put together to form
+    and entire piano keyboard as desired, by drawing them side by side.
+
+    Eventually, it will become an active graphic, generating signals for each key pressed.
+
+    It will be nice to include 'velocity' information if using a touch display.  A fatter
+    finger would mean a harder press, whereas a smaller finger would mean a lighter touch.
+
+    calibrate for size of hands.
+    
+    References
+    https://hypertextbook.com/facts/2003/DanielleDaly.shtml
+]]
 GPianoKeyboard = {}
 GPianoKeyboard.__index = GPianoKeyboard
 

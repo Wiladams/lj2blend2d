@@ -26,4 +26,4 @@ local function startup()
     spawn(app, {x=10, y=10, width=1024, height=768})
 end
 
-winman {width = 1280, height=1024, startup = startup, frameRate=30}
+winman {width = 1920, height=1200, startup = startup, frameRate=15}

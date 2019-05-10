@@ -30,10 +30,11 @@ function Window.new(self, obj)
     
     -- add a drawing context
     obj.drawingContext = DrawingContext:new({width = obj.frame.width, height = obj.frame.height});
-    --obj.children = {};
 
     setmetatable(obj, self)
     self.__index = self;
+
+    obj:setup()
 
     return obj;
 end
@@ -77,6 +78,8 @@ function Window.moveBy(self, dx, dy)
     return self;
 end
 
+function Window.setup(self)
+end
 
 function Window.drawBackground(self, ctxt)
     ctxt:clear()
