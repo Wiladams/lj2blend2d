@@ -123,8 +123,8 @@ end
 
 -- Global Functions
 -- Create a WinMan window
-function WMCreateWindow(x,y, w, h)
-    local win = Window:new {frame = {x = x,y=y,width = w,height = h}}
+function WMCreateWindow(params)
+    local win = Window:new (params)
 
     table.insert(windowGroup, win)
     --windowGroup:add(win)
@@ -249,28 +249,22 @@ local function wm_mouse_event(hwnd, msg, wparam, lparam)
     if msg == C.WM_MOUSEMOVE  then
         event.activity = 'mousemove'
         if mousePressed then
-            --signalAll('gap_mousedrag')
+            event.isDragging = true;
         end
-        --signalAll('gap_mousemove', event)
     elseif msg == C.WM_LBUTTONDOWN or 
         msg == C.WM_RBUTTONDOWN or
         msg == C.WM_MBUTTONDOWN or
         msg == C.WM_XBUTTONDOWN then
         event.activity = 'mousedown';
-        --signalAll('gap_mousedown', event)
     elseif msg == C.WM_LBUTTONUP or
         msg == C.WM_RBUTTONUP or
         msg == C.WM_MBUTTONUP or
         msg == C.WM_XBUTTONUP then
         event.activity = 'mouseup'
-        --signalAll('gap_mouseup', event)
-        --signalAll('gap_mouseclick', event)
     elseif msg == C.WM_MOUSEWHEEL then
         event.activity = 'mousewheel';
-        --signalAll('gap_mousewheel', event)
     elseif msg == C.WM_MOUSELEAVE then
         event.activity = "mouseleave"
-        --print("WM_MOUSELEAVE")
     else
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
         return false, res
@@ -372,18 +366,22 @@ function KeyboardActivity(hwnd, msg, wparam, lparam)
     if msg == C.WM_KEYDOWN or 
         msg == C.WM_SYSKEYDOWN then
         event.activity = "keydown"
-        keyCode = event.keyCode
-        signalAll('gap_keydown', event)
+        if wmFocusWindow then
+            wmFocusWindow:keyEvent(event)
+        end
     elseif msg == C.WM_KEYUP or
         msg == C.WM_SYSKEYUP then
         event.activity = "keyup"
-        keyCode = event.keyCode
-        signalAll("gap_keyup", event)
+        if wmFocusWindow then
+            wmFocusWindow:keyEvent(event)
+        end
     elseif msg == C.WM_CHAR or
         msg == C.WM_SYSCHAR then
         event.activity = "keytyped"
-        keyChar = wparam
-        signalAll("gap_keytyped", event) 
+        event.keyChar = wparam
+        if wmFocusWindow then
+            wmFocusWindow:keyEvent(event)
+        end
     else 
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end

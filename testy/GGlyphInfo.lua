@@ -67,9 +67,6 @@ function detailArea.drawBody(self)
     displayLabeledData("Cap Height:", font.impl.metrics.capHeight , 4)
 end
 
-function detailArea.drawEnd(self)
-end
-
 function detailArea.draw(self)
     push()
     translate(self.frame.x, self.frame.y)

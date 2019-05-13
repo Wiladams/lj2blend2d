@@ -10,7 +10,7 @@ function GRadialGrad.new(self, obj)
     obj.cx = obj.frame.x + obj.frame.width/2
     obj.cy = obj.frame.y + obj.frame.height/2
 
-    obj.radial = RadialGradient({values = {obj.cx, obj.cy, obj.cx, obj.cy, obj.cx},
+    obj.radial = RadialGradient({values = {obj.cx, obj.cy, obj.cx, obj.cy-300, obj.cx},
         stops = {
             {offset = 0.0, uint32 = 0xFFFFFFFF},
             {offset = 1.0, uint32 = 0xFFFF6F3F}

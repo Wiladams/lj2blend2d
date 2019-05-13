@@ -15,10 +15,10 @@ local graphics = {
 }
 
 local function app(params)
-    local win1 = WMCreateWindow(params.x,params.y, params.width, params.height)
+    local win1 = WMCreateWindow(params)
     
 
-    function win1:drawBody(dc)
+    function win1:drawForeground(dc)
         for i, g in ipairs(graphics) do
             --print(i,g)
             dc:push()
@@ -28,10 +28,6 @@ local function app(params)
             dc:pop()
         end
     end
-
-
-    --win1:add(gs1)
-    --win1:add(gs6)
 
     win1:show()
 

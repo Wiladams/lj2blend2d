@@ -40,7 +40,7 @@ function FrameStatGraphic.draw(self, ctxt)
     --ctxt:translate(self.x, self.y)
     ctxt:rectMode(CORNER)
     ctxt:fill(0xCC, 126)
-    --ctxt:rect(0,0, self.width, self.height)
+    ctxt:noStroke()
     ctxt:rect(self.x,self.y, self.width, self.height)
     
     -- Draw the text

@@ -28,20 +28,29 @@ local graphic = require(graphicname)
 -- Simple app to put up a window
 -- with a graphic embedded
 local function app(params)
-    local win1 = WMCreateWindow(params.x, params.y, params.width, params.height)
+    params.frameRate = params.frameRate or 30
 
-    win1:add(graphic:new({frame = params}))
+    local win1 = WMCreateWindow(params)
+
+    win1:add(graphic:new({frame = params.frame}))
     win1:show()
 
-    while true do
+    local function drawproc()
         win1:draw()
-        yield();
     end
+
+--    periodic(1000/params.frameRate, drawproc)
+---[[
+    while true do 
+        win1:draw()
+        yield()
+    end
+--]]
 end
 
 
 local function startup()
-    spawn(app, {x=4, y=4, width=1200, height=1080})
+    spawn(app, {frame = {x=4, y=4, width=1200, height=1080}})
 end
 
-winman {width = 1280, height=1200, startup = startup, frameRate=30}
+winman {width = 1280, height=1200, startup = startup, frameRate=60}

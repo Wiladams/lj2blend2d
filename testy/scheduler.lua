@@ -719,12 +719,15 @@ end
 local function periodic(millis, func)
 	millis = millis or 1000
 
+	if not func then return nil end
+	
 	local function closure()
 		while true do
 			sleep(millis)
 			func();
 		end
 	end
+
 
 	return spawn(closure)
 end

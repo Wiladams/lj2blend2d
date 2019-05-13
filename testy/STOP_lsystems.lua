@@ -113,13 +113,13 @@ function GLSystem.draw(self, ctx)
 end
 
 local function app(params)
-  local win1 = WMCreateWindow(params.x, params.y, params.width, params.height)
+  local win1 = WMCreateWindow(params)
   
   -- negate drawing the default background
   function win1.drawBackground(self, ctx)
   end
 
-  local sys = GLSystem:new({frame={x=0, y=0, width=params.width, height=params.height}})
+  local sys = GLSystem:new({frame={x=0, y=0, width=params.frame.width, height=params.frame.height}})
 
   -- draw a background
   local ctx = win1:getDrawingContext()

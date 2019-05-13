@@ -20,9 +20,7 @@ local function app(params)
     print("STOP_circle")
     local win1 = WMCreateWindow(params.x, params.y, params.width, params.height)
 
-    function win1.drawBody(self, ctxt)
-        --print("win1:drawBody(): ", self, ctxt)
-
+    function win1.drawForeground(self, ctxt)
         ctxt:fill(255,0,0)
         ctxt:fillEllipse(150, 100, 75,75)
     end

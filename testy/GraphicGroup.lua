@@ -19,6 +19,21 @@ function GraphicGroup.getDrawingContext(self)
     return self.drawingContext
 end
 
+function GraphicGroup.contains(self, x, y)
+    return x >= self.frame.x and x < self.frame.x+self.frame.width and
+            y >= self.frame.y and y < self.frame.y+self.frame.height
+
+end
+
+--[[
+    Adding a child will expand the child list.
+    Need to decide what it does beyond that.  Should the
+    frame expand as well, or should the bounds within
+    the group expand.
+
+    Probably expand the bounds, and not the frame.  Then we 
+    can decide whether to scale to fit or use panning
+]]
 function GraphicGroup.add(self, child, after)
     table.insert(self.children, child)
 end
@@ -83,9 +98,6 @@ end
 function GraphicGroup.drawBackground(self, ctx)
 end
 
-function GraphicGroup.drawBody(self, ctx)
-end
-
 function GraphicGroup.drawForeground(self, ctx)
 end
 
@@ -96,15 +108,75 @@ function GraphicGroup.draw(self, dc)
     self:drawBackground(dc)
 
     self:drawChildren(dc)
-    self:drawBody(dc)
 
     self:drawForeground(dc)
 end
 
+--[[
+    Keyboard event
+]]
+function GraphicGroup.keyEvent(self, event)
+    print("GraphicGroup.keyEvent: ", event.activity)
+end
+
+function GraphicGroup.mouseEvent(self, event)
+    -- find topmost window for mouse
+    local graphic = WMWindowAt(mouseX, mouseY)
+    --print("mouse: ", mouseX, mouseY, win)
+    for child in self:childrenInReverseZOrder(event.x, event.y) do
+        local x, y = WMScreenToWin(win, mouseX, mouseY)
+        event.x = x;
+        event.y = y;
+
+
+    if event.activity == "mousemove" then
+        if win then
+            if win == wmFocusWindow then
+                win:mouseEvent(event)
+            else
+                event.activity = "mousehover"
+                win:mouseEvent(event)
+            end
+        end
+    elseif event.activity == "mousedown" then
+        if win then
+            if win ~= wmFocusWindow then
+                WMSetFocus(win)
+            end
+            win:mouseEvent(event)
+        else
+            WMSetFocus(nil)
+        end
+    elseif event.activity == "mouseup" then
+        if win then
+            if win == wmFocusWindow then
+                win:mouseEvent(event)
+            else
+                WMSetFocus(win)
+            end
+        else
+            WMSetFocus(nil)
+        end
+    else
+        if win and win == wmFocusWindow then
+            win:mouseEvent(event)
+        end
+    end
+
+        self.lastMouseWindow = win;
+    end
+
+end
+
+--[[
 function GraphicGroup.mouseEvent(self, event)
    -- ignoring wheel, hover
     --print("GraphicGroup.mouseEvent: ", event.activity, event.x, event.y)
 
+    -- figure out which graphic can deal with the event
+    -- hand it off.
+
+    -- otherwise, process it within this object itself
     if event.activity == "mousedown" then
         self:mouseDown(event)
     elseif event.activity == "mouseup" then
@@ -116,6 +188,7 @@ function GraphicGroup.mouseEvent(self, event)
     end
 
  end
+--]]
 
 function GraphicGroup.mouseDown(self, event)
 end

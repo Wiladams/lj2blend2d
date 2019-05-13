@@ -1,9 +1,9 @@
 local SpiroGraphic = require("SpiroGraphic")
 
 local function app(params)
-    local win1 = WMCreateWindow(params.x,params.y, params.width, params.height)
+    local win1 = WMCreateWindow(params)
 
-    local spg = SpiroGraphic:new({width = params.width, height=params.height})
+    local spg = SpiroGraphic:new(params.frame)
 
     win1:add(spg)
     win1:show()

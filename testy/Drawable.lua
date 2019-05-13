@@ -22,6 +22,7 @@ function Drawable.new(self, obj)
     return obj;
 end
 
+--[[
 function Drawable.drawBackground(self, ctxt)
 end
 
@@ -30,11 +31,10 @@ end
 
 function Drawable.drawForeground(self, ctxt)
 end
+--]]
 
 function Drawable.draw(self, ctxt)
-    self:drawBackground(ctxt)
-    self:drawBody(ctxt)
-    self:drawForeground(ctxt)
+    print("Drawable.draw")
 end
 
 

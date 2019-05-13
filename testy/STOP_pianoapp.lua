@@ -2,8 +2,8 @@
 local keyboard = require("GPianoKeyboard")
 
 local function app(params)
-    local win1 = WMCreateWindow(params.x, params.y, params.width, params.height)
-    local kbd = keyboard:new({frame={x= 0,y=0, width=params.width, height=params.height}, scale = {x=params.width, y=params.height}})   
+    local win1 = WMCreateWindow(params)
+    local kbd = keyboard:new({frame={x= 0,y=0, width=params.frame.width, height=params.frame.height}, scale = {x=params.frame.width, y=params.frame.height}})   
 
     win1:add(kbd)
     win1:show()

@@ -2,7 +2,7 @@ package.path = "../?.lua;"..package.path;
 
 require("p5")
 
-local MouseTarget = require("p5ui.MouseTarget")
+local MouseTarget = require("MouseTarget")
 local stats = require("p5ui.P5Status")
 
 local face
@@ -86,7 +86,7 @@ function draw()
 
 
 
-    detailArea:draw()
+    --detailArea:draw()
     target:draw()
     stats:draw()
 end

@@ -5,18 +5,6 @@ local DrawingContext = require("DrawingContext")
 
 local Window = GraphicGroup:new()
 
---[[
-local Window = {}
-setmetatable(Window, {
-    __call = function(self, ...)
-        return self:new(...)
-    end;
-})
-local Window_mt = {
-    __index = Window
-}
---]]
-
 
 function Window.new(self, obj)
     obj = GraphicGroup:new(obj)
