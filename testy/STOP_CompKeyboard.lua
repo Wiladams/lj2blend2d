@@ -8,6 +8,7 @@ local function app(params)
     win1:add(kbd)
     win1:show()
 
+
     while true do
         win1:draw()
         yield();

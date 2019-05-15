@@ -2,8 +2,8 @@
 local ParticleSystem = require("ParticleSystem")
 
 local function app(params)
-    local win1 = WMCreateWindow(params.frame.x, params.frame.y, params.frame.width, params.frame.height)
-    local psys = ParticleSystem:new({frame = {x=params.frame.width/2, y = 100, width = params.frame.width, height=params.frame.height}})
+    local win1 = WMCreateWindow(params)
+    local psys = ParticleSystem:new(params)
 
     function win1.mouseDown(self, event)
         -- add a new system
@@ -15,7 +15,9 @@ local function app(params)
     win1:show()
 
     local function drawproc()
+        --print("drawproc 1.0")
         win1:draw()
+        --print("drawproc 2.0")
     end
 
     --periodic(1000/30, drawproc)

@@ -5,6 +5,7 @@ local GImage = require("GIMage")
 local function app(params)
     print("STOP_mag")
     local img, err = GImage:createFromFile("resources/heic1501b.jpg")
+print("STOP_mag, createFromFile: ", img, err)
 
     local win1 = WMCreateWindow(params)
    

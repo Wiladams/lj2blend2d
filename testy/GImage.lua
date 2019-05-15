@@ -42,24 +42,24 @@ end
     of the graphics context
 ]]
 function GImage.setFrame(self, x,y,width,height)
-    self.Frame = BLRect({x,y,width, height})
+    self.frame = BLRect({x,y,width, height})
     
     return self;
 end
 
 function GImage.moveTo(self, x, y)
-    self.Frame.x = x;
-    self.Frame.y = y;
+    self.frame.x = x;
+    self.frame.y = y;
 end
 
 function GImage.draw(self, ctx)
     --print("Gimage.draw")
-    ctx:stretchBlt(self.Frame, self.image, self.imageArea)
+    ctx:stretchBlt(self.frame, self.image, self.imageArea)
 end
 
 function GImage.moveTo(self, x, y)
-    self.Frame.x = x;
-    self.Frame.y = y;
+    self.frame.x = x;
+    self.frame.y = y;
 end
 
 function GImage.subImage(self, x,y,w,h)

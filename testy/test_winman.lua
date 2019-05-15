@@ -13,8 +13,7 @@ local function startup()
     end
 
     win1:show()
-    --win1:background(BLRgba32(0xff00ff00))
-    win1:draw()
+    --win1:draw()
 end
 
 winman {width = 1200, height=1024, startup = startup}

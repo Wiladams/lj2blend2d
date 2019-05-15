@@ -1,28 +1,36 @@
-local Drawable = require("Drawable")
 
-local GraphicGroup = Drawable:new()
 
+local GraphicGroup = {}
+local GraphicGroup_mt = {
+    __index = GraphicGroup
+}
+--GraphicGroup.__index = GraphicGroup
+--[[
+if nil ~= baseClass then
+    setmetatable( new_class, { __index = baseClass } )
+end
+--]]
 
 function GraphicGroup.new(self, obj)
+    --print("GraphicGroup.new: ", obj)
     obj = obj or {}
-
     obj.frame = obj.frame or {x=0,y=0,width=0,height=0};
     obj.children = {};
 
-    setmetatable(obj, self)
-    self.__index = self;
+    setmetatable(obj, GraphicGroup_mt)
+    --self.__index = self;
 
     return obj;
 end
 
 function GraphicGroup.getDrawingContext(self)
+    --print("GraphicGroup.getDrawingContext: ", self.drawingContext)
     return self.drawingContext
 end
 
 function GraphicGroup.contains(self, x, y)
     return x >= self.frame.x and x < self.frame.x+self.frame.width and
             y >= self.frame.y and y < self.frame.y+self.frame.height
-
 end
 
 --[[
@@ -83,13 +91,16 @@ end
 
 
 function GraphicGroup.drawChildren(self, ctxt)
+    --print("GraphicGroup.drawChildren: ", self.children)
+    
     -- draw all the children
     for _, child in ipairs(self.children) do 
 
         -- set clip area to child
         -- translate the context to the child's frame
-        child:draw(ctxt)
-
+       --if child.draw then
+         child:draw(ctxt)
+       --end
         -- untranslate
         -- unclip
     end
@@ -112,6 +123,14 @@ function GraphicGroup.draw(self, dc)
     self:drawForeground(dc)
 end
 
+function GraphicGroup.gainFocus(self)
+    self.isFocus = true;
+end
+
+function GraphicGroup.loseFocus(self)
+    self.isFocus = false;
+end
+
 --[[
     Keyboard event
 ]]
@@ -119,21 +138,97 @@ function GraphicGroup.keyEvent(self, event)
     print("GraphicGroup.keyEvent: ", event.activity)
 end
 
+function GraphicGroup.ConvertFromParent(self, x, y)
+    return x-self.frame.x, y-self.frame.y
+end
+
+-- complex behavior here.  Deal with cases where
+-- there's an active child or not, and switching
+-- between children
 function GraphicGroup.mouseEvent(self, event)
-    -- find topmost window for mouse
-    local graphic = WMWindowAt(mouseX, mouseY)
-    --print("mouse: ", mouseX, mouseY, win)
-    for child in self:childrenInReverseZOrder(event.x, event.y) do
-        local x, y = WMScreenToWin(win, mouseX, mouseY)
+    --print("mouse: ", event.activity, event.x, event.y)
+
+
+    for child in self:childrenInReverseZOrder(event.parentX, event.parentY) do
+
+        local x, y = self:ConvertFromParent(event.parentX, event.parentY)
         event.x = x;
         event.y = y;
 
+        -- if the child can handle mouse events
+        -- then figure out what to do
+        if child.mouseEvent then
+            if self.activeChild then
+                if child == self.activeChild then
+                    child:mouseEvent(event)
+                    return self
+                end
 
-    if event.activity == "mousemove" then
-        if win then
-            if win == wmFocusWindow then
-                win:mouseEvent(event)
-            else
+                if event.activity == 'mousedown' then
+                    self.activeChild:loseFocus()
+                    self.activeChild = child
+                    self.activeChild:gainFocus()
+                    return self
+                elseif event.activity == "mousemove" then
+                    -- tell current active child the mouse has left
+                    event.activity = "mouseleave"
+                    self.activeChild:mouseEvent(event)
+
+                    -- tell child mouse is hovering
+                    event.activity = "mousehover"
+                    child:mouseEvent(event)
+                    return self
+                end 
+            end
+
+
+            -- the child is not the currently active one
+            -- so figure out if change should occur
+            
+            return self;
+        end
+
+        -- if the child doesn't do mouse events
+        -- just get the next child at the position
+        -- and try again
+    end
+
+    -- If we are here, then the mouse activity falls outside
+    -- any of the children, so it's on the body of the group
+    -- itself.
+
+    if event.activity == "mouseup" then
+        if self.activeChild then
+            self.activeChild:loseFocus()
+            self.activeChild = nil
+        end
+        
+        return self:mouseUp(event)
+    elseif event.activity == "mousedown" then
+        print("GraphicGroup.mouseEvent, mousedown parent")
+        if self.activeChild then
+            self.activeChild:loseFocus()
+            self.activeChild = nil;
+        end
+        return self:mouseDown(event)
+    elseif event.activity == "mousehover" then
+        return self:mouseHover(event)
+    elseif event.activity == "mousemove" then
+        return self:mouseMove(event)
+    end
+
+    -- and if we're here, we don't understand the mouse
+    -- event, so we can just return false
+    return false;
+
+
+
+--[[
+        if event.activity == "mousemove" then
+            if win then
+                    if win == wmFocusWindow then
+                        win:mouseEvent(event)
+                    else
                 event.activity = "mousehover"
                 win:mouseEvent(event)
             end
@@ -165,30 +260,10 @@ function GraphicGroup.mouseEvent(self, event)
 
         self.lastMouseWindow = win;
     end
-
+--]]
 end
 
---[[
-function GraphicGroup.mouseEvent(self, event)
-   -- ignoring wheel, hover
-    --print("GraphicGroup.mouseEvent: ", event.activity, event.x, event.y)
 
-    -- figure out which graphic can deal with the event
-    -- hand it off.
-
-    -- otherwise, process it within this object itself
-    if event.activity == "mousedown" then
-        self:mouseDown(event)
-    elseif event.activity == "mouseup" then
-        self:mouseUp(event)
-    elseif event.activity == "mousemove" then
-        self:mouseMove(event)
-    elseif event.activity == "mousehover" then
-        self:mouseHover(event)
-    end
-
- end
---]]
 
 function GraphicGroup.mouseDown(self, event)
 end

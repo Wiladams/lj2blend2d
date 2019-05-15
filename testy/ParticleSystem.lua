@@ -1,4 +1,6 @@
 
+local GraphicGroup = require("GraphicGroup")
+
 local random = math.random
 
 -- A simple Particle class
@@ -45,7 +47,7 @@ function Particle.draw(self, ctx)
 
     ctx:stroke(200, self.lifespan);
     --noStroke()
-    ctx:strokeWidth(2);
+    ctx:strokeWidth(1);
     ctx:fill(127, self.lifespan);
     ctx:ellipse(self.position.x, self.position.y, 12, 12);
 end
@@ -55,28 +57,25 @@ function Particle.isDead(self)
   return self.lifespan < 0;
 end
 
+
+--[[
 -- Particle System
+--]]
+--local ParticleSystem = GraphicGroup:new()
 local ParticleSystem = {}
-setmetatable(ParticleSystem, {
-  __call = function(self, ...)
-    return self:new(...)
-  end;
-})
-local ParticleSystem_mt = {
-  __index = ParticleSystem;
-}
+ParticleSystem.__index = ParticleSystem
 
-function ParticleSystem.new(self, params)
-  local obj = {
-    origin = {x=params.frame.x, y=params.frame.y};
-    particles = {};
-  }
-  setmetatable(obj, ParticleSystem_mt)
-
-  -- create a few particles
-  --for i=1,1000 do
-  --  obj:addParticle();
+function ParticleSystem.new(self, obj)
+  print("ParticleSystem.new, obj: ")
+  --for k,v in pairs(obj) do
+  --  print(k,v)
   --end
+
+  obj = GraphicGroup:new(obj)
+  obj.origin = {x=obj.frame.x, y = obj.frame.y}
+  obj.particles = {}
+  setmetatable(obj, self)
+  --self.__index = self
 
   return obj;
 end
@@ -87,14 +86,16 @@ function ParticleSystem.addParticle(self)
 end
 
 function ParticleSystem.draw(self, ctx)
-    self:addParticle()
+  --print("ParticleSystem.draw, 1.0: ", #self.particles)
+  self:addParticle()
 
   for i = #self.particles,  1, -1 do
     local p = self.particles[i];
-    p:draw(ctx);
     if (p:isDead()) then
-        --print("remove deac")
+      --print("remove deac")
       table.remove(self.particles,1);
+    else
+      p:draw(ctx);
     end
   end
 end

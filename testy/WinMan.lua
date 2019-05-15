@@ -206,6 +206,10 @@ local function handleFrame()
 
     for _, win in ipairs(windowGroup) do
         --print(win)
+        -- BUGBUG
+        -- tell window to draw itself?
+        --win:draw()
+
         local readyBuff = win:getReadyBuffer()
         if readyBuff then
             appContext:blit(readyBuff, win.frame.x, win.frame.y)
@@ -235,6 +239,9 @@ local function wm_mouse_event(hwnd, msg, wparam, lparam)
     local event = {
         screenX = mouseX;
         screenY = mouseY;
+        parentX = mouseX;
+        parentY = mouseY;
+
         control = band(wparam, C.MK_CONTROL) ~= 0;
         shift = band(wparam, C.MK_SHIFT) ~= 0;
         lbutton = band(wparam, C.MK_LBUTTON) ~= 0;
@@ -297,7 +304,7 @@ function MouseActivity(hwnd, msg, wparam, lparam)
     --print("mouse: ", mouseX, mouseY, win)
     
     if win then
-        local x, y = WMScreenToWin(win, mouseX, mouseY)
+        local x, y = WMScreenToWin(win, event.parentX, event.parentY)
         event.x = x;
         event.y = y;
     end

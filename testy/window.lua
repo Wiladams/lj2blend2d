@@ -3,28 +3,33 @@ local b2d = require("blend2d.blend2d")
 local DrawingContext = require("DrawingContext")
 
 
-local Window = GraphicGroup:new()
+local Window = {}
+setmetatable( Window, 
+    { __index = GraphicGroup } 
+)
+
+local Window_mt = {
+    __index = Window
+}
+
 
 
 function Window.new(self, obj)
     obj = GraphicGroup:new(obj)
-
-    -- must have a width and height
-    if not obj.frame then
-        return nil, "must specify a frame"
-    end
 
     obj.isShown = true;
     
     -- add a drawing context
     obj.drawingContext = DrawingContext:new({width = obj.frame.width, height = obj.frame.height});
 
-    setmetatable(obj, self)
-    self.__index = self;
+    setmetatable(obj, Window_mt)
 
     obj:setup()
 
     return obj;
+end
+
+function Window.setup(self)
 end
 
 function Window.show(self)
@@ -43,13 +48,6 @@ function Window.getReadyBuffer(self)
     return self.drawingContext:getReadyBuffer()
 end
 
-function Window.gainFocus(self)
-    self.haveFocus = true;
-end
-
-function Window.loseFocus(self)
-    self.haveFocus = false;
-end
 
 
 function Window.moveTo(self, x, y)
@@ -66,8 +64,7 @@ function Window.moveBy(self, dx, dy)
     return self;
 end
 
-function Window.setup(self)
-end
+
 
 function Window.drawBackground(self, ctxt)
     ctxt:clear()
@@ -76,7 +73,7 @@ function Window.drawBackground(self, ctxt)
 
     -- draw a black border
     local border = 0xff000000
-    if self.haveFocus then
+    if self.isFocus then
         border = 0xffff0000
     end
 
