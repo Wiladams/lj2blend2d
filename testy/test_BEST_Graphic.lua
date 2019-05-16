@@ -37,6 +37,7 @@ local function app(params)
 
     local function drawproc()
         win1:draw()
+        yield();
     end
 
 --    periodic(1000/params.frameRate, drawproc)

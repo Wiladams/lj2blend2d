@@ -23,17 +23,20 @@ function MouseTarget.new(self, obj)
 end
 
 function MouseTarget.mouseEvent(self, event)
-    print("MouseTarget.mouseEvent: ", event.activity, mouse.x, mouse.y)
+    print("MouseTarget.mouseEvent: ", event.activity, event.x, event.y)
+    self.positionX = event.x;
+    self.positionY = event.y;
 end
 
 function MouseTarget.draw(self, ctx)
+    --print("MouseTarget.draw: ", self.color, self.weight)
     ctx:stroke(self.color)
     ctx:strokeWidth(self.weight)
 
     -- vertical line
-    ctx:line(self.positionX, 0, self.positionX, height-1)
+    ctx:line(self.positionX, 0, self.positionX, self.frame.height-1)
     -- horizontal line
-    ctx:line(0,  self.positionY, width-1, self.positionY)
+    ctx:line(0,  self.positionY, self.frame.width-1, self.positionY)
 end
 
 return MouseTarget

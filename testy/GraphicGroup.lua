@@ -4,12 +4,7 @@ local GraphicGroup = {}
 local GraphicGroup_mt = {
     __index = GraphicGroup
 }
---GraphicGroup.__index = GraphicGroup
---[[
-if nil ~= baseClass then
-    setmetatable( new_class, { __index = baseClass } )
-end
---]]
+
 
 function GraphicGroup.new(self, obj)
     --print("GraphicGroup.new: ", obj)
@@ -71,7 +66,7 @@ function GraphicGroup.childrenInZOrder(self, x, y)
     return coroutine.wrap(visitor)
 end
 
-function GraphicGroup.childrenInReverseZOrder(self, x, y)
+function GraphicGroup.activeChildrenAt(self, x, y)
     local function contains(frame, x, y)
         return x >= frame.x and x < frame.x+frame.width and
             y >= frame.y and y < frame.y+frame.height
@@ -80,13 +75,20 @@ function GraphicGroup.childrenInReverseZOrder(self, x, y)
     local function visitor()
         for i = #self.children, 1, -1 do
             child = self.children[i]
-            if child.frame and contains(child.frame, x, y) then
+            if child.frame and contains(child.frame, x, y) and
+            child.mouseEvent then
                 coroutine.yield(child)
             end
         end
     end
 
     return coroutine.wrap(visitor)
+end
+
+function GraphicGroup.interactiveChildAt(self, x, y)
+    for child in self:activeChildrenAt(x,y) do
+        return child;
+    end
 end
 
 
@@ -123,11 +125,20 @@ function GraphicGroup.draw(self, dc)
     self:drawForeground(dc)
 end
 
-function GraphicGroup.gainFocus(self)
-    self.isFocus = true;
+function GraphicGroup.setFocus(self, child)
+    if child then
+        self.activeChild = child
+        child:setFocus()
+    else
+        if self.activeChild then
+            self.activeChild:loseFocus()
+        end
+        self.activeChild = nil;
+        self.isFocus = true;
+    end
 end
 
-function GraphicGroup.loseFocus(self)
+function GraphicGroup.loseFocus(self, child)
     self.isFocus = false;
 end
 
@@ -148,119 +159,73 @@ end
 function GraphicGroup.mouseEvent(self, event)
     --print("mouse: ", event.activity, event.x, event.y)
 
+    local child = self:interactiveChildAt(event.x, event.y)
 
-    for child in self:childrenInReverseZOrder(event.parentX, event.parentY) do
-
-        local x, y = self:ConvertFromParent(event.parentX, event.parentY)
+    if child then
+    
+        -- preserve the parent coordinates
+        event.parentX = event.x;
+        event.parentY = event.y;
+        
+        -- Convert x, y coordinates to be in the space of the child
+        local x, y = self:ConvertFromParent(event.x, event.y)
         event.x = x;
         event.y = y;
+        --print("GraphicGroup.mouseEvent, child: ", event.x, event.y)
 
-        -- if the child can handle mouse events
-        -- then figure out what to do
-        if child.mouseEvent then
-            if self.activeChild then
-                if child == self.activeChild then
-                    child:mouseEvent(event)
-                    return self
-                end
-
-                if event.activity == 'mousedown' then
-                    self.activeChild:loseFocus()
-                    self.activeChild = child
-                    self.activeChild:gainFocus()
-                    return self
-                elseif event.activity == "mousemove" then
-                    -- tell current active child the mouse has left
-                    event.activity = "mouseleave"
-                    self.activeChild:mouseEvent(event)
-
-                    -- tell child mouse is hovering
-                    event.activity = "mousehover"
-                    child:mouseEvent(event)
-                    return self
-                end 
+        if event.activity == "mousemove" then
+            if child == self.activeChild then
+                return child:mouseEvent(event)
+            else
+                event.activity = "mousehover"
+                return child:mouseEvent(event)
             end
-
-
-            -- the child is not the currently active one
-            -- so figure out if change should occur
-            
-            return self;
+        elseif event.activity == "mousedown" then
+            if child ~= self.activeChild then
+                self:setFocus(child)
+            end
+            return child:mouseEvent(event)
+        elseif event.activity == "mouseup" then
+            if child == self.activeChild then
+                return child:mouseEvent(event)
+            else
+                return self:setFocus(child)
+            end
+        else
+            if child == self.activeChild then
+                return child:mouseEvent(event)
+            end
         end
-
-        -- if the child doesn't do mouse events
-        -- just get the next child at the position
-        -- and try again
-    end
-
+    --end
+    else
     -- If we are here, then the mouse activity falls outside
     -- any of the children, so it's on the body of the group
     -- itself.
+    -- need to restore original event coordinates
+    local x, y = self:ConvertFromParent(event.parentX, event.parentY)
+    event.x = x;
+    event.y = y;
 
     if event.activity == "mouseup" then
         if self.activeChild then
-            self.activeChild:loseFocus()
-            self.activeChild = nil
+            self:setFocus()
         end
         
         return self:mouseUp(event)
     elseif event.activity == "mousedown" then
         print("GraphicGroup.mouseEvent, mousedown parent")
-        if self.activeChild then
-            self.activeChild:loseFocus()
-            self.activeChild = nil;
-        end
+        self:setFocus()
         return self:mouseDown(event)
     elseif event.activity == "mousehover" then
         return self:mouseHover(event)
     elseif event.activity == "mousemove" then
         return self:mouseMove(event)
     end
+    end
 
     -- and if we're here, we don't understand the mouse
     -- event, so we can just return false
     return false;
-
-
-
---[[
-        if event.activity == "mousemove" then
-            if win then
-                    if win == wmFocusWindow then
-                        win:mouseEvent(event)
-                    else
-                event.activity = "mousehover"
-                win:mouseEvent(event)
-            end
-        end
-    elseif event.activity == "mousedown" then
-        if win then
-            if win ~= wmFocusWindow then
-                WMSetFocus(win)
-            end
-            win:mouseEvent(event)
-        else
-            WMSetFocus(nil)
-        end
-    elseif event.activity == "mouseup" then
-        if win then
-            if win == wmFocusWindow then
-                win:mouseEvent(event)
-            else
-                WMSetFocus(win)
-            end
-        else
-            WMSetFocus(nil)
-        end
-    else
-        if win and win == wmFocusWindow then
-            win:mouseEvent(event)
-        end
-    end
-
-        self.lastMouseWindow = win;
-    end
---]]
 end
 
 

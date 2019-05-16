@@ -94,7 +94,7 @@ function WMSetFocus(win)
         if wmFocusWindow then
             wmFocusWindow:loseFocus()
         end
-        win:gainFocus()
+        win:setFocus()
     else
         if wmFocusWindow then
             wmFocusWindow:loseFocus()
@@ -179,7 +179,7 @@ function refreshWindow()
         pblend,
         dwFlags) ~= 0;
     
-]]
+--]]
     return success;
 end
 
