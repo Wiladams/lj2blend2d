@@ -99,4 +99,15 @@ end
 exports.sin = math.sin
 exports.sqrt = math.sqrt
 
+setmetatable(exports, {
+    -- globalize
+    __call = function(self, tbl)
+        tbl = tbl or _G
+
+        for k,value in pairs(self) do
+            tbl[k] = value
+            --table.rawinsert(tbl, k, v)
+        end
+    end
+})
 return exports

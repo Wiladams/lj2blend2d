@@ -885,7 +885,8 @@ end
     Simple primitives UI
 ]]
 
-function DrawingContext.color(self, ...)
+function color(...)
+--function DrawingContext.color(self, ...)
 	local nargs = select('#', ...)
 
 	-- There can be 1, 2, 3, or 4, arguments
@@ -926,6 +927,10 @@ function DrawingContext.color(self, ...)
     pix.a = a
 
 	return pix;
+end
+
+function DrawingContext.color(self, ...)
+    return color(...)
 end
 
 function DrawingContext.lerpColor(self, from, to, f)

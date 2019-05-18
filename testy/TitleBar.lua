@@ -1,4 +1,6 @@
 local GraphicGroup = require("GraphicGroup")
+local CloseBox = require("CloseBox")
+
 
 local TitleBar = {}
 setmetatable(TitleBar, {
@@ -9,18 +11,21 @@ local TitleBar_mt = {
 }    
 
 
-function TitleBar.new(self, win)
-    local obj = {
-        frame = {x=0,y=0,width=win.frame.width, height = 36};
-        window = win;
-        title = "TitleBar"
-    }
+function TitleBar.new(self, obj)
+    obj = GraphicGroup:new(obj)
+    obj.frame = obj.frame or {x=0,y=0,width=obj.window.frame.width, height = 36};
+    obj.title = "TitleBar"
+    
     setmetatable(obj, TitleBar_mt)
+
+    local cbox = CloseBox:new({frame={x=2, y=2, width=30, height=30}})
+    obj:add(cbox)
 
     return obj
 end
 
-function TitleBar.draw(self, ctx)
+function TitleBar.drawBackground(self, ctx)
+    --print("TitleBar.drawBackground")
     ctx:noStroke()
     ctx:fill(255)
     ctx:rect(0,0,self.frame.width, self.frame.height)
@@ -39,6 +44,7 @@ function TitleBar.loseFocus(self)
     self.isDragging = false;
 end
 
+--[[
 function TitleBar.mouseEvent(self, event)
     --print("TitleBar.mouseEvent: ", event.activity, event.isDragging)
     if event.activity == "mousemove" then
@@ -49,8 +55,10 @@ function TitleBar.mouseEvent(self, event)
         return self:mouseDown(event)
     end
 end
+--]]
 
 function TitleBar.mouseDown(self, event)
+    print("TitleBar.mouseDown")
     self.isDragging = true;
 end
 
