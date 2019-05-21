@@ -203,7 +203,13 @@ typedef HANDLE HMENU;
 typedef HANDLE HBITMAP;
 typedef HANDLE HRGN;
 typedef HANDLE HTOUCHINPUT;
+
+typedef HANDLE DPI_AWARENESS_CONTEXT;
 ]]
+
+DPI_AWARENESS_CONTEXT_SYSTEM_AWARE         = ffi.cast("DPI_AWARENESS_CONTEXT",-2);
+DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = ffi.cast("DPI_AWARENESS_CONTEXT",-4);
+
 
 ffi.cdef[[
 typedef WORD                ATOM; 
@@ -302,6 +308,10 @@ typedef struct tagTOUCHINPUT {
     DWORD cyContact;
 } TOUCHINPUT, *PTOUCHINPUT;
 typedef TOUCHINPUT const * PCTOUCHINPUT;
+]]
+
+ffi.cdef[[
+static const int WM_DPICHANGED                   = 0x02E0;
 ]]
 
 ffi.cdef[[
@@ -505,6 +515,7 @@ BOOL UpdateLayeredWindow(HWND hWnd, HDC hdcDst, POINT* pptDst, SIZE* psize,
     BLENDFUNCTION* pblend, 
     DWORD dwFlags);
 
+DPI_AWARENESS_CONTEXT SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT dpiContext);
 
 // Touch Related founctions
 BOOL RegisterTouchWindow(HWND hwnd, ULONG ulFlags);

@@ -861,6 +861,9 @@ local function start(params)
         return nil, "must specify width and height"
     end
 
+    -- First thing to do is let the system know we are
+    -- going to be DPI aware
+    local oldContext = C.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     params.title = params.title or "WinMan";
     params.frameRate = params.frameRate or 15;
