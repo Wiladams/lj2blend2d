@@ -21,7 +21,7 @@ function GImage.new(self, obj)
     obj.width = obj.width or obj.image:size().w
     obj.height = obj.height or obj.image:size().h
     obj.imageArea = obj.imageArea or BLRectI({obj.x,obj.y,obj.width, obj.height})
-    obj.Frame = obj.Frame or BLRect({0,0,obj.width, obj.height})
+    obj.frame = obj.frame or BLRect({0,0,obj.width, obj.height})
 
     setmetatable(obj, GImage_mt)
 
@@ -34,7 +34,7 @@ function GImage.createFromFile(self, filename)
         return nil, err
     end
 
-    return GImage:new({image = img, Frame = BLRect({0,0,img:size().w, img:size().h})})
+    return GImage:new({image = img, frame = BLRect({0,0,img:size().w, img:size().h})})
 end
 
 --[[

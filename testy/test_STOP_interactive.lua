@@ -16,7 +16,6 @@ local desktopHeight = 1024
 local bkgnd, err = GImage:createFromFile("resources/heic1501b.jpg")
 --local bkgnd = GScaleTest:new()
 
---WMSetBackground(bkgnd)
 WMSetBackground(bkgnd)
 
 local function startup()

@@ -16,12 +16,12 @@ function Checkerboard.init(self, params)
     params = params or {}
     params.x = params.x or 0
     params.y = params.y or 0
-    params.width = params.width or 640
-    params.height = params.height or 640
+    params.width = params.frame.width or 640
+    params.height = params.frame.height or 640
     params.columns = params.columns or 8
     params.rows = params.rows or 8
-    params.color1 = params.color1 or color(0)
-    params.color2 = params.color2 or color(255)
+    params.color1 = params.color1 or color(30)
+    params.color2 = params.color2 or color(127)
     setmetatable(params, Checkerboard_mt)
 
     return params

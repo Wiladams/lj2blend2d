@@ -202,13 +202,13 @@ local function handleFrame()
 
     -- iterate through the windows
     -- compositing each one
-    appContext:setCompOp(C.BL_COMP_OP_SRC_OVER)
-
     for _, win in ipairs(windowGroup) do
-        --print(win)
-        -- BUGBUG
-        -- tell window to draw itself?
-        --win:draw()
+        -- if we don't want transparent windows
+        -- then src_copy
+        -- there can be a per-window attribute for this
+        -- and other composite operations
+        --appContext:setCompOp(C.BL_COMP_OP_SRC_COPY)
+        appContext:setCompOp(C.BL_COMP_OP_SRC_OVER)
 
         local readyBuff = win:getReadyBuffer()
         if readyBuff then
@@ -863,7 +863,7 @@ local function start(params)
 
     -- First thing to do is let the system know we are
     -- going to be DPI aware
-    local oldContext = C.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    --local oldContext = C.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     params.title = params.title or "WinMan";
     params.frameRate = params.frameRate or 15;

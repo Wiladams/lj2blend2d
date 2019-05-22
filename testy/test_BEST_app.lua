@@ -13,6 +13,10 @@ package.path = "../?.lua;"..package.path;
 local winman = require("WinMan")
 
 local appname = arg[1]
+local makeVideo = false;
+if arg[2] == "video" then
+    makeVideo = true;
+end
 
 if not appname then 
     print("you must specify a STOPlet name")

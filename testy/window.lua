@@ -1,6 +1,8 @@
+--local b2d = require("blend2d.blend2d")
+
 local GraphicGroup = require("GraphicGroup")
-local b2d = require("blend2d.blend2d")
 local DrawingContext = require("DrawingContext")
+local TitleBar = require("TitleBar")
 
 
 local Window = {}
@@ -21,8 +23,14 @@ function Window.new(self, obj)
     
     -- add a drawing context
     obj.drawingContext = DrawingContext:new({width = obj.frame.width, height = obj.frame.height});
+    obj.titleBar = TitleBar:new({
+        frame = {x=0,y=0,width = obj.frame.width, height=36};
+        window = obj;
+    })
 
     setmetatable(obj, Window_mt)
+
+
 
     obj:setup()
 
@@ -82,6 +90,7 @@ function Window.drawBackground(self, ctxt)
     ctxt:strokeRect(0,0,self.frame.width, self.frame.height)
 
     -- draw title bar
+    --self.titleBar:draw(ctxt)
 end
 
 

@@ -3,7 +3,7 @@ local ParticleSystem = require("ParticleSystem")
 
 local function app(params)
     local win1 = WMCreateWindow(params)
-    local psys = ParticleSystem:new(params)
+    local psys = ParticleSystem:new({frame = {x=0;y=0;width=params.frame.width, height=params.frame.height}})
 
     function win1.mouseDown(self, event)
         -- add a new system
