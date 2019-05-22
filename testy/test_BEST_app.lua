@@ -24,10 +24,11 @@ if not appname then
 end
 
 local app = require(appname)
-
+local desktopWidth = 1920
+local desktopHeight = 1200
 
 local function startup()
-    spawn(app, {frame = {x=10, y=10, width=1024, height=768}})
+    spawn(app, {frame = {x=0, y=0, width=desktopWidth, height=desktopHeight}})
 end
 
-winman {width = 1920, height=1200, startup = startup, frameRate=10}
+winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=10}

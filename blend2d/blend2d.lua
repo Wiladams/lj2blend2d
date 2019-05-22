@@ -607,6 +607,48 @@ BLFontFace_mt = {
             return obj;
         end;
 
+        -- FontFaceInfo
+        faceInfo = function(self)
+          return {
+            faceType = self.impl.faceInfo.faceType;
+            outlineType = self.impl.faceInfo.outlineType;
+            glyphCount = self.impl.faceInfo.glyphCount;
+            faceIndex = self.impl.faceInfo.faceIndex;
+            faceFlags = self.impl.faceInfo.faceFlags;
+            diagFlags =self.impl.faceInfo.diagFlags;
+          }
+        end;
+
+        -- Attributes of the font face
+        designMetrics = function(self)
+          return self.impl.designMetrics;
+        end;
+
+        weight = function(self)
+          return tonumber(self.impl.weight);
+        end;
+
+        stretch = function(self)
+          return self.impl.stretch;
+        end;
+
+        style = function(self)
+          return self.impl.style;
+        end;
+
+        fullName = function(self)
+          return tostring(self.impl.fullName)     -- BLStringCore
+        end;
+
+        familyName = function(self)
+          return tostring(self.impl.familyName) -- BLStringCore
+        end;
+
+        subfamilyName = function(self)
+          return tostring(self.impl.subfamilyName);
+        end;
+
+        
         -- Use like this
         -- fontFace:createSizedFont(15)
         createFont = function(self, size)
@@ -625,6 +667,10 @@ BLFontFace_mt = {
             end
 
             return font;
+        end;
+
+        getFaceInfo = function(self)
+          local bResult = blapi.blFontFaceGet
         end;
     }
 }
@@ -695,7 +741,6 @@ BLResult __cdecl blFontAssignMove(BLFontCore* self, BLFontCore* other) ;
 BLResult __cdecl blFontAssignWeak(BLFontCore* self, const BLFontCore* other) ;
 bool     __cdecl blFontEquals(const BLFontCore* a, const BLFontCore* b) ;
 BLResult __cdecl blFontCreateFromFace(BLFontCore* self, const BLFontFaceCore* face, float size) ;
-BLResult __cdecl blFontShape(const BLFontCore* self, BLGlyphBufferCore* buf) ;
 BLResult __cdecl blFontMapTextToGlyphs(const BLFontCore* self, BLGlyphBufferCore* buf, BLGlyphMappingState* stateOut) ;
 BLResult __cdecl blFontPositionGlyphs(const BLFontCore* self, BLGlyphBufferCore* buf, uint32_t positioningFlags) ;
 BLResult __cdecl blFontApplyKerning(const BLFontCore* self, BLGlyphBufferCore* buf) ;
