@@ -27,10 +27,12 @@ function Window.new(self, obj)
         frame = {x=0,y=0,width = obj.frame.width, height=36};
         window = obj;
     })
+    obj.useTitleBar = obj.useTitleBar or false;
+    obj.clientArea = GraphicGroup:new({frame=0,0,obj.frame.width, obj.frame.height})
 
     setmetatable(obj, Window_mt)
 
-
+    obj:setUseTitleBar(obj.useTitleBar)
 
     obj:setup()
 
@@ -72,8 +74,6 @@ function Window.moveBy(self, dx, dy)
     return self;
 end
 
-
-
 function Window.drawBackground(self, ctxt)
     ctxt:clear()
     ctxt:fill(127,180)
@@ -89,8 +89,33 @@ function Window.drawBackground(self, ctxt)
     ctxt:strokeWidth(4)
     ctxt:strokeRect(0,0,self.frame.width, self.frame.height)
 
-    -- draw title bar
-    --self.titleBar:draw(ctxt)
+    if self.useTitleBar then
+        self.titleBar:draw(ctxt)
+    end
+end
+
+function Window.setTitle(self, value)
+    return self.titleBar:setTitle(value)
+end
+
+function Window.setUseTitleBar(self, useit)
+    self.useTitleBar = useit;
+
+    local clientFrame = nil
+
+    if useit then
+        clientFrame = {x=0,y=self.titleBar.frame.height,
+            self.frame.width, self.frame.height-self.titleBar.frame.height}
+    else
+        clientFrame = {
+            x=0,y=0,
+            self.frame.width, self.frame.height
+        }
+    end
+    
+    self.clientArea.frame = clientFrame
+
+    return self;
 end
 
 

@@ -41,25 +41,12 @@ function GraphicGroup.add(self, child, after)
     table.insert(self.children, child)
 end
 
--- an iterator over the children at a particular location
--- iterate in reverse drawing order to receive the topmost
--- visible one first.
--- The iterator does not assume any functionality of the graphic
--- other than the fact that it has a specified frame.  This is good
--- because we might be iterating for different reasons.  Maybe to send
--- a mouse event, maybe to target specific drawing
-function GraphicGroup.childrenInZOrder(self, x, y)
-    local function contains(frame, x, y)
-        return x >= frame.x and x < frame.x+frame.width and
-            y >= frame.y and y < frame.y+frame.height
-    end
-
+-- an iterator over the children in z-order (order of drawing)
+function GraphicGroup.childrenInZOrder(self)
     local function visitor()
         for i = 1,#self.children do
             local child = self.children[i]
-            if child and child.frame and contains(child.frame, x, y) then
-                coroutine.yield(child)
-            end
+            coroutine.yield(child)
         end
     end
 
@@ -96,15 +83,24 @@ function GraphicGroup.drawChildren(self, ctxt)
     --print("GraphicGroup.drawChildren: ", self.children)
     
     -- draw all the children
-    for _, child in ipairs(self.children) do 
-
+    --for _, child in ipairs(self.children) do 
+    for child in self:childrenInZOrder() do
         -- set clip area to child
         -- translate the context to the child's frame
-       --if child.draw then
-         child:draw(ctxt)
-       --end
-        -- untranslate
-        -- unclip
+        if child.draw then
+            if child.frame then
+                ctxt:save();
+                -- set clipping rectangle
+                ctxt:translate(child.frame.x, child.frame.y)
+            end
+
+            child:draw(ctxt)
+
+            if child.frame then
+                ctxt:restore();
+            end
+        end
+
     end
 end
 
@@ -119,9 +115,7 @@ function GraphicGroup.draw(self, dc)
     dc = dc or self:getDrawingContext()
 
     self:drawBackground(dc)
-
     self:drawChildren(dc)
-
     self:drawForeground(dc)
 end
 

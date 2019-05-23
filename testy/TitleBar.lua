@@ -24,6 +24,11 @@ function TitleBar.new(self, obj)
     return obj
 end
 
+function TitleBar.setTitle(self, value)
+    self.title = value;
+    return self;
+end
+
 function TitleBar.drawBackground(self, ctx)
     --print("TitleBar.drawBackground")
     ctx:noStroke()
