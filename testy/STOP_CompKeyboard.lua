@@ -2,7 +2,8 @@
 local keyboard = require("GCompKeyboard")
 
 local function app(params)
-    local win1 = WMCreateWindow({frame={x=120, y=60,width=640,height=480}})
+    local win1 = WMCreateWindow({frame={x=params.frame.x, y=params.frame.y,
+        width=params.frame.width,height=params.frame.height}})
     win1:setUseTitleBar(true)    
     win1:setTitle("STOP_CompKeyboard.lua")
     

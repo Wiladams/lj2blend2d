@@ -114,6 +114,7 @@ end
 
 local function app(params)
   local win1 = WMCreateWindow(params)
+  win1:setUseTitleBar(true)
   
   -- negate drawing the default background
   function win1.drawBackground(self, ctx)

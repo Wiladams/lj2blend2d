@@ -28,7 +28,7 @@ function Window.new(self, obj)
         window = obj;
     })
     obj.useTitleBar = obj.useTitleBar or false;
-    obj.clientArea = GraphicGroup:new({frame=0,0,obj.frame.width, obj.frame.height})
+    obj.clientArea = {}
 
     setmetatable(obj, Window_mt)
 
@@ -50,6 +50,30 @@ function Window.hide(self)
     self.isShown = false;
 end
 
+function Window.setTitle(self, value)
+    return self.titleBar:setTitle(value)
+end
+
+function Window.setUseTitleBar(self, useit)
+    self.useTitleBar = useit;
+
+    local clientFrame = nil
+
+    if useit then
+        clientFrame = {
+            x=0,y=self.titleBar.frame.height,
+            width = self.frame.width, height = self.frame.height-self.titleBar.frame.height}
+    else
+        clientFrame = {
+            x=0,y=0,
+            width = self.frame.width, height = self.frame.height
+        }
+    end
+    
+    self.clientArea.frame = clientFrame
+
+    return self;
+end
 
 -- A window could be using as many buffers as it wants
 -- getReadyBuffer() returns the one the window wants the
@@ -74,9 +98,37 @@ function Window.moveBy(self, dx, dy)
     return self;
 end
 
+function Window.drawBegin(self, ctxt)
+    ctxt:save()
+
+
+
+    if self.useTitleBar then
+        self.titleBar:draw(ctxt)
+    end
+
+    -- adjust the coordinates for the clientArea and set clientArea clipping
+    --print("drawBegin, clientArea.frame: ", self.clientArea.frame)
+    --print("  x, y: ", self.clientArea.frame.x, self.clientArea.frame.y)
+    --print(" width, height: ", self.clientArea.frame.width, self.clientArea.frame.height)
+
+    ctxt:clip(self.clientArea.frame.x, self.clientArea.frame.y,
+        self.clientArea.frame.width, self.clientArea.frame.height)
+    ctxt:translate(self.clientArea.frame.x, self.clientArea.frame.y)
+end
+
+function Window.drawEnd(self, ctx)
+    ctx:restore();
+end
+
+
 function Window.drawBackground(self, ctxt)
+    -- doing the clear might waste some time
+    -- need to be more aware of whether there is
+    -- a background to be drawn, and whether clearing
+    -- is the desired behavior or not
     ctxt:clear()
-    ctxt:fill(127,180)
+    ctxt:fill(0xC0, 180)
     ctxt:fillAll()
 
     -- draw a black border
@@ -88,34 +140,6 @@ function Window.drawBackground(self, ctxt)
     ctxt:stroke(BLRgba32(border))
     ctxt:strokeWidth(4)
     ctxt:strokeRect(0,0,self.frame.width, self.frame.height)
-
-    if self.useTitleBar then
-        self.titleBar:draw(ctxt)
-    end
-end
-
-function Window.setTitle(self, value)
-    return self.titleBar:setTitle(value)
-end
-
-function Window.setUseTitleBar(self, useit)
-    self.useTitleBar = useit;
-
-    local clientFrame = nil
-
-    if useit then
-        clientFrame = {x=0,y=self.titleBar.frame.height,
-            self.frame.width, self.frame.height-self.titleBar.frame.height}
-    else
-        clientFrame = {
-            x=0,y=0,
-            self.frame.width, self.frame.height
-        }
-    end
-    
-    self.clientArea.frame = clientFrame
-
-    return self;
 end
 
 

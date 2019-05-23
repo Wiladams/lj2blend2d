@@ -78,6 +78,13 @@ function GraphicGroup.interactiveChildAt(self, x, y)
     end
 end
 
+-- dummy implementations
+function GraphicGroup.drawBegin(self, ctx)
+end
+
+-- dummy implementation
+function GraphicGroup.drawEnd(self, ctx)
+end
 
 function GraphicGroup.drawChildren(self, ctxt)
     --print("GraphicGroup.drawChildren: ", self.children)
@@ -114,9 +121,13 @@ end
 function GraphicGroup.draw(self, dc)
     dc = dc or self:getDrawingContext()
 
+    self:drawBegin(dc)
+
     self:drawBackground(dc)
     self:drawChildren(dc)
     self:drawForeground(dc)
+
+    self:drawEnd(dc);
 end
 
 function GraphicGroup.setFocus(self, child)

@@ -306,7 +306,7 @@ function DrawingContext.getReadyBuffer(self)
     return self.BackingBuffer;
 end
 
-function DrawingContext.clip(self, x, y, w, y)
+function DrawingContext.clip(self, x, y, w, h)
     local bResult = blapi.blContextClipToRectI(self.DC, BLRectI(x,y,w,h)) ;
     if bResult ~= C.BL_SUCCESS then
         return nil, bResult;

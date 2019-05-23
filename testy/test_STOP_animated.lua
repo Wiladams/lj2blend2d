@@ -20,13 +20,13 @@ local img, err = BLImageCodec:readImageFromFile("resources/kibera_1.jpg")
 local bkgnd, err = GImage:new({image = img, frame = BLRect({0,0,desktopWidth, desktopHeight})})
 --print("bkgnd: ", bkgnd, err)
 
---WMSetBackground(bkgnd)
-WMSetBackground(liner)
+WMSetBackground(bkgnd)
+--WMSetBackground(liner)
 
 local function startup()
     --spawn(framestatapp, {frame = {x=0, y=40, width=1200, height=40}})
     spawn(spiroapp,{frame = {x=100, y=100, width=640, height=480}})
-    spawn(keyboardapp, {frame = {x= 280, y = 600, width=640, height=290}})
+    spawn(keyboardapp, {frame = {x= 280, y = 600, width=640, height=360}})
 end
 
 winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=30}
