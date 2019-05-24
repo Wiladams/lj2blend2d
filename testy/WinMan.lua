@@ -85,6 +85,37 @@ local wmFocusWindow = nil;
 local wmLastMouseWindow = nil;
 
 
+-- Raw input utility functions
+local HID_MOUSE    = 2;
+local HID_KEYBOARD = 6;
+
+-- Register for mouse and keyboard
+local function HID_RegisterDevice(hTarget, usage, onlyWindow)
+    
+    local hid = ffi.new("RAWINPUTDEVICE");
+    hid.usUsagePage = 1;
+    hid.usUsage = usage;
+    hid.dwFlags = bor(C.RIDEV_DEVNOTIFY , C.RIDEV_INPUTSINK);
+    hid.hwndTarget = hTarget;
+
+    local bResult = C.RegisterRawInputDevices(hid, 1, ffi.sizeof("RAWINPUTDEVICE"));
+    print("HID_RegisterDevice: ", hTarget, bResult, C.GetLastError())
+end
+
+local function HID_UnregisterDevice(usage)
+    local hid = ffi.new("RAWINPUTDEVICE");
+    hid.usUsagePage = 1;
+    hid.usUsage = usage;
+    hid.dwFlags = C.RIDEV_REMOVE;
+    hid.hwndTarget = nil;
+
+    C.RegisterRawInputDevices(hid, 1, ffi.sizeof("RAWINPUTDEVICE"));
+end
+
+function WMSetWallpaper(bkgnd)
+    appBackground = bkgnd
+end
+
 function WMScreenToWin(win, x, y)
     return x-win.frame.x, y-win.frame.y
 end
@@ -184,7 +215,15 @@ function refreshWindow()
 end
 
 
+--[[
+    WinMan is a drawing environment based on the concept of a frame.
+    There is a system clock that will periodically call handleFrame() 
+    at a specified period.
 
+    Within handleFrame, we readraw the entire desktop, by compositing
+    the individual windows and various and sundry other drawing tasks
+    that are appropriate to the desktop.
+]]
 local function handleFrame()
     if not EnvironmentReady then return end
 
@@ -192,10 +231,10 @@ local function handleFrame()
     --print("handleFrame: ", frameCount, #windowGroup.children)
 
 
-    -- Draw whatever our background is first
-    -- if the background is a drawable, then draw it
 
+    -- Clear the app context so we start with a clean slate
     appContext:clear()
+
     if appBackground then
         appBackground:draw(appContext)
     end
@@ -298,7 +337,6 @@ function MouseActivity(hwnd, msg, wparam, lparam)
         return res;
     end
 
-
     -- find topmost window for mouse
     local win = WMWindowAt(mouseX, mouseY)
     --print("mouse: ", mouseX, mouseY, win)
@@ -348,27 +386,28 @@ function MouseActivity(hwnd, msg, wparam, lparam)
     return 0;
 end
 
-
--- encapsulate a keyboard event
-local function wm_keyboard_event(hwnd, msg, wparam, lparam)
-
-    local event = {
-        keyCode = wparam;
-        repeatCount = band(lparam, 0xffff);  -- 0 - 15
-        scanCode = rshift(band(lparam, 0xff0000),16);      -- 16 - 23
-        isExtended = band(lparam, 0x1000000) ~= 0;    -- 24
-        wasDown = band(lparam, 0x40000000) ~= 0; -- 30
-    }
-
-    return event;
-end
-
-
 function KeyboardActivity(hwnd, msg, wparam, lparam)
+    -- encapsulate a keyboard event
+    local function wm_keyboard_event(hwnd, msg, wparam, lparam)
+
+        local event = {
+            keyCode = wparam;
+            repeatCount = band(lparam, 0xffff);  -- 0 - 15
+            scanCode = rshift(band(lparam, 0xff0000),16);      -- 16 - 23
+            isExtended = band(lparam, 0x1000000) ~= 0;    -- 24
+            wasDown = band(lparam, 0x40000000) ~= 0; -- 30
+        }
+    
+        return event;
+    end
+    
+    
     --print("onKeyboardActivity")
-    local res = 1;
+    local res = 0;
 
     local event = wm_keyboard_event(hwnd, msg, wparam, lparam)
+
+    --print("event.keyCode: ", string.format("0x%x",event.keyCode), event.activity)
 
     if msg == C.WM_KEYDOWN or 
         msg == C.WM_SYSKEYDOWN then
@@ -392,6 +431,8 @@ function KeyboardActivity(hwnd, msg, wparam, lparam)
     else 
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
+
+    --print("event.keyCode: ", msg, string.format("0x%x",event.keyCode), event.activity)
 
     return res;
 end
@@ -579,7 +620,9 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         res = TouchActivity(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_GESTURE then
         res = GestureActivity(hwnd, msg, wparam, lparam)
-
+    elseif msg == C.WM_INPUT then
+        -- do stuff with raw input
+        print("WM_INPUT")
     elseif msg == C.WM_ERASEBKGND then
         --print("WM_ERASEBKGND: ", frameCount)
         --local hdc = ffi.cast("HDC", wparam); 
@@ -766,6 +809,28 @@ local function showWindow()
     C.ShowWindow(appWindowHandle, C.SW_SHOWNORMAL);
 end
 
+function rawInputOn(kind, localWindow)
+    if kind then
+        -- if a specific kind is named, then only register for that kind
+        return HID_RegisterDevice(appWindowHandle, HID_MOUSE, localWindow)
+    end
+
+    -- if no kind is named,then register for all kinds
+    HID_RegisterDevice(appWindowHandle, HID_MOUSE, localWindow)
+    HID_RegisterDevice(appWindowHandle, HID_KEYBOARD, localWindow)
+    
+    return true;
+end
+
+function rawInputOff(kind)
+    if kind then
+        return HID_UnregisterDevice(HID_MOUSE);
+    end
+    
+    HID_UnregisterDevice(HID_MOUSE);
+    HID_UnregisterDevice(HID_KEYBOARD);
+end
+
 --[[
     static const int TWF_FINETOUCH      = 0x00000001;
 static const int TWF_WANTPALM       = 0x00000002;
@@ -794,9 +859,7 @@ function touchOff()
     return false;
 end
 
-function WMSetBackground(bkgnd)
-    appBackground = bkgnd
-end
+
 
 local function main(params)
 

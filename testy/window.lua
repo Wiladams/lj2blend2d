@@ -121,14 +121,15 @@ function Window.drawEnd(self, ctx)
     ctx:restore();
 end
 
-
+--william = {58, 104, 108},
 function Window.drawBackground(self, ctxt)
     -- doing the clear might waste some time
     -- need to be more aware of whether there is
     -- a background to be drawn, and whether clearing
     -- is the desired behavior or not
     ctxt:clear()
-    ctxt:fill(0xC0, 180)
+    ctxt:fill(0xC0, 180)    -- light gray
+    --ctxt:fill(58,104,108)
     ctxt:fillAll()
 
     -- draw a black border

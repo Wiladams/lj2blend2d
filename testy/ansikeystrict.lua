@@ -23,8 +23,8 @@ return {
 {vkey = 0x38, frame = {x=324.00, y=82.00, width=40.00, height=40.00}, caption="8"};
 {vkey = 0x39, frame = {x=364.00, y=82.00, width=40.00, height=40.00}, caption="9"};
 {vkey = 0x30, frame = {x=404.00, y=82.00, width=40.00, height=40.00}, caption="0"};
-{vkey = 0x00, frame = {x=444.00, y=82.00, width=40.00, height=40.00}, caption="-"};
-{vkey = 0x00, frame = {x=484.00, y=82.00, width=40.00, height=40.00}, caption="="};
+{vkey = 0xbd, frame = {x=444.00, y=82.00, width=40.00, height=40.00}, caption="-"};
+{vkey = 0xbb, frame = {x=484.00, y=82.00, width=40.00, height=40.00}, caption="="};
 {vkey = 0x08, frame = {x=524.00, y=82.00, width=80.00, height=40.00}, caption="Backspace"};
 {vkey = 0x09, frame = {x=4.00, y=122.00, width=60.00, height=40.00}, caption="Tab"};
 {vkey = 0x51, frame = {x=64.00, y=122.00, width=40.00, height=40.00}, caption="Q"};

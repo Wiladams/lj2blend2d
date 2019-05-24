@@ -1,5 +1,25 @@
+--[[
+  This file contains a more Lua friendly interface to the blend2d library.
+  Whereas the blend2d_ffi.lua file contains a fairly raw, unadulturated 
+  access to the library, this provides various conveniences, such as
+  metatype binding, with handy methods.
+
+  This file makes interacting with blend2d similar to how you would
+  be doing it if programming in C++.
+
+  At the same time, it kind of breaks from the typical Lua convention of
+  not polluting the global namespace.  Given the amount of constants and 
+  types, it seems far easier to go ahead and pollute the global namespace
+  than force every call to be specialized through a lookup table.
+
+  Over time, a better solution, like using namespaces might be even 
+  better, but for now, convenience reigns supreme.
+]]
+
 local ffi = require("ffi")
 local C = ffi.C 
+
+local min, max = math.min, math.max
 
 local SIZE_MAX = 0xffffffffffffffffULL;
 
@@ -22,8 +42,6 @@ ffi.metatype(BLContext, {
     __new = function(ct, ...)
         local nargs = select("#", ...)
         local obj = ffi.new(ct);
-
-        --BLResult __cdecl blContextInitAs(BLContextCore* self, BLImageCore* image, const BLContextCreateOptions* options) ;
 
         if nargs == 0 then
           local bResult = blapi.blContextInit(obj)
@@ -789,8 +807,22 @@ BLRectI = ffi.typeof("struct BLRectI")
 ffi.metatype("struct BLRectI", {
     __tostring = function(self)
       return string.format("BLRect(%d, %d, %d, %d)", self.x, self.y, self.w, self.h)
-    end
+    end;
+
+    -- create a new rectangle that is the union of the two
+    __add = function(self, other)
+      local minx = min(self.x, other.x)
+      local miny = min(self.y, other.y)
+      local maxx = max(self.x+self.w, other.x+other.w)
+      local maxy = max(self.y+self.h, other.y+other.h)
+
+      local w = maxx - minx;
+      local h = maxy - miny;
+      
+      return BLRectI(minx, miny, w, h)
+    end;
 })
+
 BLRect = ffi.typeof("struct BLRect")
 
 BLLine = ffi.typeof("struct BLLine")

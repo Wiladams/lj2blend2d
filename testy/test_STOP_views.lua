@@ -23,7 +23,7 @@ local bkgnd = CheckerGraphic({
     color2 = 60
 })
 
-WMSetBackground(bkgnd)
+WMSetWallpaper(bkgnd)
 
 local function startup()
     --spawn(framestatapp, {x=0, y=0, width=1920, height=20})

@@ -4,17 +4,34 @@
 -- to building keyboard layout graphics
 local ffi = require("ffi")
 local C = ffi.C 
+local bit = require("bit")
+local band, bor = bit.band, bit.bor
 
+local DrawingContext = require("DrawingContext")
 local vkeys = require("vkeys")
 local Gradient = require("Gradient")
 --local keylayout = require("ansikeylayout")
 local keylayout = require("ansikeystrict")
+
+
 
 local function insetRect(rrect, cx, cy)
     local dx = cx/2
     local dy = cy/2
 
     return BLRoundRect(rrect.x+dx,rrect.y+dy,rrect.w-cx, rrect.h-cy, rrect.rx, rrect.ry)
+end
+
+-- maybe create a table with vkey as the key value
+-- so these lookups aren't quite some linear
+local function findVKey(list, value)
+    for _, key in ipairs(list) do
+        if key.vkey == value then
+            return key
+        end
+    end
+
+    return false;
 end
 
 
@@ -24,7 +41,8 @@ GKeyboard.__index = GKeyboard
 function GKeyboard.new(self, obj)
     local obj = obj or {}
     obj.unit = obj.unit or 40
-    obj.keysState = ffi.new("BYTE[256]")
+    obj.xmargin = 4;
+    --obj.keysState = ffi.new("BYTE[256]")
     obj.showKeyState = true;
     obj.gradient = Gradient.RadialGradient({
         values = {obj.unit/2, obj.unit/2, obj.unit/2, obj.unit/2, obj.unit};
@@ -34,12 +52,28 @@ function GKeyboard.new(self, obj)
 --            {offset = 1.0, uint32 = 0xFFCCCCCC},
         }
       });
-
+    obj.keyFrames = keylayout
+    
     setmetatable(obj, GKeyboard)
+    
+    -- setup the backingcontext
+    local extent = obj:getPreferredSize()
 
-    self.keyFrames = keylayout
+    obj.backingContext = DrawingContext(extent) 
+    obj:drawNeutral(obj.backingContext)
 
     return obj;
+end
+
+-- get the preferred width and height of keyboard
+function GKeyboard.getPreferredSize(self)
+    local extent = BLRectI(0,0,0,0)
+    for _, key in ipairs(self.keyFrames) do
+        local rect = BLRectI(key.frame.x,key.frame.y,key.frame.width, key.frame.height)
+        extent = extent + rect
+    end
+
+    return {width = extent.w, height = extent.h}
 end
 
 function GKeyboard.nowShowKeystate(self)
@@ -50,19 +84,61 @@ function GKeyboard.showKeystate(self)
     self.showKeyState = true;
 end
 
-function GKeyboard.drawKeystates(self, ctx)
+local KEY_IS_DOWN = 0x8000;
+
+function GKeyboard.drawKeyStates(self, ctx)
+    -- first get the state of all the keys
+    local lpKeyState = ffi.new("uint8_t[256]")
+    local bResult = C.GetKeyboardState(lpKeyState);
+
+    ---[[
+    for _, key in ipairs(self.keyFrames) do
+        local state = tonumber(band(C.GetAsyncKeyState(key.vkey), 0xffff))
+        if band(state, 0xffff) ~= 0 then
+            --print(string.format("key: 0x%02x  %10s    state: %02x", key.vkey, tostring(key.caption), state))
+            --if band(state, KEY_IS_DOWN) ~= 0 then
+            local rrect = BLRoundRect(key.frame.x,key.frame.y,key.frame.width, key.frame.height, 3, 3)
+            ctx:fill(0x30, 0x6f)
+            ctx:fillRoundRect(rrect)
+        end
+    end
+
+    --]]
+--[[
     -- go through the states
-    -- for the ones that are ~= 0
-    -- show them as pressed
+    for i=0,255 do
+        if lpKeyState[i] ~= 0 then
+            local key = findVKey(self.keyFrames, i)
+            if key then
+                -- draw translucent dark gray over key
+                local rrect = BLRoundRect(key.frame.x,key.frame.y,key.frame.width, key.frame.height, 3, 3)
+                local crect = insetRect(rrect,self.unit*0.30,self.unit*0.30)
+
+                -- first check if it's a toggle key
+                --if band(lpKeyState[i], 0x01) ~= 0 then
+                if band(lpKeyState[i], 0x80) ~= 0 then
+                    print(string.format("key: 0x%02x  %10s    state: %02x", i, tostring(key.caption), lpKeyState[i]))
+                    ctx:fill(0x30, 0x6f)
+                    ctx:fillRoundRect(crect)
+                end
+            end
+        end
+    end
+    --]]
 end
 
-function GKeyboard.draw(self, ctx)
+
+
+--[[
+    Draw the keyboard with no keys pressed to start
+]]
+function GKeyboard.drawNeutral(self, ctx)
     -- draw a standard bottom row
     ctx:fill(127)
     ctx:stroke(10)
     ctx:strokeWidth(1)
 
-    local xmargin = 4
+
     local xgap = 2
     local rowoffset = 4
     local ygap = 2
@@ -96,6 +172,18 @@ function GKeyboard.draw(self, ctx)
         ctx:text(key.caption, key.frame.x+key.frame.width/2, key.frame.y+key.frame.height/2)
 
     end
+end
+
+function GKeyboard.draw(self, ctx)
+--[[
+    local readyBuff = self.backingContext:getReadyBuffer()
+    if readyBuff then
+        ctx:blit(readyBuff, self.frame.x, self.frame.y)
+    end
+--]]
+
+    ctx:blit(self.backingContext:getReadyBuffer(), self.frame.x, self.frame.y)
+    self:drawKeyStates(ctx)
 end
 
 return GKeyboard

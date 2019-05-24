@@ -16,7 +16,7 @@ local desktopHeight = 1024
 local bkgnd, err = GImage:createFromFile("resources/heic1501b.jpg")
 --local bkgnd = GScaleTest:new()
 
-WMSetBackground(bkgnd)
+WMSetWallpaper(bkgnd)
 
 local function startup()
     --spawn(framestatapp, {x=0, y=0, width=1200, height=20})

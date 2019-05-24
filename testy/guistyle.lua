@@ -41,18 +41,30 @@
 local maths = require("maths")()
 
 local Colorrefs = {
+    Black = color(0, 0, 0);
+    White = color(0xff, 0xff, 0xff);
+
     Red = color(0xff, 0, 0);
     Green = color(0, 0xff, 0);
-    Blue = color(0, 0, 0xff);
     Cyan = color(0, 0xff, 0xff);
+    Blue = color(0, 0, 0xff);
+    Yellow = color(255, 255,0);
+    Magenta = color(255, 0, 255);
     DarkCyan = color(0, 0x80, 0x80);
+    MidGreen = color(0,192,0);
+    MidBlue = color(0,0,192);
+    MidRed = color(0xC0, 0,0);
+    MidMagenta = color(0xC0, 0, 0xC0);
+    DarkGreen = color(0,0x7f,0);
+    DarkBlue = color(0,0,0x7f);
+    DarkRed = color(0x7f, 0, 0);
+
     Pink = color(0xff, 0xC0, 0xCB);
 
-    -- Grayp
-    Black = color(0, 0, 0);
-    LtGray = color(0xc0,0xc0,0xc0);
-    DarkGray = color(0x80,0x80, 0x80);
-    White = color(0xff, 0xff, 0xff);
+    -- Grays
+    LtGray = color(0xc0);
+    MidGray = color(0x7f)
+    DarkGray = color(0x40,0x40, 0x40);
 }
 
 local function byte(value)
@@ -73,6 +85,18 @@ local function darker(value)
 	local blue = byte(value.b * 0.60);
 		
     return color(red, green, blue);
+end
+
+
+--[[
+	Convert to luminance using ITU-R Recommendation BT.709 (CCIR Rec. 709)
+	This is the one that matches modern HDTV and LCD monitors
+	This is a simple 'grayscale' conversion
+--]]
+local function lumaBT709(c)
+	local gray = 0.2125 * c[1] + 0.7154 * c[2] + 0.0721 * c[3]
+
+	return gray;
 end
 
 local GUIStyle = {

@@ -160,10 +160,6 @@ static const int RDW_UPDATENOW           = 0x0100;
 static const int RDW_ERASENOW            = 0x0200;
 
 
-// Windows messages
-static const int WM_DESTROY = 0x0002;
-static const int WM_PAINT   = 0x000F;
-static const int WM_QUIT    = 0x0012;
 
 static const int PM_REMOVE  =  0x0001;
 
@@ -289,7 +285,6 @@ typedef struct _BLENDFUNCTION
 
 static const int AC_SRC_OVER                = 0x00;
 static const int AC_SRC_ALPHA               = 0x01;
-
 ]]
 
 
@@ -310,9 +305,6 @@ typedef struct tagTOUCHINPUT {
 typedef TOUCHINPUT const * PCTOUCHINPUT;
 ]]
 
-ffi.cdef[[
-static const int WM_DPICHANGED                   = 0x02E0;
-]]
 
 ffi.cdef[[
 static const int MK_LBUTTON         = 0x0001;
@@ -326,7 +318,33 @@ static const int MK_XBUTTON2        = 0x0040;
 
 -- Window Messages
 ffi.cdef[[
-    static const int WM_ERASEBKGND                 =  0x0014;
+static const int WM_DESTROY     = 0x0002;
+static const int WM_PAINT       = 0x000F;
+static const int WM_QUIT        = 0x0012;
+
+static const int WM_ERASEBKGND  =  0x0014;
+]]
+
+-- raw input
+ffi.cdef[[
+static const int WM_INPUT_DEVICE_CHANGE          = 0x00FE;
+static const int WM_INPUT                        = 0x00FF;
+]]
+
+-- Keyboard messages
+ffi.cdef[[
+static const int WM_KEYFIRST                     = 0x0100;
+static const int WM_KEYDOWN                      = 0x0100;
+static const int WM_KEYUP                        = 0x0101;
+static const int WM_CHAR                         = 0x0102;
+static const int WM_DEADCHAR                     = 0x0103;
+static const int WM_SYSKEYDOWN                   = 0x0104;
+static const int WM_SYSKEYUP                     = 0x0105;
+static const int WM_SYSCHAR                      = 0x0106;
+static const int WM_SYSDEADCHAR                  = 0x0107;
+
+static const int WM_UNICHAR                      = 0x0109;
+static const int WM_KEYLAST                      = 0x0109;
 ]]
 
 -- Mouse Messages
@@ -355,22 +373,11 @@ static const int WM_MOUSEHOVER                   = 0x02A1;
 static const int WM_MOUSELEAVE                   = 0x02A3;
 ]]
 
--- Keyboard messages
+
+
 ffi.cdef[[
-static const int WM_KEYFIRST                     = 0x0100;
-static const int WM_KEYDOWN                      = 0x0100;
-static const int WM_KEYUP                        = 0x0101;
-static const int WM_CHAR                         = 0x0102;
-static const int WM_DEADCHAR                     = 0x0103;
-static const int WM_SYSKEYDOWN                   = 0x0104;
-static const int WM_SYSKEYUP                     = 0x0105;
-static const int WM_SYSCHAR                      = 0x0106;
-static const int WM_SYSDEADCHAR                  = 0x0107;
-
-static const int WM_UNICHAR                      = 0x0109;
-static const int WM_KEYLAST                      = 0x0109;
+static const int WM_DPICHANGED                   = 0x02E0;
 ]]
-
 -- Multimedia Extensions Window Messages
 ffi.cdef[[
 static const int MM_JOY1MOVE         = 0x3A0;           /* joystick */
@@ -482,6 +489,43 @@ typedef struct tagGESTURENOTIFYSTRUCT {
 } GESTURENOTIFYSTRUCT, *PGESTURENOTIFYSTRUCT;
 ]]
 
+--[[
+    Related to raw input
+]]
+ffi.cdef[[
+static const int RIDEV_REMOVE           = 0x00000001;
+static const int RIDEV_EXCLUDE          = 0x00000010;
+static const int RIDEV_PAGEONLY         = 0x00000020;
+static const int RIDEV_NOLEGACY         = 0x00000030;
+static const int RIDEV_INPUTSINK        = 0x00000100;
+static const int RIDEV_CAPTUREMOUSE     = 0x00000200;  // effective when mouse nolegacy is specified, otherwise it would be an error
+static const int RIDEV_NOHOTKEYS        = 0x00000200;  // effective for keyboard.
+static const int RIDEV_APPKEYS          = 0x00000400; // effective for keyboard.
+static const int RIDEV_EXINPUTSINK      = 0x00001000;
+static const int RIDEV_DEVNOTIFY        = 0x00002000;
+static const int RIDEV_EXMODEMASK       = 0x000000F0;
+]]
+
+ffi.cdef[[
+typedef struct tagRAWINPUTDEVICE {
+    USHORT usUsagePage; // Toplevel collection UsagePage
+    USHORT usUsage;     // Toplevel collection Usage
+    DWORD dwFlags;
+    HWND hwndTarget;    // Target hwnd. NULL = follows keyboard focus
+} RAWINPUTDEVICE, *PRAWINPUTDEVICE, *LPRAWINPUTDEVICE;
+
+typedef const RAWINPUTDEVICE* PCRAWINPUTDEVICE;
+]]
+
+ffi.cdef[[
+static const int GIDC_ARRIVAL        =     1;
+static const int GIDC_REMOVAL        =     2;
+]]
+
+ffi.cdef[[
+BOOL __stdcall RegisterRawInputDevices(PCRAWINPUTDEVICE pRawInputDevices, UINT uiNumDevices, UINT cbSize);
+]]
+
 
 -- libloaderapi
 ffi.cdef[[
@@ -529,6 +573,7 @@ int TranslateMessage(const MSG *lpMsg);
 LRESULT DispatchMessageA(const MSG *lpMsg);
 
 BOOL GetKeyboardState(PBYTE lpKeyState);
+SHORT GetAsyncKeyState(int vKey);
 
 // Windows paint
 HDC BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);

@@ -20,8 +20,8 @@ local img, err = BLImageCodec:readImageFromFile("resources/kibera_1.jpg")
 local bkgnd, err = GImage:new({image = img, frame = BLRect({0,0,desktopWidth, desktopHeight})})
 --print("bkgnd: ", bkgnd, err)
 
-WMSetBackground(bkgnd)
---WMSetBackground(liner)
+WMSetWallpaper(bkgnd)
+--WMSetWallpaper(liner)
 
 local function startup()
     --spawn(framestatapp, {frame = {x=0, y=40, width=1200, height=40}})
