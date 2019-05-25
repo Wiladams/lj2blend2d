@@ -15,7 +15,8 @@ function TitleBar.new(self, obj)
     obj = GraphicGroup:new(obj)
     obj.frame = obj.frame or {x=0,y=0,width=obj.window.frame.width, height = 36};
     obj.title = "TitleBar"
-    
+    obj.refuseFocus = true;
+
     setmetatable(obj, TitleBar_mt)
 
     local cbox = CloseBox:new({frame={x=2, y=2, width=30, height=30}})
@@ -39,6 +40,7 @@ function TitleBar.drawBackground(self, ctx)
     ctx:textAlign(CENTER, MIDDLE)
     ctx:text(self.title, self.frame.width/2, self.frame.height/2)
 end
+
 
 function TitleBar.setFocus(self, child)
     print("TitleBar.setFocus(): ", child)
@@ -67,8 +69,8 @@ function TitleBar.mouseDown(self, event)
     self.isDragging = true;
 end
 
-function TitleBar.mouseMove(self, event)
-    print("TitleBar.mouseMove: ", event.x, event.y, self.isDragging)
+function TitleBar.mouseHover(self, event)
+    print("TitleBar.mouseHover: ", event.x, event.y, self.isDragging)
     if self.isDragging then
         if not self.lastMove then
             self.lastMove = {x = event.screenX, y = event.screenY};

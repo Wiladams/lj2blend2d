@@ -14,6 +14,15 @@ local GraphicGroup = require("GraphicGroup")
 local desktopWidth = 1920
 local desktopHeight = 1080
 
+local function printMouseEvent(self, event)
+    print(string.format("%10s  %15s %s  screen: %d %d  window: %d %d", 
+        self.title, 
+        event.activity, 
+        tostring(event.isDragging), 
+        event.screenX, event.screenY,
+        event.x, event.y))
+end
+
 -- Generic app that puts up a window
 local function app(params)
     local win1 = WMCreateWindow(params)
@@ -54,29 +63,42 @@ local function app(params)
 
     win1:add(g)
 
-    function win1.printMouseEvent(self, event)
-        print(string.format("%10s  %15s %s  screen: %d %d  window: %d %d", 
-            self.title, 
-            event.activity, 
-            tostring(event.isDragging), 
-            event.screenX, event.screenY,
-            event.x, event.y))
+
+    function win1.drawBackground(self, ctxt)
+        -- doing the clear might waste some time
+        -- need to be more aware of whether there is
+        -- a background to be drawn, and whether clearing
+        -- is the desired behavior or not
+        ctxt:clear()
+        ctxt:fill(self.bgcolor, 180)
+        --ctxt:fill(58,104,108)
+        ctxt:fillAll()
+    
+        -- draw a black border
+        local border = 0xff000000
+        if self.isFocus then
+            border = 0xffff0000
+        end
+    
+        ctxt:stroke(BLRgba32(border))
+        ctxt:strokeWidth(4)
+        ctxt:strokeRect(0,0,self.frame.width, self.frame.height)
     end
 
-    function win1.mouseDown(self, event)
-        self:printMouseEvent(event)
+    function win1.clientArea.mouseDown(self, event)
+        printMouseEvent(win1, event)
     end
     
-    function win1.mouseUp(self, event)
-        self:printMouseEvent(event)
+    function win1.clientArea.mouseUp(self, event)
+        printMouseEvent(win1, event)
     end
 
-    function win1.mouseHover(self, event)
-        self:printMouseEvent(event)
+    function win1.clientArea.mouseHover(self, event)
+        printMouseEvent(win1, event)
     end
 
-    function win1.mouseMove(self, event)
-        self:printMouseEvent(event)
+    function win1.clientArea.mouseMove(self, event)
+        printMouseEvent(win1, event)
     end
 
     win1:show()
@@ -91,8 +113,8 @@ end
 
 
 local function startup()
-    spawn(app, {title="app1", frame = {x=40, y=40, width=640, height=480}})
-    spawn(app, {title="app2", frame = {x=720, y=40, width=640, height=480}})
+    spawn(app, {bgcolor = color(60), title="app1", frame = {x=40, y=40, width=640, height=480}})
+    spawn(app, {bgcolor = 220, title="app2", frame = {x=720, y=40, width=640, height=480}})
 end
 
 winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=10}

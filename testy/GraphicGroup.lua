@@ -181,25 +181,26 @@ function GraphicGroup.mouseEvent(self, event)
         event.y = y;
 
         if event.activity == "mousemove" then
-            if child == self.activeChild then
-                return child:mouseEvent(event)
-            else
+            if child ~= self.activeChild then
                 event.activity = "mousehover"
-                return child:mouseEvent(event)
             end
+
+            return child:mouseEvent(event)
         elseif event.activity == "mousehover" then
             return child:mouseEvent(event)
         elseif event.activity == "mousedown" then
-            if child ~= self.activeChild then
+            if child ~= self.activeChild and not child.refuseFocus then
                 self:setFocus(child)
             end
             return child:mouseEvent(event)
         elseif event.activity == "mouseup" then
-            if child == self.activeChild then
-                return child:mouseEvent(event)
-            else
-                return self:setFocus(child)
-            end
+            --if child == self.activeChild then
+            --    return child:mouseEvent(event)
+            --else
+            --    return self:setFocus(child)
+            --end
+
+            return child:mouseEvent(event)
         else
             if child == self.activeChild then
                 return child:mouseEvent(event)
