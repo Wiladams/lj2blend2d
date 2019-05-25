@@ -664,7 +664,9 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         res = GestureActivity(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_INPUT then
         -- do stuff with raw input
-        print("WM_INPUT")
+        --print("WM_INPUT: ", wparam)
+        -- create appropriate events from raw data
+        res = C.DefWindowProcA(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_ERASEBKGND then
         --print("WM_ERASEBKGND: ", frameCount)
         --local hdc = ffi.cast("HDC", wparam); 

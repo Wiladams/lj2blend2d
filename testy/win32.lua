@@ -523,6 +523,78 @@ static const int GIDC_REMOVAL        =     2;
 ]]
 
 ffi.cdef[[
+static const int    RIM_INPUT      = 0;
+static const int    RIM_INPUTSINK  = 1;
+]]
+
+ffi.cdef[[
+/*
+ * Raw Input data header
+ */
+typedef struct tagRAWINPUTHEADER {
+    DWORD dwType;
+    DWORD dwSize;
+    HANDLE hDevice;
+    WPARAM wParam;
+} RAWINPUTHEADER, *PRAWINPUTHEADER, *LPRAWINPUTHEADER;
+
+/*
+ * Raw format of the mouse input
+ */
+ typedef struct tagRAWMOUSE {
+    USHORT usFlags;
+
+    union {
+        ULONG ulButtons;
+        struct  {
+            USHORT  usButtonFlags;
+            USHORT  usButtonData;
+        } ;
+    } ;
+
+    ULONG ulRawButtons;
+    LONG lLastX;
+    LONG lLastY;
+    ULONG ulExtraInformation;
+} RAWMOUSE, *PRAWMOUSE, *LPRAWMOUSE;
+
+/*
+ * Raw format of the keyboard input
+ */
+typedef struct tagRAWKEYBOARD {
+    USHORT MakeCode;
+    USHORT Flags;
+    USHORT Reserved;
+    USHORT VKey;
+    UINT   Message;
+    ULONG ExtraInformation;
+} RAWKEYBOARD, *PRAWKEYBOARD, *LPRAWKEYBOARD;
+
+/*
+ * Raw format of the input from Human Input Devices
+ */
+typedef struct tagRAWHID {
+    DWORD dwSizeHid;    // byte size of each report
+    DWORD dwCount;      // number of input packed
+    BYTE bRawData[1];
+} RAWHID, *PRAWHID, *LPRAWHID;
+
+
+/*
+ * RAWINPUT data structure.
+ */
+typedef struct tagRAWINPUT {
+    RAWINPUTHEADER header;
+    union {
+        RAWMOUSE    mouse;
+        RAWKEYBOARD keyboard;
+        RAWHID      hid;
+    } data;
+} RAWINPUT, *PRAWINPUT, *LPRAWINPUT;
+]]
+
+
+ffi.cdef[[
 BOOL __stdcall RegisterRawInputDevices(PCRAWINPUTDEVICE pRawInputDevices, UINT uiNumDevices, UINT cbSize);
 ]]
 
