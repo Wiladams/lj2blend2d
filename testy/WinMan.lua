@@ -159,11 +159,12 @@ function WMSetFocus(win)
     wmFocusWindow = win
 end
 
+local function contains(frame, x, y)
+    return x >= frame.x and x < frame.x+frame.width and
+        y >= frame.y and y < frame.y+frame.height
+end
+
 function WMWindowAt(x, y)
-    local function contains(frame, x, y)
-        return x >= frame.x and x < frame.x+frame.width and
-            y >= frame.y and y < frame.y+frame.height
-    end
 
     for i = #windowGroup, 1, -1 do
         win = windowGroup[i]
@@ -302,6 +303,8 @@ local function wm_mouse_event(hwnd, msg, wparam, lparam)
         screenY = mouseY;
         parentX = mouseX;
         parentY = mouseY;
+        x = mouseX;
+        y = mouseY;
 
         control = band(wparam, C.MK_CONTROL) ~= 0;
         shift = band(wparam, C.MK_SHIFT) ~= 0;
@@ -362,19 +365,19 @@ function MouseActivity(hwnd, msg, wparam, lparam)
     -- find topmost window for mouse
     local win = WMWindowAt(mouseX, mouseY)
     --print("mouse: ", mouseX, mouseY, win)
-    
+    --[[
     if win then
         local x, y = WMScreenToWin(win, event.parentX, event.parentY)
         event.x = x;
         event.y = y;
     end
-
+--]]
     if event.activity == "mousemove" then
         if win then
             if win == wmFocusWindow then
                 win:mouseEvent(event)
             else
-                event.activity = "mousehover"
+                event.subactivity = "hover"
                 win:mouseEvent(event)
             end
         end

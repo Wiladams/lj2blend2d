@@ -3,7 +3,7 @@ local keyboard = require("GPianoKeyboard")
 
 local function app(params)
     local win1 = WMCreateWindow(params)
-    win1:setUseTitleBar(true)
+    --win1:setUseTitleBar(true)
 
     local kbdsets = 8
     local kbdwidth = params.frame.width/kbdsets

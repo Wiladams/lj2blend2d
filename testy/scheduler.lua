@@ -19,6 +19,8 @@ local ffi = require("ffi")
 local win32 = require("win32")
 
 local floor = math.floor;
+local min = math.min;
+
 local insert = table.insert;
 
 
@@ -716,20 +718,28 @@ local function delay(millis, func)
 	return spawn(closure)
 end
 
-local function periodic(millis, func)
-	millis = millis or 1000
+local function periodic(mills, func)
+	if not func or not mills then 
+		return nil, "must specify milliseconds and function" 
+	end
 
-	if not func then return nil end
-	
-	local function closure()
+	local function closure(sleepTime)
+		local nextTime = millis() + sleepTime
+		local nextMillis= sleepTime
+
 		while true do
-			sleep(millis)
+			sleep(nextMillis)
 			func();
+			
+			-- do this until we get a time that's beyond
+			-- the present by at least 5 millis
+			nextMillis = math.max(0, nextTime - millis())
+			nextTime = nextTime + sleepTime
 		end
 	end
 
 
-	return spawn(closure)
+	return spawn(closure, mills)
 end
 
 -- The routine task which checks the list of waiting tasks to see

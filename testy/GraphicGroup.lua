@@ -41,6 +41,10 @@ function GraphicGroup.add(self, child, after)
     table.insert(self.children, child)
 end
 
+function GraphicGroup.ConvertFromParent(self, x, y)
+    return x-self.frame.x, y-self.frame.y
+end
+
 -- an iterator over the children in z-order (order of drawing)
 function GraphicGroup.childrenInZOrder(self)
     local function visitor()
@@ -53,29 +57,67 @@ function GraphicGroup.childrenInZOrder(self)
     return coroutine.wrap(visitor)
 end
 
+local function contains(frame, x, y)
+    return x >= frame.x and x < frame.x+frame.width and
+        y >= frame.y and y < frame.y+frame.height
+end
+
+--[=[
 function GraphicGroup.activeChildrenAt(self, x, y)
-    local function contains(frame, x, y)
-        return x >= frame.x and x < frame.x+frame.width and
-            y >= frame.y and y < frame.y+frame.height
+
+    for i = #self.children, 1, -1 do
+        local child = self.children[i]
+        if child.frame and contains(child.frame, x, y) then
+            if child.activeChildrenAt then
+                local x,y = child:ConvertFromParent(x, y)
+                return child:activeChildrenAt(x,y)
+            else
+                return child
+            end
+        --[[
+        
+            if child.activeChildrenAt then
+                
+                local child = child:activeChildrenAt(x, y)
+            end
+        end
+        --]]
     end
 
+    return nil
+
+--[[
     local function visitor()
         for i = #self.children, 1, -1 do
             child = self.children[i]
-            if child.frame and contains(child.frame, x, y) and
-            child.mouseEvent then
+            if child.frame and contains(child.frame, x, y) and child.mouseEvent then
                 coroutine.yield(child)
             end
         end
     end
 
     return coroutine.wrap(visitor)
+--]]
 end
+--]=]
 
-function GraphicGroup.interactiveChildAt(self, x, y)
-    for child in self:activeChildrenAt(x,y) do
-        return child;
+--[[
+    coordinates are in the local context
+    someone else can deal with a nil child
+]]
+function GraphicGroup.graphicAt(self, x, y)
+    if not self.children then
+        return nil;
     end
+    
+    for i = #self.children, 1, -1 do
+        graphic = self.children[i]
+        if graphic.frame and contains(graphic.frame, x, y) then
+            return graphic
+        end
+    end
+
+    return nil;
 end
 
 -- dummy implementations
@@ -157,56 +199,42 @@ function GraphicGroup.keyEvent(self, event)
     print("GraphicGroup.keyEvent: ", event.activity)
 end
 
-function GraphicGroup.ConvertFromParent(self, x, y)
-    return x-self.frame.x, y-self.frame.y
-end
+
 
 -- complex behavior here.  Deal with cases where
 -- there's an active child or not, and switching
 -- between children
+
+-- The event.x, event.y are in the coordinate system 
+-- of the parent graphic
 function GraphicGroup.mouseEvent(self, event)
-    --print("mouse: ", event.activity, event.x, event.y)
-
-    local child = self:interactiveChildAt(event.x, event.y)
-
-    if child then
+    --print("GraphicGroup.mouseEvent: ", event.activity, event.x, event.y)
     
-        -- preserve the parent coordinates
-        event.parentX = event.x;
-        event.parentY = event.y;
-        
-        -- Convert x, y coordinates to be in the space of the child
-        local x, y = self:ConvertFromParent(event.x, event.y)
-        event.x = x;
-        event.y = y;
+    -- preserve the parent coordinates
+    event.parentX = event.x;
+    event.parentY = event.y;
+    
+    -- Convert x, y coordinates to be in the space of the child
+    local x, y = self:ConvertFromParent(event.x, event.y)
+    event.x = x;
+    event.y = y;
 
+    local child = self:graphicAt(event.x, event.y)
+
+    if child  and child.mouseEvent then
+        --print("mouseEvent.child.title: ", tostring(child.title))
         if event.activity == "mousemove" then
             if child ~= self.activeChild then
-                event.activity = "mousehover"
+                event.subactivity = "mousehover"
             end
-
-            return child:mouseEvent(event)
-        elseif event.activity == "mousehover" then
-            return child:mouseEvent(event)
         elseif event.activity == "mousedown" then
             if child ~= self.activeChild and not child.refuseFocus then
                 self:setFocus(child)
             end
-            return child:mouseEvent(event)
         elseif event.activity == "mouseup" then
-            --if child == self.activeChild then
-            --    return child:mouseEvent(event)
-            --else
-            --    return self:setFocus(child)
-            --end
-
-            return child:mouseEvent(event)
-        else
-            if child == self.activeChild then
-                return child:mouseEvent(event)
-            end
         end
-    --end
+
+        return child:mouseEvent(event)
     else
         -- If we are here, then the mouse activity falls outside
         -- any of the children, so it's on the body of the group
@@ -225,8 +253,6 @@ function GraphicGroup.mouseEvent(self, event)
         elseif event.activity == "mousedown" then
             self:setFocus()
             return self:mouseDown(event)
-        elseif event.activity == "mousehover" then
-            return self:mouseHover(event)
         elseif event.activity == "mousemove" then
             return self:mouseMove(event)
         end
@@ -247,6 +273,7 @@ function GraphicGroup.mouseUp(self, event)
 end
 
 function GraphicGroup.mouseMove(self, event)
+
 end
 
 function GraphicGroup.mouseHover(self, event)

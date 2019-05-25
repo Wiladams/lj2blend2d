@@ -2,9 +2,9 @@ package.path = "../?.lua;"..package.path;
 
 local winman = require("WinMan")
 
-local framestatapp = require("STOP_framestat")
-local keyboardapp = require("STOP_CompKeyboard")
-local pianoapp = require("STOP_pianoapp")
+local framestatapp = require("BEST_framestat")
+local keyboardapp = require("BEST_CompKeyboard")
+local pianoapp = require("BEST_pianoapp")
 
 local GImage = require("GIMage")
 local GScaleTest = require("GScaleTest")

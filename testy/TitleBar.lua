@@ -2,6 +2,7 @@ local GraphicGroup = require("GraphicGroup")
 local CloseBox = require("CloseBox")
 
 
+
 local TitleBar = {}
 setmetatable(TitleBar, {
     __index = GraphicGroup;
@@ -19,15 +20,30 @@ function TitleBar.new(self, obj)
 
     setmetatable(obj, TitleBar_mt)
 
-    local cbox = CloseBox:new({frame={x=2, y=2, width=30, height=30}})
+    print("closebox.x: ", obj.frame.width-32)
+    local cbox = CloseBox:new({title='closebox', frame={x=obj.frame.width-32, y=2, width=30, height=30}})
+   --local cbox = CloseBox:new({frame={x=2, y=2, width=30, height=30}})
+
+    on(cbox, obj:functor(obj.onClose))
     obj:add(cbox)
 
     return obj
 end
 
+function TitleBar.functor(self, func)
+    return function(...)
+        print("functor: ", ...)
+        return func(self, ...)
+    end
+end
+
 function TitleBar.setTitle(self, value)
     self.title = value;
     return self;
+end
+
+function TitleBar.onClose(self, event)
+    print("TitleBar.onClose: ", event)
 end
 
 function TitleBar.drawBackground(self, ctx)
@@ -41,7 +57,6 @@ function TitleBar.drawBackground(self, ctx)
     ctx:text(self.title, self.frame.width/2, self.frame.height/2)
 end
 
-
 function TitleBar.setFocus(self, child)
     print("TitleBar.setFocus(): ", child)
 end
@@ -51,26 +66,13 @@ function TitleBar.loseFocus(self)
     self.isDragging = false;
 end
 
---[[
-function TitleBar.mouseEvent(self, event)
-    --print("TitleBar.mouseEvent: ", event.activity, event.isDragging)
-    if event.activity == "mousemove" then
-        return self:mouseMove(event)
-    elseif event.activity == "mouseup" then
-        return self:mouseUp(event)
-    elseif event.activity == "mousedown" then
-        return self:mouseDown(event)
-    end
-end
---]]
-
 function TitleBar.mouseDown(self, event)
-    print("TitleBar.mouseDown")
+    --print("TitleBar.mouseDown")
     self.isDragging = true;
 end
 
-function TitleBar.mouseHover(self, event)
-    print("TitleBar.mouseHover: ", event.x, event.y, self.isDragging)
+function TitleBar.mouseMove(self, event)
+    --print("TitleBar.mouseMove: ", event.x, event.y, self.isDragging)
     if self.isDragging then
         if not self.lastMove then
             self.lastMove = {x = event.screenX, y = event.screenY};
@@ -87,7 +89,7 @@ function TitleBar.mouseHover(self, event)
 end
     
 function TitleBar.mouseUp(self, event)
-    print("TitleBar.mouseUp: ", event.x, event.y)
+    --print("TitleBar.mouseUp: ", event.x, event.y)
     self.lastMove = nil;
     self.isDragging = false;
 end

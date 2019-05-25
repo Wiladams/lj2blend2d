@@ -31,9 +31,10 @@ local function app(params)
     g.title = params.title..":graphic"
 
     function g.printMouseEvent(self, event)
-        print(string.format("Title: %10s  %15s Drag: %s  screen: %d %d  window: %d %d", 
+        print(string.format("Title: %10s  %10s  %15s Drag: %s  screen: %d %d  window: %d %d", 
         tostring(self.title), 
-        event.activity, 
+        event.activity,
+        tostring(event.subactivity),
         tostring(event.isDragging), 
         event.screenX, event.screenY,
         event.x, event.y))
@@ -44,10 +45,6 @@ local function app(params)
     end
     
     function g.mouseUp(self, event)
-        self:printMouseEvent(event)
-    end
-
-    function g.mouseHover(self, event)
         self:printMouseEvent(event)
     end
 
@@ -90,10 +87,6 @@ local function app(params)
     end
     
     function win1.clientArea.mouseUp(self, event)
-        printMouseEvent(win1, event)
-    end
-
-    function win1.clientArea.mouseHover(self, event)
         printMouseEvent(win1, event)
     end
 
