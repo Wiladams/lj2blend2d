@@ -25,6 +25,7 @@ end
 
 -- Generic app that puts up a window
 local function app(params)
+    local continueRunning = true
     local win1 = WMCreateWindow(params)
     win1:setUseTitleBar(true)
     local g = GraphicGroup:new({frame = {x=64,y=64,width=200,height=200}})
@@ -39,7 +40,7 @@ local function app(params)
         event.screenX, event.screenY,
         event.x, event.y))
     end
-
+--[=[
     function g.mouseDown(self, event)
         self:printMouseEvent(event)
     end
@@ -51,7 +52,7 @@ local function app(params)
     function g.mouseMove(self, event)
         self:printMouseEvent(event)
     end
-
+--]=]
     function g.draw(self, ctx)
         ctx:noStroke();
         ctx:fill(0xC0)
@@ -82,6 +83,7 @@ local function app(params)
         ctxt:strokeRect(0,0,self.frame.width, self.frame.height)
     end
 
+--[=[
     function win1.clientArea.mouseDown(self, event)
         printMouseEvent(win1, event)
     end
@@ -93,10 +95,32 @@ local function app(params)
     function win1.clientArea.mouseMove(self, event)
         printMouseEvent(win1, event)
     end
-
+--]=]
     win1:show()
 
-    while true do
+    -- Instead of making a specific application window kind,
+    -- we just watch the window for when the close function
+    -- is called.  We catch that signal, and tell the system
+    -- to destroy the window
+    -- create a signal handler for when the window is closed
+    function onClose(win, signal)
+        if signal ~= "windowclose" then
+            return false;
+        end
+
+        --print("app:onClose: ", tostring(win), signal)
+        WMDestroyWindow(win)
+
+        -- stop the application loop
+        continueRunning = false;
+    end
+
+    -- subscribe to signals related to the window
+    -- we'll catch all window signals with this one method
+    -- we can filter from there
+    on(win1, onClose)
+
+    while continueRunning do
         win1:draw()
         yield();
     end
@@ -110,4 +134,4 @@ local function startup()
     spawn(app, {bgcolor = 220, title="app2", frame = {x=720, y=40, width=640, height=480}})
 end
 
-winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=10}
+winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=30}

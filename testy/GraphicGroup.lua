@@ -62,45 +62,6 @@ local function contains(frame, x, y)
         y >= frame.y and y < frame.y+frame.height
 end
 
---[=[
-function GraphicGroup.activeChildrenAt(self, x, y)
-
-    for i = #self.children, 1, -1 do
-        local child = self.children[i]
-        if child.frame and contains(child.frame, x, y) then
-            if child.activeChildrenAt then
-                local x,y = child:ConvertFromParent(x, y)
-                return child:activeChildrenAt(x,y)
-            else
-                return child
-            end
-        --[[
-        
-            if child.activeChildrenAt then
-                
-                local child = child:activeChildrenAt(x, y)
-            end
-        end
-        --]]
-    end
-
-    return nil
-
---[[
-    local function visitor()
-        for i = #self.children, 1, -1 do
-            child = self.children[i]
-            if child.frame and contains(child.frame, x, y) and child.mouseEvent then
-                coroutine.yield(child)
-            end
-        end
-    end
-
-    return coroutine.wrap(visitor)
---]]
-end
---]=]
-
 --[[
     coordinates are in the local context
     someone else can deal with a nil child
@@ -109,7 +70,7 @@ function GraphicGroup.graphicAt(self, x, y)
     if not self.children then
         return nil;
     end
-    
+
     for i = #self.children, 1, -1 do
         graphic = self.children[i]
         if graphic.frame and contains(graphic.frame, x, y) then

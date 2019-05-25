@@ -33,13 +33,12 @@ function Window.new(self, obj)
         heigh = obj.frame.height;
     }})
     obj.useTitleBar = obj.useTitleBar or false;
- 
+    obj.continueRunning = true;
+
     setmetatable(obj, Window_mt)
 
     obj:add(obj.clientArea)
     obj:setUseTitleBar(obj.useTitleBar)
-
-    --obj:setup()
 
     return obj;
 end
@@ -48,6 +47,14 @@ end
 function Window.setup(self)
 end
 --]]
+function Window.close(self)
+    --print("Window.close: ", self)
+    signalAll(self, self, "windowclose")
+end
+
+function Window.destroy(self)
+    --print("Window.destroy")
+end
 
 function Window.show(self)
     self.isShown = true;

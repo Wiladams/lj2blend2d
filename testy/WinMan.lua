@@ -186,6 +186,23 @@ function WMCreateWindow(params)
     return win
 end
 
+function WMDestroyWindow(win)
+    -- remove window from list of windows
+    local newlist = {}
+    for _, item in ipairs(windowGroup) do
+        if item ~= win then
+            table.insert(newlist, item)
+        end 
+    end
+    windowGroup = newlist;
+    -- At this point, the window won't be composited again
+    -- because it's out of the windowGroup
+
+    -- give the window a chance to do any cleanup
+    -- if it wants to
+    win:destroy();
+end
+
 
 -- Internal functions
 function flushToScreen()

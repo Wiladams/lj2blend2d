@@ -1,6 +1,6 @@
 local GraphicGroup = require("GraphicGroup")
 local CloseBox = require("CloseBox")
-
+local functor = require("functor")
 
 
 local TitleBar = {}
@@ -20,21 +20,12 @@ function TitleBar.new(self, obj)
 
     setmetatable(obj, TitleBar_mt)
 
-    print("closebox.x: ", obj.frame.width-32)
     local cbox = CloseBox:new({title='closebox', frame={x=obj.frame.width-32, y=2, width=30, height=30}})
-   --local cbox = CloseBox:new({frame={x=2, y=2, width=30, height=30}})
 
-    on(cbox, obj:functor(obj.onClose))
+    on(cbox, functor(obj.onClose, obj))
     obj:add(cbox)
 
     return obj
-end
-
-function TitleBar.functor(self, func)
-    return function(...)
-        print("functor: ", ...)
-        return func(self, ...)
-    end
 end
 
 function TitleBar.setTitle(self, value)
@@ -43,7 +34,8 @@ function TitleBar.setTitle(self, value)
 end
 
 function TitleBar.onClose(self, event)
-    print("TitleBar.onClose: ", event)
+    --print("TitleBar.onClose: ", event)
+    self.window:close()
 end
 
 function TitleBar.drawBackground(self, ctx)

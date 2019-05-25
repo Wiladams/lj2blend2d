@@ -19,12 +19,12 @@ function CloseBox.new(self, obj)
 end
 
 function CloseBox.mouseUp(self, event)
-    print("CloseBox.mouseUp")
-    signalAll(self)
+    --print("CloseBox.mouseUp")
+    signalAll(self, self)
 end
 
 function CloseBox.mouseMove(self, event)
-    print("CloseBox.mousemove: ", event.x, event.y)
+    --print("CloseBox.mousemove: ", event.x, event.y)
     self.lastMouseTime = millis()
 
 end
