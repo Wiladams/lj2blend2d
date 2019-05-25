@@ -809,6 +809,9 @@ local function showWindow()
     C.ShowWindow(appWindowHandle, C.SW_SHOWNORMAL);
 end
 
+--[[
+    https://docs.microsoft.com/en-us/windows/desktop/inputdev/using-raw-input
+]]
 function rawInputOn(kind, localWindow)
     if kind then
         -- if a specific kind is named, then only register for that kind
@@ -834,9 +837,6 @@ end
 --[[
     static const int TWF_FINETOUCH      = 0x00000001;
 static const int TWF_WANTPALM       = 0x00000002;
-
-BOOL RegisterTouchWindow(HWND hwnd, ULONG ulFlags);
-BOOL UnregisterTouchWindow(HWND hwnd);
 ]]
 function touchOn(flags)
     flags = flags or 0
@@ -895,8 +895,8 @@ local function main(params)
     appWindowDC = C.GetDC(appWindowHandle)
 
     -- Setup to deal with user inputs
-    setupUIHandlers();
-    yield();
+    --setupUIHandlers();
+    --yield();
 
     EnvironmentReady = true;
 
