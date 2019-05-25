@@ -87,6 +87,7 @@ end
 function TitleBar.mouseUp(self, event)
     print("TitleBar.mouseUp: ", event.x, event.y)
     self.lastMove = nil;
+    self.isDragging = false;
 end
 
 return TitleBar

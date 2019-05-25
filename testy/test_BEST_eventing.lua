@@ -17,7 +17,7 @@ local desktopHeight = 1080
 -- Generic app that puts up a window
 local function app(params)
     local win1 = WMCreateWindow(params)
-    --win1:setUseTitleBar(true)
+    win1:setUseTitleBar(true)
     local g = GraphicGroup:new({frame = {x=64,y=64,width=200,height=200}})
     g.title = params.title..":graphic"
 

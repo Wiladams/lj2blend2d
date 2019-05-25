@@ -80,10 +80,12 @@ end
 
 -- dummy implementations
 function GraphicGroup.drawBegin(self, ctx)
+    ctx:save()
 end
 
 -- dummy implementation
 function GraphicGroup.drawEnd(self, ctx)
+    ctx:restore()
 end
 
 function GraphicGroup.drawChildren(self, ctxt)
@@ -97,7 +99,8 @@ function GraphicGroup.drawChildren(self, ctxt)
         if child.draw then
             if child.frame then
                 ctxt:save();
-                -- set clipping rectangle
+                ctxt:clip(child.frame.x, child.frame.y,
+                    child.frame.width, child.frame.height)
                 ctxt:translate(child.frame.x, child.frame.y)
             end
 
@@ -176,7 +179,6 @@ function GraphicGroup.mouseEvent(self, event)
         local x, y = self:ConvertFromParent(event.x, event.y)
         event.x = x;
         event.y = y;
-        --print("GraphicGroup.mouseEvent, child: ", event.x, event.y)
 
         if event.activity == "mousemove" then
             if child == self.activeChild then
@@ -185,6 +187,8 @@ function GraphicGroup.mouseEvent(self, event)
                 event.activity = "mousehover"
                 return child:mouseEvent(event)
             end
+        elseif event.activity == "mousehover" then
+            return child:mouseEvent(event)
         elseif event.activity == "mousedown" then
             if child ~= self.activeChild then
                 self:setFocus(child)
@@ -203,33 +207,33 @@ function GraphicGroup.mouseEvent(self, event)
         end
     --end
     else
-    -- If we are here, then the mouse activity falls outside
-    -- any of the children, so it's on the body of the group
-    -- itself.
-    -- need to restore original event coordinates
-    local x, y = self:ConvertFromParent(event.parentX, event.parentY)
-    event.x = x;
-    event.y = y;
+        -- If we are here, then the mouse activity falls outside
+        -- any of the children, so it's on the body of the group
+        -- itself.
+        -- need to restore original event coordinates
+        local x, y = self:ConvertFromParent(event.parentX, event.parentY)
+        event.x = x;
+        event.y = y;
 
-    if event.activity == "mouseup" then
-        if self.activeChild then
-            self:setFocus()
-        end
+        if event.activity == "mouseup" then
+            if self.activeChild then
+                self:setFocus()
+            end
         
-        return self:mouseUp(event)
-    elseif event.activity == "mousedown" then
-        print("GraphicGroup.mouseEvent, mousedown parent")
-        self:setFocus()
-        return self:mouseDown(event)
-    elseif event.activity == "mousehover" then
-        return self:mouseHover(event)
-    elseif event.activity == "mousemove" then
-        return self:mouseMove(event)
-    end
+            return self:mouseUp(event)
+        elseif event.activity == "mousedown" then
+            self:setFocus()
+            return self:mouseDown(event)
+        elseif event.activity == "mousehover" then
+            return self:mouseHover(event)
+        elseif event.activity == "mousemove" then
+            return self:mouseMove(event)
+        end
     end
 
     -- and if we're here, we don't understand the mouse
     -- event, so we can just return false
+    print("GraphicGroup.mouseEvent - UNKNOWN")
     return false;
 end
 

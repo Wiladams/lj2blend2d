@@ -27,20 +27,27 @@ function Window.new(self, obj)
         frame = {x=0,y=0,width = obj.frame.width, height=36};
         window = obj;
     })
+    obj.clientArea = GraphicGroup:new({frame = {
+        x=0;y=0;
+        width = obj.frame.width;
+        heigh = obj.frame.height;
+    }})
     obj.useTitleBar = obj.useTitleBar or false;
-    obj.clientArea = {}
-
+ 
     setmetatable(obj, Window_mt)
 
+    obj:add(obj.clientArea)
     obj:setUseTitleBar(obj.useTitleBar)
 
-    obj:setup()
+    --obj:setup()
 
     return obj;
 end
 
+--[[
 function Window.setup(self)
 end
+--]]
 
 function Window.show(self)
     self.isShown = true;
@@ -60,10 +67,12 @@ function Window.setUseTitleBar(self, useit)
     local clientFrame = nil
 
     if useit then
+        self:add(self.titleBar)
         clientFrame = {
             x=0,y=self.titleBar.frame.height,
             width = self.frame.width, height = self.frame.height-self.titleBar.frame.height}
     else
+        -- remove title bar
         clientFrame = {
             x=0,y=0,
             width = self.frame.width, height = self.frame.height
@@ -98,10 +107,9 @@ function Window.moveBy(self, dx, dy)
     return self;
 end
 
+--[[
 function Window.drawBegin(self, ctxt)
     ctxt:save()
-
-
 
     if self.useTitleBar then
         self.titleBar:draw(ctxt)
@@ -116,10 +124,8 @@ function Window.drawBegin(self, ctxt)
         self.clientArea.frame.width, self.clientArea.frame.height)
     ctxt:translate(self.clientArea.frame.x, self.clientArea.frame.y)
 end
+--]]
 
-function Window.drawEnd(self, ctx)
-    ctx:restore();
-end
 
 --william = {58, 104, 108},
 function Window.drawBackground(self, ctxt)

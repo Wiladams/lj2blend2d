@@ -112,6 +112,30 @@ local function HID_UnregisterDevice(usage)
     C.RegisterRawInputDevices(hid, 1, ffi.sizeof("RAWINPUTDEVICE"));
 end
 
+--[[
+    System calls
+]]
+local function bringToFront(list, frontmost)
+    local newlist = {}
+    for _, listitem in ipairs(list) do
+        if listitem ~= frontmost then
+            table.insert(newlist, listitem)
+        end
+    end
+    table.insert(newlist, frontmost)
+
+    return newlist
+end
+
+function WMSetForegroundWindow(win)
+    -- create a new window list where
+    -- the selected window is on top of z-order
+    windowGroup = bringToFront(windowGroup, win)
+    WMSetFocus(win)
+    
+    return true;
+end
+
 function WMSetWallpaper(bkgnd)
     appBackground = bkgnd
 end
@@ -151,8 +175,6 @@ function WMWindowAt(x, y)
     return nil;
 end
 
-
--- Global Functions
 -- Create a WinMan window
 function WMCreateWindow(params)
     local win = Window:new (params)
@@ -165,7 +187,7 @@ end
 
 
 -- Internal functions
-function refreshWindow()
+function flushToScreen()
 
     -- doing the RedrawWindow() method, with RDW_ERASENOW ensures that the 
     -- WM_ERASEBKGND message is sent and dealt with synchronously, so we make
@@ -256,7 +278,7 @@ local function handleFrame()
     end
 
     -- force a redraw to the screen
-    refreshWindow()
+    flushToScreen()
 end
 
 
@@ -359,7 +381,7 @@ function MouseActivity(hwnd, msg, wparam, lparam)
     elseif event.activity == "mousedown" then
         if win then
             if win ~= wmFocusWindow then
-                WMSetFocus(win)
+                WMSetForegroundWindow(win)
             end
             win:mouseEvent(event)
         else
