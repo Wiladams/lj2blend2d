@@ -54,4 +54,4 @@ local function startup()
     spawn(app, {frame = {x=4, y=4, width=1200, height=1080}})
 end
 
-winman {width = 1280, height=1200, startup = startup, frameRate=60}
+winman {width = 1280, height=1200, startup = startup, frameRate=30}
