@@ -25,6 +25,11 @@ local SIZE_MAX = 0xffffffffffffffffULL;
 
 local blapi = require("blend2d.blend2d_ffi")
 
+BLArrayView = ffi.typeof("BLArrayView")
+BLStringView = ffi.typeof("BLStringView")
+BLRegionView = ffi.typeof("BLRegionView")
+BLDataView = BLArrayView
+
 -- blcontext types
 BLContextCreateInfo = ffi.new("struct BLContextCreateInfo")   -- BLContextCreateOptions
 BLContextCookie = ffi.typeof("struct BLContextCookie")
@@ -295,9 +300,10 @@ ffi.metatype(BLContext, {
           if type(pts) == "table" then
             local npts = #pts
             local polypts = ffi.new("struct BLPoint[?]", npts,pts)
-            local arrview = BLPointView(polypts, npts)
+            local arrview = BLArrayView(polypts, npts)
 
             self:fillGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
+
             --print(polypts, arrview.data, arrview.size)
           end
       end;
@@ -413,7 +419,7 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
         if type(pts) == "table" then
           local npts = #pts
           local polypts = ffi.new("struct BLPoint[?]", npts,pts)
-          local arrview = BLPointView(polypts, npts)
+          local arrview = BLArrayView(polypts, npts)
 
           self:strokeGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
         end

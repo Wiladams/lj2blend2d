@@ -647,7 +647,7 @@ function DrawingContext.fillPolygon (self, pts)
     if type(pts) == "table" then
             local npts = #pts
             local polypts = ffi.new("struct BLPoint[?]", npts,pts)
-            local arrview = BLPointView(polypts, npts)
+            local arrview = BLArrayView(polypts, npts)
 
             return self:fillGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
             --print(polypts, arrview.data, arrview.size)
@@ -770,7 +770,7 @@ function DrawingContext.strokePolygon (self, pts)
     if type(pts) == "table" then
         local npts = #pts
         local polypts = ffi.new("struct BLPoint[?]", npts,pts)
-        local arrview = BLPointView(polypts, npts)
+        local arrview = BLArrayView(polypts, npts)
 
         return self:strokeGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
     end

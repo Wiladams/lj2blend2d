@@ -907,7 +907,7 @@ local function main(params)
 
     -- Setup for Blend2D drawing
     surface, err = BLDIBSection(params)
-    print("DIBSection: ", surface, err)
+    --print("DIBSection: ", surface, err)
     appImage = surface.Image
     appContext = BLContext(appImage)
 
