@@ -58,6 +58,11 @@ The "WinMan" file is the critical one in that it creates the "Windows", provides
 There is a convencient file: test_STOP
 Which can be used to launch any STOPlet individually, and trivially.
 
-c:\> luajit test_STOP STOP_circle
+c:\> luajit test_BEST BEST_circle
 
 The idea behind WinMan is that it provides a 'desktop' environment.  Ideally, there would be a STOPlet which configured a basic desktop with the ability to launch other stoplets from within the desktop environment.  A simple search bar, or a file browser would probably be a good first addition to the desktop space.
+
+References
+
+
+https://skia.org/user/api/SkBlendMode_Reference

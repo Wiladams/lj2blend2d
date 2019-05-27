@@ -117,6 +117,8 @@ function GraphicGroup.drawChildren(self, ctxt)
             child:draw(ctxt)
 
             if child.frame then
+                -- remove clip
+                ctxt:noClip()
                 ctxt:restore();
             end
         end

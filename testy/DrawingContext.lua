@@ -232,7 +232,7 @@ function DrawingContext.new(self, obj)
     obj.AngleMode = DrawingContext.constants.RADIANS;
     obj.ColorMode = DrawingContext.constants.RGB;
     obj.RectMode = DrawingContext.constants.CORNER;
-    obj.EllipseMode = DrawingContext.constants.CENTER;
+    obj.EllipseMode = DrawingContext.constants.RADIUS;
     obj.ShapeMode = DrawingContext.constants.POLYGON;
 
     obj.DC:clear()
@@ -417,15 +417,18 @@ function DrawingContext._applyMatrixOpV(self, opType, ...)
         return false, bResult
 end
 
-      -- overloaded rotate
-      -- 1 value - an angle (in radians)
-      -- 3 values - an angle, and a point to rotate around
+
+-- overloaded rotate
+-- 1 value - an angle (in radians)
+-- 3 values - an angle, and a point to rotate around
 function DrawingContext.rotateAroundPoint(self, rads, x, y)
+    --BL_MATRIX2D_OP_POST_ROTATE_PT
+    --return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
     return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
 end
 
 function DrawingContext.rotate (self, rads)
-    return self:rotateAroundPoint(rads, 0,0)
+    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE,rads);
 end
 
 function DrawingContext.translate (self, x, y)
@@ -1165,8 +1168,8 @@ local function calcEllipseParams(mode, a,b,c,d)
 	elseif mode == CENTER then
 		cx = a;
         cy = b;
-        rx = c / 2;
-		ry = d / 2;
+        rx = c/2;
+		ry = d/2;
 	elseif mode == RADIUS then
 		cx = a;
 		cy = b;
