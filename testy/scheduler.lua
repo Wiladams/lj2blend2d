@@ -286,14 +286,23 @@ function Task.isFinished(self)
 	return self:getStatus() == "dead"
 end
 
+function Task.isAlive(self)
+	return coroutine.status(self.routine) ~= "dead" and not self.isCancelled
+end
+
+function Task.cancel(self)
+	-- see if the task has an associated signal
+	-- if it does, then maybe send out a cancellation
+	-- signal
+	self.isCancelled = true;
+	return self;
+end
+
 
 function Task.setParams(self, params)
 	self.params = params
 
 	return self;
-end
-
-function Task.cancel(self)
 end
 
 function Task.resume(self)
@@ -393,8 +402,9 @@ function Scheduler.step(self)
 
 	-- if the task is already dead, then just
 	-- keep it out of the ready list, and return
-	if task:getStatus() == "dead" then
+	if not task:isAlive() then
 		self:removeTask(task)
+
 		return true;
 	end
 
@@ -437,7 +447,7 @@ function Scheduler.step(self)
 	-- the most recent resume.  If it's dead, then don't
 	-- bother putting it back into the readytorun queue
 	-- just remove the task from the list of tasks
-	if task:getStatus() == "dead" then
+	if not task:isAlive() then
 		self:removeTask(task)
 
 		return true;
@@ -694,7 +704,7 @@ function waitUntilTime(atime)
 	binsert(SignalsWaitingForTime, fiber, compareDueTime)
 
 	-- put the current task to wait on signal
-	waitForSignal(signalName);
+	return waitForSignal(signalName);
 end
 
 -- suspend the current task for the 
@@ -703,7 +713,7 @@ local function sleep(millis)
 	-- figure out the time in the future
 	local currentTime = SignalWatch:seconds();
 	local futureTime = currentTime + (millis / 1000);
-	
+
 	return waitUntilTime(futureTime);
 end
 
@@ -729,6 +739,8 @@ local function periodic(mills, func)
 
 		while true do
 			sleep(nextMillis)
+			local ctask = getCurrentTask()
+			--print("periodic.closure.ctask.isAlive(): ", ctask:isAlive())
 			func();
 			
 			-- do this until we get a time that's beyond
@@ -757,11 +769,16 @@ local function alarm_taskReadyToRun()
 			return false;
 		end
 
+		-- if task is no longer alive, then
+		-- signal those awaiting with a cancellation
+		--if not task:isAlive() then
+		--	signalOneImmediate("cancel")
+		--	return false;
+		--end
+
         if task.DueTime <= currentTime then
             signalOneImmediate(task.SignalName);
             table.remove(SignalsWaitingForTime, 1);
-            --alarm_runTask(task)
-			--return task
 		else
 			return false
 		end

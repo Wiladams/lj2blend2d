@@ -11,11 +11,6 @@ local radians = math.rad
 local desktopWidth = 1200
 local desktopHeight = 1080
 
-print("os.time: ", os.time())
-local timetbl = os.date("*t")
-print("time: ", timetbl.hour%12, timetbl.min, timetbl.sec)
-print("os.date: ", os.date("*t"))
-
 
 local function app(params)
     local win1 = WMCreateWindow(params)

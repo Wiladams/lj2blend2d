@@ -205,9 +205,10 @@ function AnalogClock.draw(self, ctx)
     ctx:ellipseMode(RADIUS);
     ctx:stroke(255);
     ctx:strokeWidth(2);
-    ctx:fill(220,220,220);
+    ctx:fill(210,210,210);
     ctx:circle(self.centerX, self.centerY, self.frame.width/2)
-    
+    ctx:fill(240)
+    ctx:circle(self.centerX, self.centerY, 6)
 
     ctx:save();
 
