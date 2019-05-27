@@ -45,6 +45,13 @@ function GraphicGroup.ConvertFromParent(self, x, y)
     return x-self.frame.x, y-self.frame.y
 end
 
+function GraphicGroup.moveTo(self, x, y)
+    self.frame.x = x;
+    self.frame.y = y;
+
+    return self;
+end
+
 -- an iterator over the children in z-order (order of drawing)
 function GraphicGroup.childrenInZOrder(self)
     local function visitor()

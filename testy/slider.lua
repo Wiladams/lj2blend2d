@@ -76,6 +76,8 @@ function Slider.new(self, obj)
 
     setmetatable(obj,Slider_mt)
 
+    obj:setPosition(obj.position)
+
     return obj
 end
 
@@ -105,6 +107,10 @@ end
 ]]
 function Slider.getPosition(self)
     return map(self.thumbRect.x, self.constraint.minX, self.constraint.maxX, 0, 1)
+end
+
+function Slider.setPosition(self, pos)
+    self.thumbRect.x = map(pos, 0,1, self.constraint.minX, self.constraint.maxX)
 end
 
 function Slider.getValue(self)
