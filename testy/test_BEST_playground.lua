@@ -6,8 +6,6 @@ package.path = "../?.lua;"..package.path;
 ]]
 local winman = require("WinMan")
 
-local AngleIndicator = require("AngleIndicator")
-
 local maths = require("maths")
 local radians = maths.radians
 local degrees = maths.degrees
@@ -15,42 +13,84 @@ local map = maths.map
 local cos = math.cos
 local sin = math.sin
 
+local CheckerGraphic = require("CheckerGraphic")
+local Gradient = require("Gradient")
+local LinearGradient, RadialGradient = Gradient.LinearGradient, Gradient.RadialGradient
+local guistyle = require("guistyle")
+
+
 local desktopWidth = 1200
 local desktopHeight = 1080
 
 
+    --[[
+    void draw(SkCanvas* canvas) {
+        SkColor colors[] = { SK_ColorRED, SK_ColorBLUE };
+        SkPoint horz[] = { { 0, 0 }, { 256, 0 } };
+        SkPaint paint;
+        paint.setShader(SkGradientShader::MakeLinear(horz, colors, nullptr, SK_ARRAY_COUNT(colors),
+                SkShader::kClamp_TileMode));
+        canvas->drawPaint(paint);
+        paint.setBlendMode(SkBlendMode::kDstIn);
+        SkColor alphas[] = { SK_ColorBLACK, SK_ColorTRANSPARENT };
+        SkPoint vert[] = { { 0, 0 }, { 0, 256 } };
+        paint.setShader(SkGradientShader::MakeLinear(vert, alphas, nullptr, SK_ARRAY_COUNT(alphas),
+                SkShader::kClamp_TileMode));
+        canvas->drawPaint(paint);
+        canvas->clipRect( { 30, 30, 226, 226 } );
+        canvas->drawColor(SkColorSetA(SK_ColorGREEN, 128), SkBlendMode::kSrcOver);
+    }
+    --]]
 
 
 local function app(params)
     local win1 = WMCreateWindow(params)
-    win1.value = 0;
-    win1.radius = 100;
+
+    local chk = CheckerGraphic:new({
+        frame = {x=0,y=0,width=256,height=256};
+        columns = 32;
+        rows = 32;
+        color1 = 192;
+        color2 = 80;
+    })
+
+    local horz = LinearGradient({
+        values = {0, 0, 256, 0};
+        extendMode = BL_EXTEND_MODE_REPEAT;
+        stops = {
+            {offset = 0.0, uint32 = 0xffff0000},
+            {offset = 1.0, uint32 = 0xff0000ff}
+        };
+    })
+
+    local vert = LinearGradient({
+        values = {0, 0, 0, 256};
+        extendMode = BL_EXTEND_MODE_REPEAT;
+        stops = {
+            {offset = 0.0, uint32 = 0xff000000},
+            {offset = 1.0, uint32 = 0x00000000}
+        };
+    })
 
 
     function win1.draw(self, ctx)
         ctx = ctx or self:getDrawingContext()
         ctx:clear()
     
-        local segmentRads = radians(360/12)
+        -- draw checkboard pattern
+        chk:draw(ctx)
 
-        ctx:textAlign(MIDDLE, BASELINE)
-        ctx:fill(255)
-    
-        -- x = r cos theta
-        -- y = r sin theta
-    
-        local angle = segmentRads - radians(-90)
-        local r = self.radius - 30
-        local cx = 200
-        local cy = 200
+        ctx:setFillStyle(horz);
+        ctx:fillAll();
 
-        for i=1,12 do
-            local x = cx + (r * cos(angle))
-            local y = cy + (r * sin(angle))
-            print(x,y)
-            ctx:text(tostring(i), x, y)
-            angle = angle + segmentRads;
-        end
+        -- inset
+        ctx:setFillStyle(vert)
+        ctx:fillAll();
+
+        ctx:setCompOp(BL_COMP_OP_DST_IN)
+        ctx:clip(30,30,256-60,256-60)
+        ctx:setFillStyle(0xff00ff00)
+        ctx:fillAll();
     end
 
 
@@ -72,7 +112,7 @@ end
 
 
 local function startup()
-    spawn(app, {frame = {x=40, y=40, width=400, height=400}})
+    spawn(app, {frame = {x=40, y=40, width=256, height=256}})
 end
 
 winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=30}

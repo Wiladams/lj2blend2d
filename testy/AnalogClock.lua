@@ -5,7 +5,7 @@ local degrees = maths.degrees
 local map = maths.map
 local cos = math.cos
 local sin = math.sin
-
+local clamp = maths.clamp
 
 local AnalogClock = {}
 local AnalogClock_mt = {
@@ -28,9 +28,13 @@ function AnalogClock.new(self, obj)
     obj.frame.width = obj.frame.width or size.width;
     obj.frame.height = obj.frame.height or size.height;
     
-    obj.centerX = obj.frame.width/2
-    obj.centerY = obj.frame.height/2
-    obj.radius = obj.radius or obj.centerX
+    obj.centerX = obj.frame.width/2;
+    obj.centerY = obj.frame.height/2;
+    obj.radius = obj.radius or obj.centerX;
+
+    obj.overshootAmount = radians(1.25);
+    obj.overshootRemaining = 0;
+    obj.recoveryIncrement = radians(1.0);
 
     --obj.drivenExternally = obj.drivenExternally or false
 
@@ -81,6 +85,24 @@ function AnalogClock.drawHourNumbers(self, ctx)
     ctx:textAlign(MIDDLE, BASELINE)
     ctx:fill(30)
 
+--[[
+    local segmentRads = radians(360/12)
+    local cumulativeRadians = 0
+    
+    for i=1,12 do
+        ctx:rotate(segmentRads)
+
+        ctx:save()
+        ctx:translate(self.radius-34, 0)
+        ctx:rotate(cumulativeRadians-radians(90))
+        ctx:text(tostring(i), 0,0)
+        ctx:restore()
+
+        cumulativeRadians = cumulativeRadians + segmentRads
+    end
+--]]
+
+---[[
     local segmentRads = radians(360/12)
     local angle = segmentRads - radians(90)
     local r = self.radius - 34
@@ -94,6 +116,7 @@ function AnalogClock.drawHourNumbers(self, ctx)
         ctx:text(tostring(i), x, y)
         angle = angle + segmentRads;
     end
+--]]
 
     ctx:restore()
 end
@@ -118,7 +141,8 @@ function AnalogClock.drawHourHand(self, ctx)
     ctx:save()
 
     -- Do the rotation thing
-    local hourRads = radians(map(self.time.hour%12, 0, 11, 0, 330))
+    local minuteContribution = radians(self.time.min/60 * 30)
+    local hourRads = radians(map(self.time.hour%12, 0, 11, 0, 330)) + minuteContribution
     ctx:rotate(hourRads)
 
     -- Draw the indicator line
@@ -150,6 +174,16 @@ function AnalogClock.drawSecondsHand(self, ctx)
     -- Do the rotation thing
     --ctx:translate(self.centerX, self.centerY)
     local secRads = radians(map(self.time.sec, 0, 59, 0, 354))
+    if self.time.sec ~= self.lastSec then
+        self.overshootRemaining = self.overshootAmount
+        self.lastSec = self.time.sec
+    end
+
+    secRads = secRads + self.overshootRemaining
+
+    self.overshootRemaining = clamp(self.overshootRemaining - self.recoveryIncrement, 0, self.overshootAmount);
+
+
     ctx:rotate(secRads)
 
     -- Draw the indicator line
@@ -189,6 +223,7 @@ function AnalogClock.draw(self, ctx)
     self:drawHourTickmarks(ctx)
     self:drawSecondTickmarks(ctx)
 
+   --  self:drawHourNumbers(ctx)
 
 
     self:drawHourHand(ctx);

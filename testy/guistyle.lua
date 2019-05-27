@@ -63,7 +63,7 @@ local Colorrefs = {
 
     -- Grays
     LtGray = color(0xc0);
-    MidGray = color(0x7f)
+    MidGray = color(0x7f);
     DarkGray = color(0x40,0x40, 0x40);
 }
 
@@ -100,6 +100,8 @@ local function lumaBT709(c)
 end
 
 local GUIStyle = {
+    Colors = Colorrefs;
+
     FrameStyle = {
         Sunken = 0x01,
         Raised = 0x02

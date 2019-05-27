@@ -15,30 +15,30 @@ local winman = require("WinMan")
 local desktopWidth = 1200
 local desktopHeight = 1024
 
-local graphicname = arg[1]
+local AnalogClock = require("AnalogClock")
+local ContextRecorder = require("ContextRecorder")
 
-if not graphicname then 
-    print("usage: luajit test_BEST_Graphic.lua graphicname")
-    return nil 
-end
-
-local graphic = require(graphicname)
 
 
 -- Simple app to put up a window
 -- with a graphic embedded
 local function app(params)
     params.frameRate = params.frameRate or 30
-    local gframe = {x=params.frame.x, y=params.frame.y,width=params.frame.width,height=params.frame.height}
-    local g = graphic:new({frame = gframe})
-
+    local clock = AnalogClock:new({frame={x=0,y=0,width=200,height=200}})
     local win1 = WMCreateWindow(params)
+    win1:add(clock)
 
-    function win1.drawForeground(self, ctx)
-        g:draw(ctx)
-    end
+    local recorder = ContextRecorder:new({
+        maxFrames = 300,
+        basename="media\\record", 
+        frameRate=30, 
+        drawingContext = win1.drawingContext})
+
+
+
 
     win1:show()
+    recorder:record()
 
     local function drawproc()
         win1:draw()
@@ -51,7 +51,7 @@ end
 
 
 local function startup()
-    spawn(app, {frame = {x=4, y=4, width=400, height=400}})
+    spawn(app, {frame = {x=4, y=4, width=320, height=240}})
 end
 
 winman {width = 1280, height=1200, startup = startup, frameRate=30}
