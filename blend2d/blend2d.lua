@@ -36,6 +36,11 @@ BLContextCookie = ffi.typeof("struct BLContextCookie")
 BLContextHints = ffi.typeof("struct BLContextHints")
 BLContextState = ffi.typeof("struct BLContextState")
 
+-- Only used by `BLContext` to make invocation of functions in `BLContextVirt`.
+--enum OpType : uint32_t {
+local  kOpFill = C.BL_CONTEXT_OP_TYPE_FILL;
+local kOpStroke = C.BL_CONTEXT_OP_TYPE_STROKE;
+
 
 BLContext = ffi.typeof("struct BLContextCore")
 ffi.metatype(BLContext, {
@@ -79,77 +84,146 @@ ffi.metatype(BLContext, {
         return obj;
     end;
 
+    __eq = function(self, other)
+      return self.impl == other.impl;
+    end;
+
     __index = {
-      
-      -- end
+      targetSize = function(self) 
+        return self.impl.targetSize;
+      end;
+
+      targetWidth = function(self)
+        return self.impl.targetSize.w;
+      end;
+
+      targetHeight = function(self)
+        return self.impl.targetSize.h;
+      end;
+
+      --
+      -- BLImage Attachment
+      --
+      -- const BLContextCreateInfo& options
+      begin = function(self, image, options)
+        local bResult = blapi.blContextBegin(self, image, options);
+      end;
+
       finish = function(self)
-          local bResult = blapi.blContextEnd(self);
-          return bResult == 0 or bResult;
+        local bResult = blapi.blContextEnd(self);
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       flush = function(self, flags)
         flags = flags or C.BL_CONTEXT_FLUSH_SYNC;
 
         local bResult = self.impl.virt.flush(self.impl, flags);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
+
+--[[
+      State Management
+
+      If a cookie is specified when saving, then it must be used
+      when restoring.
+--]]
       save = function(self, cookie)
         local bResult = self.impl.virt.save(self.impl, cookie);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
       
       restore = function(self, cookie)
         local bResult = self.impl.virt.restore(self.impl, cookie);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       clip = function(self, x, y, w, h)
         local bResult = self.impl.virt.clipToRectI(self.impl, BLRectI(x,y,w,h));
-        if bResult ~= C.BL_SUCCESS then
-          return false, bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
         end
-        return true;      
+
+        return false, bResult;    
       end;
 
       removeClip = function(self)
         local bResult = self.impl.virt.restoreClipping(self.impl) ;
-        if bResult ~= C.BL_SUCCESS then
-          return false, bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
         end
-        return true; 
+
+        return false, bResult;
       end;
 
+      --[[
+      -- Matrix transformations
       -- Applies a matrix operation to the current transformation matrix (internal).
+      --]]
+      metaMatrix = function(self)
+        return self.impl.state.metaMatrix;
+      end;
+
+      userMatrix = function(self)
+         return self.impl.state.userMatrix;
+      end;
+
+
       _applyMatrixOp = function(self, opType, opData)
-        return self.impl.virt.matrixOp(self.impl, opType, opData);
+        local bResult= self.impl.virt.matrixOp(self.impl, opType, opData);
+
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
       
       _applyMatrixOpV = function(self, opType, ...)
         local opData = ffi.new("double[?]",select('#',...), {...});
-        return self.impl.virt.matrixOp(self.impl, opType, opData);
+        local bResult self.impl.virt.matrixOp(self.impl, opType, opData);
+
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
-      -- overloaded rotate
-      -- 1 value - an angle (in radians)
-      -- 3 values - an angle, and a point to rotate around
-      rotate = function(self, rads, x, y)
-          if not y then
-              if not x then
-                  if not rads then
-                    return false, 'invalid arguments'
-                  end
-                  -- single argument specified
-                  return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",rads));
-              end
-              -- there are two parameters
-              -- radians, and hopefully a BLPoint struct
-              error("BLContext.rotate(angle, Point), NYI")
-          end
+      resetMatrix = function(self)
+        local bResult = self.impl.virt.matrixOp(self.impl, C.BL_MATRIX2D_OP_RESET, nil);
+        
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
 
-          if rads and x and y then
-              return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
-          end
+        return false, bResult;
+      end;
+
+      -- const BLMatrix2D& m
+      setMatrix = function(self, m)
+        local bResult = self.impl.virt.matrixOp(self.impl, C.BL_MATRIX2D_OP_ASSIGN, m)
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       translate = function(self, x, y)
@@ -179,13 +253,83 @@ ffi.metatype(BLContext, {
           return false, "invalid arguments"
       end;
 
-      
-      setCompOp = function(self, compOp)
+      skew = function(self, x, y)
+        return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SKEW, x, y);
+      end;
+
+      -- overloaded rotate
+      -- 1 value - an angle (in radians)
+      -- 3 values - an angle, and a point to rotate around
+      rotate = function(self, rads, x, y)
+        if not y then
+            if not x then
+                if not rads then
+                  return false, 'invalid arguments'
+                end
+                -- single argument specified
+                return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",rads));
+            end
+            -- there are two parameters
+            -- radians, and hopefully a BLPoint struct
+            error("BLContext.rotate(angle, Point), NYI")
+        end
+
+        if rads and x and y then
+            return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
+        end
+      end;      
+
+      transform = function(self, m)
+        return self:_applyMatrixOp(C.BL_MATRIX2D_OP_TRANSFORM, m);
+      end;
+
+      userToMeta = function(self)
+        local bResult = self.implvirt.userToMeta(self.impl);
+        
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
+      end;
+
+
+      --
+      -- Composition Options
+      --
+      compOp = function(self)
+        return self.impl.state.compOp;
+      end;
+
+      setCompOp = function(self, cOp)
         --print("setCompOp: ", self, compOp)
-        local bResult = blapi.blContextSetCompOp(self, compOp);
-        return bResult == 0 or bResult;
+        local bResult = self.impl.virt.setCompOp(self.impl, cOp);
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
     
+      -- Returns global alpha value.
+      globalAlpha = function(self)
+        return self.impl.state.globalAlpha;
+      end;
+
+      -- Sets global alpha value.
+      setGlobalAlpha = function(self, alpha)
+        local bResult = self.impl.virt.setGlobalAlpha(self.impl, alpha);
+
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
+      end;
+      
+      --[[
+      -- Style Settings
+      --]]
       setFillStyle = function(self, obj)
         if ffi.typeof(obj) == BLRgba32 then
             return self:setFillStyleRgba32(obj.value)
@@ -200,22 +344,57 @@ ffi.metatype(BLContext, {
         return bResult == 0 or bResult;
       end;
 
+      fillRule = function(self)
+        return self.impl.state.fillRule;
+      end;
+
+      setFillRule = function(self, fillRule)
+        local bResult = self.impl.virt.setFillRule(self.impl, fillRule);
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
+      end;
+
+      --
+      -- Stroke specifics
+      --
       setStrokeStartCap = function(self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       setStrokeEndCap = function(self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_END, strokeCap) ;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       -- joinKind == BLStrokeJoin
       setStrokeJoin = function(self, joinKind)
         local bResult = blapi.blContextSetStrokeJoin(self, joinKind) ;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       setStrokeStyleRgba32 = function(self, rgba32)
         local bResult = blapi.blContextSetStrokeStyleRgba32(self, rgba32);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       setStrokeStyle = function(self, obj)
@@ -224,12 +403,20 @@ ffi.metatype(BLContext, {
           end
 
           local bResult = blapi.blContextSetStrokeStyle(self, obj) ;
-          return bResult == 0 or bResult;
+          if bResult == C.BL_SUCCESS then
+            return true;
+          end
+  
+          return false, bResult;
       end;
 
       setStrokeWidth = function(self, width)
         local bResult = blapi.blContextSetStrokeWidth(self, width) ;
-        return bResult == C.BL_SUCCESS or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       --[[
@@ -242,27 +429,59 @@ ffi.metatype(BLContext, {
           --BLResult (__cdecl* blitImageI              )(BLContextImpl* impl, const BLPointI* pt, const BLImageCore* img, const BLRectI* imgArea) ;
 
           local bResult = self.impl.virt.blitImageI(self.impl, BLPointI(dstX, dstY), img, imgArea)
+          if bResult == C.BL_SUCCESS then
+            return true;
+          end
+  
+          return false, bResult;
       end;
 
       stretchBlt = function(self, dstRect, img, imgArea)
           local bResult = blapi.blContextBlitScaledImageD(self, dstRect, img, imgArea) ;
+          if bResult == C.BL_SUCCESS then
+            return true;
+          end
+  
+          return false, bResult;
       end;
 
 
       -- Whole canvas drawing functions
-      clear = function(self)
-          self.impl.virt.clearAll(self.impl)
+      clearAll = function(self)
+        local bResult = self.impl.virt.clearAll(self.impl);
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
+      end;
+
+      clearRect = function(self, rect)
+        local bResult = self.impl.virt.clearRectD(self.impl, rect);
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       fillAll = function(self)
           local bResult = self.impl.virt.fillAll(self.impl);
-          return bResult == 0 or bResult;
+          if bResult == C.BL_SUCCESS then
+            return true;
+          end
+  
+          return false, bResult;
       end;
 
       -- Geometry drawing functions
       fillGeometry = function(self, geometryType, geometryData)
         local bResult = self.impl.virt.fillGeometry(self.impl, geometryType, geometryData);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
 
@@ -292,7 +511,11 @@ ffi.metatype(BLContext, {
 
       fillPath = function(self, path)
           local bReasult = blapi.blContextFillPathD(self, path) ;
-          return bResult == 0 or bResult;
+          if bResult == C.BL_SUCCESS then
+            return true;
+          end
+  
+          return false, bResult;
       end;
 
       fillPolygon = function(self, pts)
@@ -310,17 +533,21 @@ ffi.metatype(BLContext, {
 
       fillRectI = function(self, rect)
         local bResult = self.impl.virt.fillRectI(self.impl, rect);
-        if bResult ~= C.BL_SUCCESS then
-          return false, bResult 
+        if bResult == C.BL_SUCCESS then
+          return true;
         end
 
-        return self
+        return false, bResult;
       end;
 
       fillRectD = function(self, x, y, w, h)
         local rect = BLRect(x,y,w,h)
         local bResult = self.impl.virt.fillRectD(self.impl, rect);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       fillRoundRect = function(self, ...)
@@ -347,10 +574,13 @@ ffi.metatype(BLContext, {
           local nargs = select("#",...)
           if nargs == 6 then
               local tri = BLTriangle(...)
-              self:fillGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
+              return self:fillGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
           end
       end;
 
+      fillRoundRect = function(self, rr)
+        return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rr);
+      end;
 
 --[[
     //! Fills a rounded rectangle.
@@ -376,7 +606,6 @@ ffi.metatype(BLContext, {
 
 
       --[[
-        BLResult __cdecl 
 BLResult __cdecl blContextSetStrokeMiterLimit(BLContextCore* self, double miterLimit) ;
 BLResult __cdecl blContextSetStrokeCaps(BLContextCore* self, uint32_t strokeCap) ;
 BLResult __cdecl blContextSetStrokeDashOffset(BLContextCore* self, double dashOffset) ;
@@ -1230,7 +1459,6 @@ local BLMatrix2D_mt = {
         -- Matrix operations
         applyOperation = function(self, opType, opData)
           local bResult = blapi.blMatrix2DApplyOp(self, opType, opData) ;
-
         end;
 
         getType = function(self)
