@@ -235,7 +235,7 @@ function DrawingContext.new(self, obj)
     obj.EllipseMode = DrawingContext.constants.RADIUS;
     obj.ShapeMode = DrawingContext.constants.POLYGON;
 
-    obj.DC:clear()
+    obj.DC:clearAll()
     setmetatable(obj, DrawingContext_mt)
 
 
@@ -277,13 +277,7 @@ end
 
 -- Whole canvas drawing functions
 function DrawingContext.clear (self)
-    local bResult = self.DC.impl.virt.clearAll(self.DC.impl)
-
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+    return self.DC:clearAll()
 end
 
 

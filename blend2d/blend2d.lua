@@ -595,13 +595,18 @@ ffi.metatype(BLContext, {
   BL_INLINE BLResult fillRoundRect(double x, double y, double w, double h, double rx, double ry) noexcept { return fillRoundRect(BLRoundRect(x, y, w, h, rx, ry)); }
 
 ]]
+      --(BLContextImpl* impl, const BLPoint* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
+      fillTextD = function(self, pt, font, text, size, encoding)
+        local bResult = self.impl.virt.fillTextD(self.impl, pt, font, text, size, encoding) ;
+      end;
+
       -- Fills the passed UTF-8 text by using the given `font`.
       -- the 'size' is the number of characters in the text.
       -- This is vague, as for utf8 and latin, it's a one to one with 
       -- the bytes.  With unicode, it's the number of code points.
       fillUtf8Text = function(self, dst, font, text, size)
           size = size or math.huge
-          return self.impl.virt.fillTextD(self.impl, dst, font, text, size, C.BL_TEXT_ENCODING_UTF8);
+          return self:fillTextD(dst, font, text, size, C.BL_TEXT_ENCODING_UTF8)
       end;
 
 
@@ -623,25 +628,39 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
 
       strokeGeometry = function(self, geometryType, geometryData)
         local bResult = self.impl.virt.strokeGeometry(self.impl, geometryType, geometryData);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
       
       strokeGlyphRunI = function(self, pt, font, glyphRun)
         local bResult = self.impl.virt.strokeGlyphRunI(self.impl,  pt, font, glyphRun);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       strokeGlyphRunD = function(self, pt, font, glyphRun)
         local bResult = self.impl.virt.strokeGlyphRunD(self.impl, pt, font, glyphRun);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
       
       strokeEllipse = function(self, ...)
         local nargs = select("#",...)
         if nargs == 4 then
             local geo = BLEllipse(...)
-            self:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
+            return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
         end
+
+        return false, 'not enough arguments specified'
       end;
 
       strokePolygon = function(self, pts)
@@ -650,47 +669,67 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
           local polypts = ffi.new("struct BLPoint[?]", npts,pts)
           local arrview = BLArrayView(polypts, npts)
 
-          self:strokeGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
+          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
         end
       end;
 
       strokeRectI = function(self, rect)
         local bResult = self.impl.virt.strokeRectI(self.impl, rect);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       strokeRectD = function(self, rect)
         local bResult = self.impl.virt.strokeRectD(self.impl, rect);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       strokePath = function(self, path)
         local bResult = self.impl.virt.strokePathD(self.impl, path);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
 
 
       strokeLine = function(self, x1, y1, x2, y2)
           local aLine = BLLine(x1,y1,x2,y2)
-          self:strokeGeometry(C.BL_GEOMETRY_TYPE_LINE, aLine);
+          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_LINE, aLine);
       end;
 
       strokeTextI = function(self, pt, font, text, size, encoding)
         local bResult = self.impl.virt.strokeTextI(self.impl, pt, font, text, size, encoding);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       strokeTextD = function(self, pt, font, text, size, encoding)
         local bResult = self.impl.virt.strokeTextD(self.impl, pt, font, text, size, encoding);
-        return bResult == 0 or bResult;
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
+
+        return false, bResult;
       end;
 
       strokeTriangle = function(self, ...)
         local nargs = select("#",...)
         if nargs == 6 then
             local tri = BLTriangle(...)
-            self:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
+            return self:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
         end    
       end;
 

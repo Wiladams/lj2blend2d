@@ -106,14 +106,12 @@ function AnalogClock.drawHourNumbers(self, ctx)
     local segmentRads = radians(360/12)
     local angle = segmentRads - radians(90)
     local r = self.radius - 34
-    local cx = self.centerX
-    local cy = self.centerY
 
     for i=1,12 do
-        local x = cx + (r * cos(angle))
-        local y = cy + (r * sin(angle))
+        --local x = self.centerX + (r * cos(angle))
+        --local y = self.centerY + (r * sin(angle))
 
-        ctx:text(tostring(i), x, y)
+        ctx:text(tostring(i), self.centerX + (r * cos(angle)), self.centerY + (r * sin(angle)))
         angle = angle + segmentRads;
     end
 --]]
@@ -189,7 +187,7 @@ function AnalogClock.drawSecondsHand(self, ctx)
     -- Draw the indicator line
     ctx:strokeWidth(1)
     ctx:stroke(255,0,0)
-    ctx:line(-4,0,self.radius-10, 0)
+    ctx:line(-8,0,self.radius-10, 0)
     
     ctx:restore()
  end
@@ -206,6 +204,7 @@ function AnalogClock.draw(self, ctx)
     ctx:stroke(255);
     ctx:strokeWidth(2);
     ctx:fill(210,210,210);
+    --ctx:fill(0xe2,0x84,0x30);
     ctx:circle(self.centerX, self.centerY, self.frame.width/2)
     ctx:fill(240)
     ctx:circle(self.centerX, self.centerY, 6)

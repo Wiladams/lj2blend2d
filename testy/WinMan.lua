@@ -115,6 +115,9 @@ end
 --[[
     System calls
 ]]
+-- internal function to bring someting to the end of a list
+-- with graphics things, this will be the 'front' in terms
+-- of windows in 'z-order'
 local function bringToFront(list, frontmost)
     local newlist = {}
     for _, listitem in ipairs(list) do
@@ -125,6 +128,10 @@ local function bringToFront(list, frontmost)
     table.insert(newlist, frontmost)
 
     return newlist
+end
+
+function WMGetDesktopContext()
+    return appContext;
 end
 
 function WMSetForegroundWindow(win)
@@ -142,6 +149,31 @@ end
 
 function WMScreenToWin(win, x, y)
     return x-win.frame.x, y-win.frame.y
+end
+
+--[[
+    static const int TWF_FINETOUCH      = 0x00000001;
+static const int TWF_WANTPALM       = 0x00000002;
+]]
+function WMTouchOn(flags)
+    flags = flags or 0
+    local bResult = C.RegisterTouchWindow(appWindowHandle, flags);
+    if bResult ~= 0 then
+        touchIsOn = true;
+        return true;
+    end
+
+    return false
+end
+
+function WMTouchOff()
+    local bResult = C.UnregisterTouchWindow(appWindowHandle);
+    touchIsOff = true;
+
+    if bResult ~= 0 then
+        return true;
+    end
+    return false;
 end
 
 function WMSetFocus(win)
@@ -205,6 +237,8 @@ end
 
 
 -- Internal functions
+-- Take our desktop backing store and flush it to the
+-- screen in as fast as a manner as possible.
 function flushToScreen()
 
     -- doing the RedrawWindow() method, with RDW_ERASENOW ensures that the 
@@ -260,7 +294,7 @@ end
     There is a system clock that will periodically call handleFrame() 
     at a specified period.
 
-    Within handleFrame, we readraw the entire desktop, by compositing
+    Within handleFrame, we compose the entire desktop, by compositing
     the individual windows and various and sundry other drawing tasks
     that are appropriate to the desktop.
 ]]
@@ -269,8 +303,6 @@ local function handleFrame()
 
     frameCount = frameCount + 1;
     --print("handleFrame: ", frameCount, #windowGroup.children)
-
-
 
     -- Clear the app context so we start with a clean slate
     appContext:clear()
@@ -878,35 +910,11 @@ function rawInputOff(kind)
     HID_UnregisterDevice(HID_KEYBOARD);
 end
 
---[[
-    static const int TWF_FINETOUCH      = 0x00000001;
-static const int TWF_WANTPALM       = 0x00000002;
-]]
-function touchOn(flags)
-    flags = flags or 0
-    local bResult = C.RegisterTouchWindow(appWindowHandle, flags);
-    if bResult ~= 0 then
-        touchIsOn = true;
-        return true;
-    end
 
-    return false
-end
-
-function touchOff()
-    local bResult = C.UnregisterTouchWindow(appWindowHandle);
-    touchIsOff = true;
-
-    if bResult ~= 0 then
-        return true;
-    end
-    return false;
-end
 
 
 
 local function main(params)
-
     -- We can create the app Surface from the beginning
     -- as it's fairly independent
     appSurface, err = BLDIBSection(params)
@@ -920,7 +928,7 @@ local function main(params)
     appContext:clear()
     appContext:setFillStyle(BLRgba32(0xffcccccc))
     appContext:fillAll()
-
+ 
 
 
     FrameRate = params.frameRate or 30;
