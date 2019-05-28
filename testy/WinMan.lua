@@ -978,8 +978,12 @@ local function start(params)
 
     -- First thing to do is let the system know we are
     -- going to be DPI aware
+    --WM_DPICHANGED
+    -- SetWindowPos
     --local oldContext = C.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-
+    -- C.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
+    -- GetDpiForWindow
+    
     params.title = params.title or "WinMan";
     params.frameRate = params.frameRate or 15;
 

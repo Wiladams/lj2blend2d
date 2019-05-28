@@ -869,6 +869,11 @@ function DrawingContext.strokeTextD (self, pt, font, text, size, encoding)
         return false, bResult 
 end
 
+--[[
+function DrawingContext.strokeUtf8Text(self,pt, font, text, size)
+    return self:strokeTextD(pt, font, text, size, C.BL_TEXT_ENCODING_UTF8)
+end
+--]]
 function DrawingContext.strokeTriangle (self, ...)
     local nargs = select("#",...)
 
@@ -1078,6 +1083,11 @@ function DrawingContext.text(self, txt, x, y)
 	self.DC:fillUtf8Text(BLPoint(x,y), self.Font, txt, #txt)
 end
 
+function DrawingContext.textOutline(self, txt, x, y)
+    local x, y = self:calcTextPosition(txt, x, y)
+    --print("textOutline: ", x, y)
+    self.DC:strokeUtf8Text(BLPoint(x,y), self.Font, txt, #txt)
+end
 
 
 

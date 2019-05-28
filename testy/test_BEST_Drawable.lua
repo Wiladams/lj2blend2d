@@ -33,6 +33,7 @@ local graphic = require(graphicname)
 -- drawable a chance to draw
 local function app(params)
     local win = WMCreateWindow({frame={x=0,y=0,width=desktopWidth, height=desktopHeight}})
+
     local g = graphic:new()
 
     function win.drawForeground(self, ctx)
@@ -41,9 +42,10 @@ local function app(params)
 
     local function drawproc()
         win:draw()
+        --BLImageCodec("BMP"):writeImageToFile(win.drawingContext:getReadyBuffer(), "imageCapture.bmp")    
     end
 
-    periodic(1000/30, drawproc)
+    periodic(1000/3, drawproc)
 end
 
 

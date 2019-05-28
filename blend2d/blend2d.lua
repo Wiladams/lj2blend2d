@@ -725,6 +725,10 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
         return false, bResult;
       end;
 
+      strokeUtf8Text = function(self,pt, font, text, size)
+        return self:strokeTextD(pt, font, text, size, C.BL_TEXT_ENCODING_UTF8)
+      end;
+
       strokeTriangle = function(self, ...)
         local nargs = select("#",...)
         if nargs == 6 then
