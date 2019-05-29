@@ -35,6 +35,7 @@ function GFontSummary.draw(self, ctx)
     if not self.fontFaceName then
         self.fontFaceName = "KUNSTLER.TTF"
         ctx:loadFont(self.fontFaceName)
+        --ctx:setDpi(300)
     end
 
     ctx:setFillStyle(color(255))

@@ -47,6 +47,8 @@ local Window = require("Window")
 local CheckerGraphic = require("CheckerGraphic")
 local DrawingContext = require("DrawingContext")
 
+LAYERED_WINDOW = true;
+
 DrawingContext:exportConstants()
 
 
@@ -250,12 +252,14 @@ function flushToScreen()
 	local flags = flags or bor(C.RDW_ERASE, C.RDW_INVALIDATE, C.RDW_ERASENOW);
 
     -- force an immediate redraw of the window
+    if not LAYERED_WINDOW then
+
 	local success = C.RedrawWindow(
   		appWindowHandle,
   		lprcUpdate,
    		hrgnUpdate,
         flags)~= 0;
-
+    end
     -- Using the UpdateLayeredWindow approach can be even more useful as we can
     -- create a bitmap that represents the backing store of the window, and just
     -- allow windows to compose that.  This would save us one Blt of the appImage
@@ -263,28 +267,37 @@ function flushToScreen()
     -- compositor directly.
     -- We can extend the appImage to contain the complete
     -- size of the window plus chrome, and then it can be this bitmap.
---[[
-    local hdcDst = nil;     -- default palette is fine
-    local pptDst = nil;     -- we're not changing position
-    local psize  = nil;     -- we're not repositioning the window
-    local hdcSrc = nil;     -- we're doing drawing, so this should be set
-    local pptSrc = nil;
-    local crKey = 0;
-    local pblend = ffi.new("BLENDFUNCTION");
-    pblend.BlendOp = C.AC_SRC_OVER;
-    pblend.BlendFlags = 0
-    pblend.SourceConstantAlpha = 255;
-    pblend.AlphaFormat = C.AC_SRC_ALPHA;
+    if LAYERED_WINDOW then
+        local wrect = ffi.new("RECT")
+        C.GetWindowRect(appWindowHandle, wrect);
+        local hdcDst = C.GetDC(nil);     -- use palette of screen
+        local pptDst = ffi.new("POINT", {0,0});     -- we're not changing position
+        local psize  = ffi.new("SIZE", {wrect.right-wrect.left,wrect.bottom-wrect.top});     -- we're not repositioning the window
+        local hdcSrc = appSurface.DC;     -- we're doing drawing, so this should be set
+        local pptSrc = ffi.new("POINT", {0,0});
+        local crKey = 0;
+        local dwFlags = C.ULW_ALPHA;
 
-    local dwFlags = C.ULW_ALPHA;
+        local pblend = ffi.new("BLENDFUNCTION");
+        pblend.BlendOp = C.AC_SRC_OVER;
+        pblend.BlendFlags = 0
+        pblend.SourceConstantAlpha = 255;
+        pblend.AlphaFormat = C.AC_SRC_ALPHA;
 
-    local success = C.UpdateLayeredWindow(appWindowHandle, hdcDst,
-        pptDst, psize, hdcSrc, pptSrc,
-        crKey,
-        pblend,
-        dwFlags) ~= 0;
-    
---]]
+
+
+        local success = C.UpdateLayeredWindow(appWindowHandle, 
+            hdcDst,
+            pptDst, 
+            psize, 
+            hdcSrc, pptSrc,
+            crKey,
+            pblend,
+            dwFlags) ~= 0;
+
+        --print("UPDATELAYRED: ", success, C.GetLastError())
+    end 
+
     return success;
 end
 
@@ -703,15 +716,35 @@ local function WindowProc(hwnd, msg, wparam, lparam)
         --print("WM_ERASEBKGND: ", frameCount)
         --local hdc = ffi.cast("HDC", wparam); 
         if appSurface then
+            local cRect = ffi.new("RECT")
+            local bResult = C.GetClientRect(hwnd, cRect);
+
             local imgSize = appImage:size()
             --print("Size: ", imgSize.w, imgSize.h)
 
-            -- BitBlt is probably hardware accelerated
-            -- StretchDIBits might also be hardware accelerated
-            -- but, we don't need stretching, so we'll go with the slightly
-            -- easier bitblt
-            local bResult  C.BitBlt(  appWindowDC,  0,  0,  imgSize.w,  imgSize.h,  
-                appSurface.DC,  0,  0,  C.SRCCOPY);
+            -- BitBlt, StretchBlt, and StretchDIBits are probably 
+            -- all hardware accelerated
+            -- Ideally we'd be doing UpdateLayeredWindow, but 
+            -- we're not there yet, so we'll do StretchBlt and
+            -- ensure the bitmap matches the size of the client area
+            local xDest = 0;
+            local yDest = 0;
+            local wDest = cRect.right-cRect.left;
+            local hDest = cRect.bottom-cRect.top;
+            local hdcSrc = appSurface.DC;
+            local xSrc = 0;
+            local ySrc = 0;
+            local wSrc = imgSize.w;
+            local hSrc = imgSize.h;
+            local rop = C.SRCCOPY;
+            
+if not LAYERED_WINDOW then
+            local bResult = C.StretchBlt(appWindowDC,xDest,yDest,wDest,hDest,hdcSrc,
+                xSrc, ySrc,wSrc,hSrc,rop);
+end
+            -- StretchDIBits could also be used without a DC
+            --local bResult  C.BitBlt(  appWindowDC,  xDest,  yDest,  imgSize.w,  imgSize.h,  
+            --    hdcSrc,  0,  0,  C.SRCCOPY);
         end
         res = 0; 
     elseif msg == C.WM_PAINT then
@@ -727,6 +760,22 @@ local function WindowProc(hwnd, msg, wparam, lparam)
 
         C.EndPaint(hwnd, ps);
         res = 0
+    elseif msg == C.WM_DPICHANGED then
+        local dpiY = tonumber(HIWORD(wparam));
+        local dpiX = tonumber(LOWORD(wparam));
+
+        local hWndInsertAfter = nil;
+        local r = ffi.cast("RECT *", lparam)
+        local X = r.left;
+        local Y = r.top;
+        local cx = r.right - r.left;
+        local cy = r.bottom - r.top;
+        local uFlags = bor(C.SWP_NOMOVE, C.SWP_NOOWNERZORDER, C.SWP_NOACTIVATE, C.SWP_NOZORDER)
+        local bResult = C.SetWindowPos(hwnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+
+        --print("WinMan.msg, WM_DPICHANGED: ", dpiX, r.left, r.top, cx, cy, bResult)
+
+        return 0
     else
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
@@ -819,7 +868,7 @@ local function createWin32Window(params)
     -- create an instance of a window
     params.winclass = params.class or winclassname
     params.winstyle = params.winstyle or winstyle
-    params.winxstyle = params.winxstyle or 0
+    params.winxstyle = params.winxstyle or C.WS_EX_LAYERED
     params.x = params.x or 0
     params.y = params.y or 0
     winHandle, err = win32.CreateWindowHandle(params)
@@ -882,13 +931,13 @@ local function setupUIHandlers()
 end
 
 local function showWindow()
-    C.ShowWindow(appWindowHandle, C.SW_SHOWNORMAL);
+    local bResult = C.ShowWindow(appWindowHandle, C.SW_SHOW);
 end
 
 --[[
     https://docs.microsoft.com/en-us/windows/desktop/inputdev/using-raw-input
 ]]
-function rawInputOn(kind, localWindow)
+function WMRawInputOn(kind, localWindow)
     if kind then
         -- if a specific kind is named, then only register for that kind
         return HID_RegisterDevice(appWindowHandle, HID_MOUSE, localWindow)
@@ -901,7 +950,7 @@ function rawInputOn(kind, localWindow)
     return true;
 end
 
-function rawInputOff(kind)
+function WMRawInputOff(kind)
     if kind then
         return HID_UnregisterDevice(HID_MOUSE);
     end
@@ -942,9 +991,9 @@ local function main(params)
     -- Create the actual Window which will represent
     -- the Managed window UI Surface
     appWindowHandle,err = createWin32Window(params)
+    appWindowDC = C.GetDC(appWindowHandle)
  
     showWindow();
-    appWindowDC = C.GetDC(appWindowHandle)
 
     -- Setup to deal with user inputs
     --setupUIHandlers();
@@ -962,8 +1011,6 @@ local function main(params)
     -- setup the periodic frame calling
     local framePeriod = math.floor(1000/FrameRate)
     periodic(framePeriod, handleFrame)
-
-    --signalAll("gap_ready");
 end
 
 
@@ -980,10 +1027,10 @@ local function start(params)
     -- going to be DPI aware
     --WM_DPICHANGED
     -- SetWindowPos
-    --local oldContext = C.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    local oldContext = C.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
     -- C.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
     -- GetDpiForWindow
-    
+
     params.title = params.title or "WinMan";
     params.frameRate = params.frameRate or 15;
 

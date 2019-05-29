@@ -209,6 +209,7 @@ local DrawingContext_mt = {
 function DrawingContext.new(self, obj)
     obj = obj or {}
 
+    obj.dpi = obj.dpi or 96
     obj.BackingBuffer = obj.BackingBuffer or BLImage(obj.width, obj.height)
     obj.DC = obj.DC or ffi.new("struct BLContextCore")
     local bResult = blapi.blContextInitAs(obj.DC, obj.BackingBuffer, nil)
@@ -280,6 +281,9 @@ function DrawingContext.clear (self)
     return self.DC:clearAll()
 end
 
+function DrawingContext.setDpi(self, dpi)
+    self.dpi = dpi
+end
 
 
 function DrawingContext.background(self, ...)
@@ -1027,7 +1031,8 @@ function DrawingContext.loadFont(self, faceFilename)
 end
 
 function DrawingContext.textSize(self, asize)
-    local afont, err = self.FontFace:createFont(asize)
+    local realsize = (asize * self.dpi)/72
+    local afont, err = self.FontFace:createFont(realsize)
 
 	if not afont then 
 		return false, err;

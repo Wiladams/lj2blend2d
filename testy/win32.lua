@@ -145,6 +145,7 @@ static const int WS_MAXIMIZEBOX      = 0x00010000;
 static const int SW_HIDE            = 0;
 static const int SW_SHOWNORMAL      = 1;
 static const int SW_NORMAL          = 1;
+static const int SW_SHOW            = 5;
 
 // Window redrawing
 static const int RDW_INVALIDATE          = 0x0001;
@@ -185,6 +186,27 @@ static const int BI_RGB       = 0;
 static const int DIB_RGB_COLORS     = 0; /* color table in RGBs */
 static const int SRCCOPY           =  0x00CC0020; /* dest = source                   */
 ]]
+
+ffi.cdef[[
+/*
+ * SetWindowPos Flags
+ */
+static const int SWP_NOSIZE         = 0x0001;
+static const int SWP_NOMOVE         = 0x0002;
+static const int SWP_NOZORDER       = 0x0004;
+static const int SWP_NOREDRAW       = 0x0008;
+static const int SWP_NOACTIVATE     = 0x0010;
+static const int SWP_FRAMECHANGED   = 0x0020;  /* The frame changed: send WM_NCCALCSIZE */
+static const int SWP_SHOWWINDOW     = 0x0040;
+static const int SWP_HIDEWINDOW     = 0x0080;
+static const int SWP_NOCOPYBITS     = 0x0100;
+static const int SWP_NOOWNERZORDER  = 0x0200;  /* Don't do owner Z ordering */
+static const int SWP_NOSENDCHANGING = 0x0400;  /* Don't send WM_WINDOWPOSCHANGING */
+
+static const int SWP_DRAWFRAME      = SWP_FRAMECHANGED;
+static const int SWP_NOREPOSITION   = SWP_NOOWNERZORDER;
+]]
+
 
 ffi.cdef[[
 // Types
@@ -615,16 +637,20 @@ int QueryPerformanceFrequency(int64_t * lpFrequency);
 ffi.cdef[[
 DWORD __stdcall GetLastError(void);
 
-LRESULT DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+// Basic Window management
 ATOM RegisterClassExA(const WNDCLASSEXA *);
 HWND CreateWindowExA(DWORD dwExStyle, const char * lpClassName, const char * lpWindowName, DWORD dwStyle,
      int X, int Y, int nWidth, int nHeight,
      HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, void * lpParam);
+LRESULT DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 BOOL DestroyWindow(HWND hWnd);
-BOOL ShowWindow(HWND hWnd, int nCmdShow);
+BOOL GetClientRect(HWND   hWnd, LPRECT lpRect);
+BOOL GetWindowRect(HWND hWnd, LPRECT lpRect);
 BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
 BOOL RedrawWindow(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
 BOOL ScreenToClient(HWND hWnd, LPPOINT lpPoint);
+BOOL SetWindowPos(HWND hWnd, HWND hWndInsertAfter,int X,int Y,int cx,int cy, UINT uFlags);
+BOOL ShowWindow(HWND hWnd, int nCmdShow);
 BOOL UpdateLayeredWindow(HWND hWnd, HDC hdcDst, POINT* pptDst, SIZE* psize, 
     HDC hdcSrc, POINT* pptSrc, 
     COLORREF crKey, 
@@ -659,6 +685,9 @@ HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h);
 
 HBITMAP CreateDIBSection(HDC hdc, const BITMAPINFO *pbmi, UINT usage, void **ppvBits, HANDLE hSection, DWORD offset);
 int  BitBlt(  HDC hdc,  int x,  int y,  int cx,  int cy,  HDC hdcSrc,  int x1,  int y1,  uint32_t rop);
+BOOL StretchBlt(HDC   hdcDest, int   xDest, int   yDest, int   wDest, int   hDest,
+  HDC   hdcSrc, int   xSrc, int   ySrc, int   wSrc, int   hSrc,
+  DWORD rop);
 int  StretchDIBits( HDC hdc,  int xDest,  int yDest,  int DestWidth,  int DestHeight,  
     int xSrc,  int ySrc,  int SrcWidth,  int SrcHeight,
     const void * lpBits,  const BITMAPINFO * lpbmi,  UINT iUsage,  DWORD rop);
@@ -722,7 +751,8 @@ function exports.GID_ROTATE_ANGLE_FROM_ARGUMENT(_arg_)   ((((double)(_arg_) / 65
 -- Convenience functions
 function exports.RegisterWindowClass(wndclassname, msgproc, style)
 	msgproc = msgproc or C.DefWindowProcA;
-	style = style or bor(C.CS_HREDRAW,C.CS_VREDRAW, C.CS_OWNDC);
+	--style = style or bor(C.CS_HREDRAW,C.CS_VREDRAW, C.CS_OWNDC); -- can't use OWNDC with LAYERED
+	style = style or bor(C.CS_HREDRAW,C.CS_VREDRAW);
 
 	local hInst = C.GetModuleHandleA(nil);
 
@@ -753,7 +783,11 @@ end
 function exports.CreateWindowHandle(params)
     params.title = params.title or "Window";
     params.winstyle = params.winstyle or C.WS_OVERLAPPEDWINDOW;
-    params.winxstyle = params.winxstyle or 0;   --C.WS_EX_LAYERED;
+    if not LAYERED_WINDOW then
+    params.winxstyle = params.winxstyle or 0;
+    else
+    params.winxstyle = params.winxstyle or C.WS_EX_LAYERED;
+    end
     params.x = params.x or C.CW_USEDEFAULT;
     params.y = params.y or C.CW_USEDEFAULT;
 

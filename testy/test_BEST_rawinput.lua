@@ -25,7 +25,7 @@ end
 
 -- Generic app that puts up a window
 local function app(params)
-    rawInputOn()
+    WMRawInputOn()
     
     local continueRunning = true
     local win1 = WMCreateWindow(params)

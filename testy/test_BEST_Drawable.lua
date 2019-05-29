@@ -13,6 +13,8 @@
 
 package.path = "../?.lua;"..package.path;
 
+
+
 local winman = require("WinMan")
 
 local desktopWidth = 1200
@@ -33,6 +35,8 @@ local graphic = require(graphicname)
 -- drawable a chance to draw
 local function app(params)
     local win = WMCreateWindow({frame={x=0,y=0,width=desktopWidth, height=desktopHeight}})
+    --function win.drawBackground(self, ctx)
+    --end
 
     local g = graphic:new()
 
@@ -45,7 +49,7 @@ local function app(params)
         --BLImageCodec("BMP"):writeImageToFile(win.drawingContext:getReadyBuffer(), "imageCapture.bmp")    
     end
 
-    periodic(1000/3, drawproc)
+    periodic(1000/30, drawproc)
 end
 
 
@@ -53,4 +57,4 @@ local function startup()
     spawn(app)
 end
 
-winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=30}
+winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=10}
