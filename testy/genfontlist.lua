@@ -31,6 +31,31 @@ local fontStyle = {
     "ITALIC",
 }
 
+fontStretch = {
+    [1] = "ULTRA_CONDENSED";
+    "EXTRA_CONDENSED";
+    "CONDENSED";
+    "SEMI_CONDENSED";
+    "NORMAL";
+    "SEMI_EXPANDED";
+    "EXPANDED";
+    "EXTRA_EXPANDED";
+    "ULTRA_EXPANDED";
+  };
+
+  fontWeight = {
+    [100] = "THIN",
+    [200] = "EXTRA_LIGHT",
+    [300] = "LIGHT",
+    [350] = "SEMI_LIGHT",
+    [400] = "NORMAL",
+    [500] = "MEDIUM",
+    [600] = "SEMI_BOLD",
+    [700] = "BOLD",
+    [800] = "EXTRA_BOLD",
+    [900] = "BLACK",
+    [950] = "EXTRA_BLACK"
+  };
 
 local function printFontFaceInfo(face, fileName, filePath)
     if not face then return false end
@@ -46,8 +71,8 @@ local function printFontFaceInfo(face, fileName, filePath)
     io.write(string.format("%s = '%s'; ", "postscriptName", face:postScriptName()))
     io.write(string.format("%s = '%s'; ", "style", fontStyle[face:style()]))
     --io.write(string.format("%s = '%s'; ", "filePath", filePath))
-    io.write(string.format("%s = %d; ", "stretch", face:stretch()))
-    io.write(string.format("%s = %d; ", "weight", face:weight()))
+    io.write(string.format("%s = '%s'; ", "stretch", fontStretch[face:stretch()]))
+    io.write(string.format("%s = '%s'; ", "weight", fontWeight[face:weight()]))
 
 --[[
     print("stretch: ", face:stretch());
