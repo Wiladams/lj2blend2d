@@ -841,7 +841,8 @@ BLFontLoader_mt = {
         return nil, bResult
       end
 
-      bResult = blapi.blFontLoaderCreateFromFile(obj, filename)
+      local readFlags =  C.BL_FILE_OPEN_READ
+      bResult = blapi.blFontLoaderCreateFromFile(obj, filename, readFlags) ;
       if bResult ~= C.BL_SUCCESS then
         return nil, bResult
       end
@@ -944,6 +945,9 @@ BLFontFace_mt = {
           return tostring(self.impl.subfamilyName);
         end;
 
+        postScriptName = function(self)
+          return tostring(self.impl.postScriptName);
+        end;
         
         -- Use like this
         -- fontFace:createSizedFont(15)

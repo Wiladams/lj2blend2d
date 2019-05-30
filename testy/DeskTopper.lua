@@ -85,7 +85,10 @@ local appBackground = nil;
 local appImage = nil;
 local appWindowHandle = nil;
 local appWindowDC = nil;
+
 local gDesktopDpi = nil;
+local gScreenX = nil;
+local gScreenY = nil;
 
 local EnvironmentReady = false;
 
@@ -1034,23 +1037,20 @@ end
 
 
 local function start(params)
-    if not params then
-        return nil, "creation parameters must be specified"
-    end
-
-    if not params.width or not params.height then
-        return nil, "must specify width and height"
-    end
+    params = params or {}
 
     -- First thing to do is let the system know we are
     -- going to be DPI aware
-
     local oldContext = C.SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-    -- C.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-    -- GetDpiForWindow
 
+    -- Now figure out the size of the desktop (primary monitor)
+    gScreenX = C.GetSystemMetrics(C.SM_CXSCREEN)
+    gScreenY = C.GetSystemMetrics(C.SM_CYSCREEN)
+
+    params.width = gScreenX;
+    params.height = gScreenY;
     params.title = params.title or "WinMan";
-    params.frameRate = params.frameRate or 15;
+    params.frameRate = params.frameRate or 30;
 
     run(main, params)
 end

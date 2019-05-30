@@ -16,8 +16,58 @@
 local ffi = require("ffi")
 local C = ffi.C 
 
-require("win32.stringapiset")
 
+ffi.cdef[[
+typedef CHAR *PCHAR, *LPCH, *PCH;
+typedef const CHAR *LPCCH, *PCCH;
+typedef  CHAR *NPSTR, *LPSTR, *PSTR;
+
+
+typedef  WCHAR *NWPSTR, *LPWSTR, *PWSTR;
+typedef  const WCHAR *LPCWSTR; 
+typedef const WCHAR *LPCWCH, *PCWCH;
+]]
+
+ffi.cdef[[
+	//
+//  Code Page Default Values.
+//  Please Use Unicode, either UTF-16 (as in WCHAR) or UTF-8 (code page CP_ACP)
+//
+static const int  CP_ACP                  =  0;           // default to ANSI code page
+static const int  CP_OEMCP                =  1;           // default to OEM  code page
+static const int  CP_MACCP                =  2;           // default to MAC  code page
+static const int  CP_THREAD_ACP           =  3;           // current thread's ANSI code page
+static const int  CP_SYMBOL               =  42;          // SYMBOL translations
+
+static const int  CP_UTF7                 =  65000;       // UTF-7 translation
+static const int  CP_UTF8                 =  65001;       // UTF-8 translation
+]]
+
+ffi.cdef[[
+int
+__stdcall
+MultiByteToWideChar(
+     UINT CodePage,
+     DWORD dwFlags,
+     LPCCH lpMultiByteStr,
+     int cbMultiByte,
+     LPWSTR lpWideCharStr,
+     int cchWideChar
+    );
+
+int
+__stdcall
+WideCharToMultiByte(
+     UINT CodePage,
+     DWORD dwFlags,
+     LPCWCH lpWideCharStr,
+     int cchWideChar,
+     LPSTR lpMultiByteStr,
+     int cbMultiByte,
+     LPCCH lpDefaultChar,
+     LPBOOL lpUsedDefaultChar
+    );
+]]
 
 
 local exports = {}
@@ -30,7 +80,7 @@ function exports.toUnicode(in_Src, nsrcBytes)
 	nsrcBytes = nsrcBytes or #in_Src
 
 	-- find out how many characters needed
-	local charsneeded = ffi.C.MultiByteToWideChar(ffi.C.CP_ACP, 0, ffi.cast("const char *",in_Src), nsrcBytes, nil, 0);
+	local charsneeded = C.MultiByteToWideChar(ffi.C.CP_ACP, 0, ffi.cast("const char *",in_Src), nsrcBytes, nil, 0);
 
 	if charsneeded < 0 then
 		return nil;
@@ -53,7 +103,7 @@ function exports.toAnsi(in_Src, nsrcBytes)
 	local cchWideChar = nsrcBytes or -1;
 
 	-- find out how many characters needed
-	local bytesneeded = ffi.C.WideCharToMultiByte(
+	local bytesneeded = C.WideCharToMultiByte(
 		ffi.C.CP_ACP, 
 		0, 
 		ffi.cast("const uint16_t *", in_Src), 
@@ -73,7 +123,7 @@ function exports.toAnsi(in_Src, nsrcBytes)
 	local buff = ffi.new("uint8_t[?]", bytesneeded)
 
 	-- do the actual string conversion
-	local byteswritten = ffi.C.WideCharToMultiByte(
+	local byteswritten = C.WideCharToMultiByte(
 		ffi.C.CP_ACP, 
 		0, 
 		ffi.cast("const uint16_t *", in_Src), 

@@ -5,6 +5,11 @@ local C = ffi.C
 
 local blapi = require("blend2d.blend2d")
 local errors = require("blerror")
+local fsys = require("filesystem")
+local FileSystem = fsys.FileSystem;
+local FileSystemItem = fsys.FileSystemItem;
+
+
 local fontDir = "c:\\windows\\fonts\\"
 
 local fontFiles = {
@@ -19,6 +24,12 @@ local fontFiles = {
     "timesi.ttf",
     "wingding.ttf",
 }
+
+-- simple predicate to determine whether a file is
+-- truetype or not
+local function passTTF(item)
+	return item.Name:find(".ttf", 1, true);
+end
 
 
 local function createFontFaceFromFile(fileName)
@@ -54,15 +65,16 @@ local function test_fontloader()
     for _, filename in ipairs(fontFiles) do
         local fullname = fontDir..filename
         local loader, err = BLFontLoader:createFromFile(fullname)
-        print("Loader: ", fullname, loader, errors[tonumber(err)])
+        print("Loader: ", fullname, loader, err)
     end 
 end
 
-
+--[[
 local function test_errors()
     for k,v in pairs(errors) do
         print(k,v)
     end
 end
+--]]
 
 test_fontloader()

@@ -34,6 +34,8 @@ ffi.cdef[[
     typedef uint16_t            UINT16;
     typedef uint16_t            WORD;
     typedef int                 INT;
+    typedef int                 BOOL;
+    typedef uint16_t            WCHAR;    // wc,   16-bit UNICODE character
     typedef int32_t             INT32;
     typedef unsigned int        UINT;
     typedef unsigned int        UINT32;
@@ -57,7 +59,7 @@ if _WIN64 then
     typedef int64_t   LONG_PTR;
     typedef uint64_t  ULONG_PTR;
     ]]
-    else
+else
     ffi.cdef[[
     typedef int             INT_PTR;
     typedef unsigned int    UINT_PTR;
@@ -65,6 +67,10 @@ if _WIN64 then
     typedef unsigned long   ULONG_PTR;
     ]]
 end
+
+ffi.cdef[[
+typedef void * LPVOID;
+]]
 
 ffi.cdef[[
 /* Types use for passing & returning polymorphic values */
@@ -77,7 +83,8 @@ ffi.cdef[[
 typedef ULONG_PTR   DWORD_PTR;
 typedef LONG_PTR    SSIZE_T;
 typedef ULONG_PTR   SIZE_T;
-typedef int BOOL;
+
+typedef BOOL             *LPBOOL;
 typedef void *HANDLE;
 
 typedef BYTE *      PBYTE;
@@ -87,7 +94,17 @@ typedef ULONG *     PULONG;
 local WORD = ffi.typeof("WORD")
 local DWORD_PTR = ffi.typeof("DWORD_PTR")
 
-
+ffi.cdef[[
+static const int MINCHAR    = 0x80;        
+static const int MAXCHAR    = 0x7f;        
+static const int MINSHORT   = 0x8000;      
+static const int MAXSHORT   = 0x7fff;      
+static const int MINLONG    = 0x80000000;  
+static const int MAXLONG    = 0x7fffffff;  
+static const int MAXBYTE    = 0xff;        
+static const int MAXWORD    = 0xffff;      
+static const int MAXDWORD   = 0xffffffff;  
+]]
 
 
 -- windef
@@ -140,6 +157,8 @@ static const int WS_SYSMENU          = 0x00080000;
 static const int WS_THICKFRAME       = 0x00040000;
 static const int WS_MINIMIZEBOX      = 0x00020000;
 static const int WS_MAXIMIZEBOX      = 0x00010000;
+static const int WS_POPUP            = 0x80000000L;
+static const int WS_OVERLAPPEDWINDOW = WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MINIMIZEBOX|WS_MAXIMIZEBOX;
 
 // window showing
 static const int SW_HIDE            = 0;
@@ -164,9 +183,6 @@ static const int RDW_ERASENOW            = 0x0200;
 
 static const int PM_REMOVE  =  0x0001;
 
-// Window Style
-static const int WS_OVERLAPPEDWINDOW = WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME|WS_MINIMIZEBOX|WS_MAXIMIZEBOX;
-
 static const int CW_USEDEFAULT      = 0x80000000;
 static const int COLOR_WINDOW          =  5;
 
@@ -185,6 +201,12 @@ static const int  ULW_EX_NORESIZE       =  0x00000008;
 static const int BI_RGB       = 0;
 static const int DIB_RGB_COLORS     = 0; /* color table in RGBs */
 static const int SRCCOPY           =  0x00CC0020; /* dest = source                   */
+]]
+
+-- GetSystemMetrics
+ffi.cdef[[
+static const int SM_CXSCREEN = 0;
+static const int SM_CYSCREEN = 1;
 ]]
 
 ffi.cdef[[
@@ -646,6 +668,8 @@ LRESULT DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 BOOL DestroyWindow(HWND hWnd);
 BOOL GetClientRect(HWND   hWnd, LPRECT lpRect);
 BOOL GetWindowRect(HWND hWnd, LPRECT lpRect);
+UINT GetDpiForWindow(HWND hwnd);
+int GetSystemMetrics(int nIndex);
 BOOL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
 BOOL RedrawWindow(HWND hWnd, const RECT *lprcUpdate, HRGN hrgnUpdate, UINT flags);
 BOOL ScreenToClient(HWND hWnd, LPPOINT lpPoint);
