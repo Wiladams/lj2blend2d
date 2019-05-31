@@ -120,7 +120,7 @@ function FontMonger.new(self, obj)
     setmetatable(obj, FontMonger_mt)
 
     obj:setUnits("px")
-    periodic(60000, functor(obj.cleansweep, obj))
+
     return obj;
 end
 
@@ -158,6 +158,18 @@ end
 
 -- Enumerate all the fontfaces that are currently
 -- loaded
+function FontMonger.families(self)
+    local function visitor()
+        for family, v in pairs(self) do
+            if type(family) == "string" and type(v) == "table" then
+                coroutine.yield(family, v)
+            end
+        end
+    end
+
+    return coroutine.wrap(visitor)
+end
+
 function FontMonger.faces(self)
     local function visitor()
         for family,v in pairs(self) do
@@ -221,7 +233,7 @@ function FontMonger.getFont(self, family, subfamily, size)
     
     -- mark the last time this was accessed for later
     -- garbage collection
-    fontEntry.accessed = runningTime();
+    --fontEntry.accessed = runningTime();
 
     -- Finally, return the actual font object
     return fontEntry.font;

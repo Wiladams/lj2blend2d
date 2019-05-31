@@ -42,6 +42,64 @@ local  kOpFill = C.BL_CONTEXT_OP_TYPE_FILL;
 local kOpStroke = C.BL_CONTEXT_OP_TYPE_STROKE;
 
 
+--[[
+    Geometry types
+]]
+-- LUA Convenience
+BLPointI = ffi.typeof("struct BLPointI")
+BLPoint = ffi.typeof("struct BLPoint")
+ffi.metatype(BLPoint, {
+  -- create a new instance, non-destructive
+  __add = function(self, other)
+    return BLPoint(self.x + other.x, self.y + other.y)
+  end;
+
+  __sub = function(self, other)
+    return BLPoint(self.x - other.x, self.y - other.y)
+  end;
+})
+
+BLSizeI = ffi.typeof("struct BLSizeI");
+BLSize = ffi.typeof("struct BLSize")
+
+BLBoxI = ffi.typeof("struct BLBoxI")
+BLBox = ffi.typeof("struct BLBox")
+
+BLRectI = ffi.typeof("struct BLRectI")
+ffi.metatype("struct BLRectI", {
+    __tostring = function(self)
+      return string.format("BLRectI(%d, %d, %d, %d)", self.x, self.y, self.w, self.h)
+    end;
+
+    -- create a new rectangle that is the union of the two
+    __add = function(self, other)
+      local minx = min(self.x, other.x)
+      local miny = min(self.y, other.y)
+      local maxx = max(self.x+self.w, other.x+other.w)
+      local maxy = max(self.y+self.h, other.y+other.h)
+
+      local w = maxx - minx;
+      local h = maxy - miny;
+      
+      return BLRectI(minx, miny, w, h)
+    end;
+})
+
+BLRect = ffi.typeof("struct BLRect")
+
+BLLine = ffi.typeof("struct BLLine")
+
+BLTriangle = ffi.typeof("struct BLTriangle")
+
+BLRoundRect = ffi.typeof("struct BLRoundRect")
+
+BLCircle = ffi.typeof("struct BLCircle")
+
+BLEllipse = ffi.typeof("struct BLEllipse")
+
+BLArc = ffi.typeof("struct BLArc")
+
+
 BLContext = ffi.typeof("struct BLContextCore")
 ffi.metatype(BLContext, {
     __gc = function(self)
@@ -154,8 +212,8 @@ ffi.metatype(BLContext, {
         return false, bResult;
       end;
 
-      clip = function(self, x, y, w, h)
-        local bResult = self.impl.virt.clipToRectI(self.impl, BLRectI(x,y,w,h));
+      clipRectI = function(self, rect)
+        local bResult = self.impl.virt.clipToRectI(self.impl, rect);
         if bResult == C.BL_SUCCESS then
           return true;
         end
@@ -230,53 +288,23 @@ ffi.metatype(BLContext, {
           return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_TRANSLATE, x, y);
       end;
 
-      scale = function(self, ...)
-          local nargs = select('#',...)
-          --print("nargs: ", nargs)
-          local x, y = 1, 1;
-          if nargs == 1 then
-              if typeof(select(1,...) == "number") then
-                  x = select(1,...)
-                  y = x;
-                  --print("blcontext.scale: ", x, y)
-                  return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
-              end
-          elseif nargs == 2 then
-              x = select(1,...)
-              y = select(2,...)
-
-              if x and y then
-                  return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
-              end
-          end 
-          
-          return false, "invalid arguments"
+      scale = function(self, x, y)
+          return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
       end;
 
       skew = function(self, x, y)
         return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SKEW, x, y);
       end;
 
+      -- 3 values - an angle, and a point to rotate around
+      rotateAroundPoint = function(self, rads, x, y)
+        return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
+      end;
+
       -- overloaded rotate
       -- 1 value - an angle (in radians)
-      -- 3 values - an angle, and a point to rotate around
-      rotate = function(self, rads, x, y)
-        if not y then
-            if not x then
-                if not rads then
-                  return false, 'invalid arguments'
-                end
-                -- single argument specified
-                return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",rads));
-            end
-            -- there are two parameters
-            -- radians, and hopefully a BLPoint struct
-            error("BLContext.rotate(angle, Point), NYI")
-        end
-
-        if rads and x and y then
-            return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
-        end
+      rotate = function(self, rads)
+        return self:_applyMatrixOp(C.BL_MATRIX2D_OP_ROTATE, ffi.new("double[1]",rads));
       end;      
 
       transform = function(self, m)
@@ -540,8 +568,7 @@ ffi.metatype(BLContext, {
         return false, bResult;
       end;
 
-      fillRectD = function(self, x, y, w, h)
-        local rect = BLRect(x,y,w,h)
+      fillRectD = function(self, rect)
         local bResult = self.impl.virt.fillRectD(self.impl, rect);
         if bResult == C.BL_SUCCESS then
           return true;
@@ -691,7 +718,7 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
         return false, bResult;
       end;
 
-      strokePath = function(self, path)
+      strokePathD = function(self, path)
         local bResult = self.impl.virt.strokePathD(self.impl, path);
         if bResult == C.BL_SUCCESS then
           return true;
@@ -1062,62 +1089,7 @@ ffi.metatype(BLFont, BLFont_mt)
 BLTextMetrics = ffi.typeof("struct BLTextMetrics")
 
 
---[[
-    Geometry types
-]]
--- LUA Convenience
-BLPointI = ffi.typeof("struct BLPointI")
-BLPoint = ffi.typeof("struct BLPoint")
-ffi.metatype(BLPoint, {
-  -- create a new instance, non-destructive
-  __add = function(self, other)
-    return BLPoint(self.x + other.x, self.y + other.y)
-  end;
 
-  __sub = function(self, other)
-    return BLPoint(self.x - other.x, self.y - other.y)
-  end;
-})
-
-BLSizeI = ffi.typeof("struct BLSizeI");
-BLSize = ffi.typeof("struct BLSize")
-
-BLBoxI = ffi.typeof("struct BLBoxI")
-BLBox = ffi.typeof("struct BLBox")
-
-BLRectI = ffi.typeof("struct BLRectI")
-ffi.metatype("struct BLRectI", {
-    __tostring = function(self)
-      return string.format("BLRect(%d, %d, %d, %d)", self.x, self.y, self.w, self.h)
-    end;
-
-    -- create a new rectangle that is the union of the two
-    __add = function(self, other)
-      local minx = min(self.x, other.x)
-      local miny = min(self.y, other.y)
-      local maxx = max(self.x+self.w, other.x+other.w)
-      local maxy = max(self.y+self.h, other.y+other.h)
-
-      local w = maxx - minx;
-      local h = maxy - miny;
-      
-      return BLRectI(minx, miny, w, h)
-    end;
-})
-
-BLRect = ffi.typeof("struct BLRect")
-
-BLLine = ffi.typeof("struct BLLine")
-
-BLTriangle = ffi.typeof("struct BLTriangle")
-
-BLRoundRect = ffi.typeof("struct BLRoundRect")
-
-BLCircle = ffi.typeof("struct BLCircle")
-
-BLEllipse = ffi.typeof("struct BLEllipse")
-
-BLArc = ffi.typeof("struct BLArc")
 
 --[[
     GlyphBuffer

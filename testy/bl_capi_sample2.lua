@@ -5,8 +5,7 @@ local C = ffi.C
 
 local b2d = require("blend2d.blend2d")
 
-
-
+---[=[
 local function main() 
     local img = BLImage(256, 256, C.BL_FORMAT_PRGB32);
 
@@ -29,6 +28,8 @@ local function main()
     circle.cy = 128;
     circle.r = 64;
 
+    --ctx:clip(64,64,128,128);
+    --ctx:translate(256,256)
     ctx:setCompOp(C.BL_COMP_OP_EXCLUSION);
     ctx:setFillStyleRgba32(0xFF00FFFF);
     ctx:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle);
@@ -41,3 +42,4 @@ local function main()
 end
 
 main()
+--]=]

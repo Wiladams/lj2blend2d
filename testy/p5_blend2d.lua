@@ -293,7 +293,7 @@ function background(...)
 	BackgroundColor = c;
 
     appContext:setFillStyle(BackgroundColor)
-	appContext:fillRectD(0,0,width,height)
+	appContext:fillRectD(BLRect(0,0,width,height))
 end
 
 function point(x,y,z)
@@ -411,7 +411,7 @@ function rect(...)
 
 	if nargs == 4 then
 		if useFill then
-		appContext:fillRectD(x1, y1, rwidth, rheight)
+		appContext:fillRectD(BLRect(x1, y1, rwidth, rheight))
 		end
 
 		if useStroke then

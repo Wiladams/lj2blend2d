@@ -46,7 +46,7 @@ function GScaleTest.draw(self, ctx)
         ctx:setTransformBeforeStroke();
         ctx:fillRectD(0,0,whiteKeyWidth, whiteKeyHeight)
         ctx:stroke(255,0,0)
-        ctx:strokeRectD(0,0,whiteKeyWidth, whiteKeyHeight)
+        ctx:strokeRect(0,0,whiteKeyWidth, whiteKeyHeight)
         --ctx:rect(0,0,whiteKeyWidth, whiteKeyHeight)
     ctx:pop()
 end

@@ -83,8 +83,6 @@ function GPianoKeyboard.draw(self, ctx)
         end
 
         ctx:rect(key.frame.x, key.frame.y, key.frame.width, key.frame.height)
-        --ctx:fillRectD(key.frame.x, key.frame.y, key.frame.width, key.frame.height)
-        --ctx:strokeRectD(key.frame.x, key.frame.y, key.frame.width, key.frame.height)
     end
 
     ctx:pop()

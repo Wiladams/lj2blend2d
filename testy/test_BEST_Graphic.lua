@@ -12,8 +12,8 @@ package.path = "../?.lua;"..package.path;
 
 local winman = require("WinMan")
 
-local desktopWidth = 1200
-local desktopHeight = 1024
+local desktopWidth = 1920
+local desktopHeight = 1200
 
 local graphicname = arg[1]
 
@@ -51,7 +51,7 @@ end
 
 
 local function startup()
-    spawn(app, {frame = {x=4, y=4, width=1024, height=768}})
+    spawn(app, {frame = {x=4, y=4, width=desktopWidth, height=desktopHeight}})
 end
 
-winman {width = 1920, height=1080, startup = startup, frameRate=30}
+winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=30}

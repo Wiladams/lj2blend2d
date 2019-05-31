@@ -240,14 +240,14 @@ end
 
 function GUIStyle.DrawSunkenRect(self, ctx, x, y, w, h)
     ctx:fill(self.fBaseColor)
-    ctx:fillRectD(x,y,w,h)
+    ctx:fillRect(x,y,w,h)
 
 	self:DrawFrame(ctx, x, y, w, h, GUIStyle.FrameStyle.Sunken);
 end
 
 function GUIStyle.DrawRaisedRect(self, ctx, x, y, w, h)
     ctx:fill(self.fBaseColor)
-    ctx:fillRectD(x,y,w,h)
+    ctx:fillRect(x,y,w,h)
 	self:DrawFrame(ctx, x, y, w, h, GUIStyle.FrameStyle.Raised);
 end
 

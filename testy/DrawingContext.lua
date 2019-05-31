@@ -305,63 +305,29 @@ function DrawingContext.getReadyBuffer(self)
 end
 
 function DrawingContext.clip(self, x, y, w, h)
-    local bResult = blapi.blContextClipToRectI(self.DC, BLRectI(x,y,w,h)) ;
-    if bResult ~= C.BL_SUCCESS then
-        return nil, bResult;
-    end
-
-    return self;
+    return self.DC:clipRectI(BLRectI(x,y,w,h))
 end
 
 function DrawingContext.noClip(self)
-    local bResult = blapi.blContextRestoreClipping(self.DC) ;
-    
-    if bResult ~= C.BL_SUCCESS then
-        return nil, bResult;
-    end
-
-    return self;
+    return self.DC:removeClip()
 end
 
 
 function DrawingContext.finish (self)
-    local bResult = blapi.blContextEnd(self.DC);
-    
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-    
-    return false, bResult
+    return self.DC:finish();
 end
 
 function DrawingContext.flush (self, flags)
-    flags = flags or C.BL_CONTEXT_FLUSH_SYNC;
-
-    local bResult = self.DC.impl.virt.flush(self.DC.impl, flags);
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+    return self.DC:flush(flags)
 end
 
 function DrawingContext.save (self, cookie)
-    local bResult = self.DC.impl.virt.save(self.DC.impl, cookie);
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+    return self.DC:save(cookie)
 end
 DrawingContext.push = DrawingContext.save
 
 function DrawingContext.restore (self, cookie)
-    local bResult = self.DC.impl.virt.restore(self.DC.impl, cookie);
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+    return self.DC:restore(cookie)
 end
 
 DrawingContext.pop = DrawingContext.restore
@@ -420,41 +386,33 @@ end
 -- 1 value - an angle (in radians)
 -- 3 values - an angle, and a point to rotate around
 function DrawingContext.rotateAroundPoint(self, rads, x, y)
-    --BL_MATRIX2D_OP_POST_ROTATE_PT
-    --return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
-    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
+    return self.DC:rotateAroundPoint(rads, x, y)
 end
 
 function DrawingContext.rotate (self, rads)
-    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE,rads);
+    return self.DC:rotate(rads)
 end
 
 function DrawingContext.translate (self, x, y)
-    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_TRANSLATE, x, y);
+    return self.DC:translate(x, y)
 end
 
 function DrawingContext.scale(self, x, y)
+    x = x or 1
     y = y or x
 
-    if not x and y then
-        return false, "at least one axis must be specified"
-    end
+    return self.DC:scale(x, y)
+end
 
-    return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_SCALE, x, y)
+function DrawingContext.skew(self, x, y)
+    return self.DC:skew(x, y)
 end
 
 --[[
     Setting Drawing Attributes
 ]]
 function DrawingContext.setCompOp (self, compOp)
-    --print("setCompOp: ", self, compOp)
-    local bResult = blapi.blContextSetCompOp(self.DC, compOp);
-    
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+    return self.DC:setCompOp(compOp)
 end
     
 function DrawingContext.setFillStyle (self, obj)
@@ -655,26 +613,10 @@ function DrawingContext.fillPolygon (self, pts)
     end
 end
 
-function DrawingContext.fillRectI (self, rect)
-    local bResult = self.DC.impl.virt.fillRectI(self.DC.impl, rect);
-    
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+function DrawingContext.fillRect(self, x, y, w, h)
+    return self.DC:fillRectD(BLRect({x,y,w,h}))
 end
 
-function DrawingContext.fillRectD (self, x, y, w, h)
-    local rect = BLRect(x,y,w,h)
-    local bResult = self.DC.impl.virt.fillRectD(self.DC.impl, rect);
-        
-    if bResult == C.BL_SUCCESS then
-            return self;
-    end
-    
-    return false, bResult
-end
 
 function DrawingContext.fillRoundRect (self, ...)
     local nargs = select('#', ...)
@@ -811,7 +753,7 @@ function DrawingContext.strokeRectD (self, ...)
 end
 
 function DrawingContext.strokeRect(self, x, y, w, h)
-    return self:strokeRectD(BLRect(x,y,w,h))
+    return self.DC:strokeRectD(BLRect({x,y,w,h}))
 end
 
 function DrawingContext.strokeRoundRect (self, ...)
@@ -835,49 +777,22 @@ function DrawingContext.strokeRoundRect (self, ...)
     end
 end
 
-function DrawingContext.strokePathD(self, path)
-    local bResult = self.DC.impl.virt.strokePathD(self.DC.impl, path);
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-    
-    return false, bResult 
+function DrawingContext.strokePath(self, path)
+    return self.DC:strokePathD(path)
 end
-
-function DrawingContext.strokePath (self, path)
-    return self:strokePathD(path)
-end
-
 
 function DrawingContext.strokeLine (self, x1, y1, x2, y2)
     local aLine = BLLine(x1,y1,x2,y2)
     return self:strokeGeometry(C.BL_GEOMETRY_TYPE_LINE, aLine);
 end
 
-function DrawingContext.strokeTextI (self, pt, font, text, size, encoding)
-        local bResult = self.DC.impl.virt.strokeTextI(self.DC.impl, pt, font, text, size, encoding);
-        if bResult == C.BL_SUCCESS then
-            return self;
-        end
-        
-        return false, bResult 
+function DrawingContext.strokeText (self, x,y, font, text, size, encoding)
+    size = size or #text
+    encoding = encoding or C.BL_TEXT_ENCODING_UTF8
+    return self.DC:strokeTextD(BLPoint({x,y}), font, text, size, encoding)
 end
 
-function DrawingContext.strokeTextD (self, pt, font, text, size, encoding)
-        local bResult = self.DC.impl.virt.strokeTextD(self.DC.impl, pt, font, text, size, encoding);
-        
-        if bResult == C.BL_SUCCESS then
-            return self;
-        end
-        
-        return false, bResult 
-end
 
---[[
-function DrawingContext.strokeUtf8Text(self,pt, font, text, size)
-    return self:strokeTextD(pt, font, text, size, C.BL_TEXT_ENCODING_UTF8)
-end
---]]
 function DrawingContext.strokeTriangle (self, ...)
     local nargs = select("#",...)
 
@@ -1155,11 +1070,11 @@ function DrawingContext.rect(self, a,b,c,d)
 	local x1, y1, rwidth, rheight = calcModeRect(self.RectMode, a,b,c,d)
 
 	if self.useFill then
-	    self:fillRectD(x1, y1, rwidth, rheight)
+	    self:fillRect(x1, y1, rwidth, rheight)
 	end
 
 	if self.useStroke then
-		self:strokeRectD(BLRect(x1, y1, rwidth, rheight))
+        self:strokeRect(x1, y1, rwidth, rheight)
 	end
 
 	return true;

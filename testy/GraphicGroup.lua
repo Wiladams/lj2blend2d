@@ -109,8 +109,7 @@ function GraphicGroup.drawChildren(self, ctxt)
         if child.draw then
             if child.frame then
                 ctxt:save();
-                ctxt:clip(child.frame.x, child.frame.y,
-                    child.frame.width, child.frame.height)
+                --ctxt:clip(child.frame.x, child.frame.y, child.frame.width, child.frame.height)
                 ctxt:translate(child.frame.x, child.frame.y)
             end
 
