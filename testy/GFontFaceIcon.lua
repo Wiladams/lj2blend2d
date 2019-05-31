@@ -1,3 +1,6 @@
+local ffi = require("ffi")
+local C = ffi.C 
+
 local FontMonger = require("FontMonger")
 
 local GFontFaceIcon = {}
@@ -24,15 +27,36 @@ end
 
 function GFontFaceIcon.drawBackground(self, ctx)
     -- first draw white backround for whole cell
-    ctx:stroke(0xC0)
-    ctx:strokeWidth(1)
-    ctx:fill(255)
+    --ctx:stroke(0xC0)
+    --ctx:strokeWidth(1)
+    --ctx:fill(255)
     --ctx:rect(self.frame.x, self.frame.y, self.frame.width, self.frame.height)
 
     -- now draw a sub-rectangle to show the font style
-    ctx:stroke(0x00)
+    ctx:stroke(30)
+    ctx:strokeJoin(C.BL_STROKE_JOIN_ROUND)
     ctx:fill(210)
-    ctx:rect(2,2, self.frame.width-4, 100)
+
+    local p = BLPath()
+    p:moveTo(0,0)
+    p:lineTo(self.frame.width - 20, 0)
+    --p:lineTo(self.frame.width-20, 20)
+    p:lineTo(self.frame.width, 20)
+    p:lineTo(self.frame.width, 100)
+    p:lineTo(0, 100)
+    p:close()
+    ctx:fillPath(p)
+
+    -- make a little triangle tab
+    local p2 = BLPath()
+    ctx:stroke(30)
+    ctx:fill(160)   -- should be gradient
+    p2:moveTo(self.frame.width-20,0)
+    p2:lineTo(self.frame.width,20)
+    p2:lineTo(self.frame.width-20, 20)
+    p2:close()
+    ctx:fillPath(p2)
+
 end
 
 function GFontFaceIcon.drawSampleText(self, ctx)

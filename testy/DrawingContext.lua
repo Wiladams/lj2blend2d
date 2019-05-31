@@ -343,42 +343,11 @@ end
 
 -- Matrix operations
 function DrawingContext.resetTransform(self)
-    local bResult = self:_applyMatrixOp(C.BL_MATRIX2D_OP_RESET, nil);
-    if bResult ~= C.BL_SUCCESS then
-        return false, bResult
-    end
-
-    return self
+    return self.DC:resetTransform();
 end
 
 function DrawingContext.userToMeta(self)
-    local bResult = self.DC.impl.virt.userToMeta(self.DC.impl)
-    if bResult ~= C.BL_SUCCESS then
-        return false, bResult;
-    end
-
-    return self;
-end
-
--- Applies a matrix operation to the current transformation matrix (internal).
-function DrawingContext._applyMatrixOp (self, opType, opData)
-    local bResult = self.DC.impl.virt.matrixOp(self.DC.impl, opType, opData);
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
-end
-      
-function DrawingContext._applyMatrixOpV(self, opType, ...)
-        local opData = ffi.new("double[?]",select('#',...), {...});
-        --print("_applyMatrixOpV: ", opData[0], opData[1])
-        local bResult = self.DC.impl.virt.matrixOp(self.DC.impl, opType, opData);
-        if bResult == C.BL_SUCCESS then
-            return self;
-        end
-
-        return false, bResult
+    return self.DC:userToMeta()
 end
 
 
@@ -471,6 +440,7 @@ function DrawingContext.setTransformAfterStroke(self)
     return self;
 end
 
+--[[
 function DrawingContext.setStrokeStartCap (self, strokeCap)
         local bResult = blapi.blContextSetStrokeCap(self.DC, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
 
@@ -480,7 +450,8 @@ function DrawingContext.setStrokeStartCap (self, strokeCap)
     
     return false, bResult
 end
-
+--]]
+--[[
 function DrawingContext.setStrokeEndCap (self, strokeCap)
     local bResult = blapi.blContextSetStrokeCap(self.DC, C.BL_STROKE_CAP_POSITION_END, strokeCap) ;
     
@@ -490,7 +461,8 @@ function DrawingContext.setStrokeEndCap (self, strokeCap)
 
     return false, bResult
 end
-
+--]]
+--[[
 -- joinKind == BLStrokeJoin
 function DrawingContext.setStrokeJoin (self, joinKind)
     local bResult = blapi.blContextSetStrokeJoin(self.DC, joinKind) ;
@@ -501,6 +473,7 @@ function DrawingContext.setStrokeJoin (self, joinKind)
 
     return false, bResult
 end
+--]]
 
 function DrawingContext.setStrokeStyleRgba32 (self, rgba32)
     local bResult = blapi.blContextSetStrokeStyleRgba32(self.DC, rgba32);
@@ -531,6 +504,7 @@ function DrawingContext.setStrokeStyle (self, obj)
     return false, bResult
 end
 
+--[[
 function DrawingContext.setStrokeWidth (self, width)
     local bResult = blapi.blContextSetStrokeWidth(self.DC, width) ;
     
@@ -540,76 +514,55 @@ function DrawingContext.setStrokeWidth (self, width)
 
     return false, bResult
 end
-
+--]]
 
 --[[
     FILLING
 ]]
 
 function DrawingContext.fillAll (self)
-    local bResult = self.DC.impl.virt.fillAll(self.DC.impl);
-    
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+    return self.DC:fillAll();
 end
 
 -- Geometry drawing functions
-function DrawingContext.fillGeometry (self, geometryType, geometryData)
-    local bResult = self.DC.impl.virt.fillGeometry(self.DC.impl, geometryType, geometryData);
-    
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
-end
-
 
 function DrawingContext.fillCircle (self, ...)
     local nargs = select('#', ...)
     if nargs == 1 then
         local circle = select(1,...)
-        return self:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle);
+        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle);
     elseif nargs == 3 then
         local cx = select(1,...)
         local cy = select(2,...)
         local r = select(3,...)
         local circle = BLCircle(cx, cy, r)
-        return self:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle)
+        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle)
     end
 end
 
 
 function DrawingContext.fillEllipse (self, ...)
+    -- need to deal with ellipse mode
     local nargs = select("#",...)
     if nargs == 4 then
         local geo = BLEllipse(...)
             --print("fillEllipse: ", geo.cx, geo.cy, geo.rx, geo.ry)
-        return self:fillGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
+        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
     end
 end
 
 function DrawingContext.fillPath (self, path)
-    local bReasult = blapi.blContextFillPathD(self.DC, path) ;
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-
-    return false, bResult
+    return self.DC:fillPathD(path)
 end
 
 function DrawingContext.fillPolygon (self, pts)
     --print("fillPolygon: ", pts)
     if type(pts) == "table" then
-            local npts = #pts
-            local polypts = ffi.new("struct BLPoint[?]", npts,pts)
-            local arrview = BLArrayView(polypts, npts)
+        local npts = #pts
+        local polypts = ffi.new("struct BLPoint[?]", npts,pts)
+        local arrview = BLArrayView(polypts, npts)
 
-            return self:fillGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
-            --print(polypts, arrview.data, arrview.size)
+        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
     end
 end
 
@@ -626,16 +579,16 @@ function DrawingContext.fillRoundRect (self, ...)
     local rect = select(1,...)
 
     if nargs == 1 then
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
+          return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
     elseif nargs == 2 then
           local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(2,...))
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     elseif nargs == 3 then
           local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(3,...))
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     elseif nargs == 5 then
           local rrect = BLRoundRect(select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(5,...))
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     end
 end
 
@@ -643,7 +596,7 @@ function DrawingContext.fillTriangle (self, ...)
     local nargs = select("#",...)
     if nargs == 6 then
         local tri = BLTriangle(...)
-        return self:fillGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
+        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
     end
 
     return false, "wrong number of parameters"
@@ -666,7 +619,7 @@ function DrawingContext.fillUtf8Text (self, dst, font, text, size)
     return self
 end
 
-
+--[[
 function DrawingContext.strokeGeometry (self, geometryType, geometryData)
     local bResult = self.DC.impl.virt.strokeGeometry(self.DC.impl, geometryType, geometryData);
     
@@ -676,7 +629,8 @@ function DrawingContext.strokeGeometry (self, geometryType, geometryData)
     
     return false, bResult
 end
-      
+--]]
+
 function DrawingContext.strokeGlyphRunI (self, pt, font, glyphRun)
     local bResult = self.DC.impl.virt.strokeGlyphRunI(self.DC.impl,  pt, font, glyphRun);
     
@@ -703,7 +657,7 @@ function DrawingContext.strokeEllipse (self, ...)
     local nargs = select("#",...)
     if nargs == 4 then
         local geo = BLEllipse(...)
-        return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
+        return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
     end
 
     return false, "wrong number of arguments"
@@ -715,12 +669,12 @@ function DrawingContext.strokePolygon (self, pts)
         local polypts = ffi.new("struct BLPoint[?]", npts,pts)
         local arrview = BLArrayView(polypts, npts)
 
-        return self:strokeGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
+        return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
     end
 
     return false, "wrong number of arguments"
 end
-
+--[[
 function DrawingContext.strokeRectI (self, rect)
     local bResult = self.DC.impl.virt.strokeRectI(self.DC.impl, rect);
 
@@ -751,7 +705,7 @@ function DrawingContext.strokeRectD (self, ...)
 
     return self;
 end
-
+--]]
 function DrawingContext.strokeRect(self, x, y, w, h)
     return self.DC:strokeRectD(BLRect({x,y,w,h}))
 end
@@ -764,16 +718,16 @@ function DrawingContext.strokeRoundRect (self, ...)
     local rect = select(1,...)
 
     if nargs == 1 then
-          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
+          return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
     elseif nargs == 2 then
           local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(2,...))
-          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     elseif nargs == 3 then
           local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(3,...))
-          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     elseif nargs == 5 then
           local rrect = BLRoundRect(select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(5,...))
-          return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     end
 end
 
@@ -783,7 +737,7 @@ end
 
 function DrawingContext.strokeLine (self, x1, y1, x2, y2)
     local aLine = BLLine(x1,y1,x2,y2)
-    return self:strokeGeometry(C.BL_GEOMETRY_TYPE_LINE, aLine);
+    return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_LINE, aLine);
 end
 
 function DrawingContext.strokeText (self, x,y, font, text, size, encoding)
@@ -798,7 +752,7 @@ function DrawingContext.strokeTriangle (self, ...)
 
     if nargs == 6 then
         local tri = BLTriangle(...)
-        return self:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
+        return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_TRIANGLE, tri)
     end
 end
 

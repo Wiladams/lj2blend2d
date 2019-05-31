@@ -144,7 +144,8 @@ function GKeyboard.drawNeutral(self, ctx)
     local ygap = 2
 
     ctx:textAlign(MIDDLE, MIDDLE)
-    ctx:textSize(12);
+    ctx:textFont("segoe ui")
+    ctx:textSize(8);
 
     for _, key in ipairs(self.keyFrames) do
         local rrect = BLRoundRect(key.frame.x,key.frame.y,key.frame.width, key.frame.height, 3, 3)

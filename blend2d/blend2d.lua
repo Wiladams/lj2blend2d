@@ -537,7 +537,7 @@ ffi.metatype(BLContext, {
         end
       end;
 
-      fillPath = function(self, path)
+      fillPathD = function(self, path)
           local bReasult = blapi.blContextFillPathD(self, path) ;
           if bResult == C.BL_SUCCESS then
             return true;
