@@ -3,7 +3,7 @@ local C = ffi.C
 
 local blapi = require("blend2d.blend2d")
 local errors = require("blerror")
-
+local functor = require("functor")
 
 local fsys = require("filesystem")
 local FileSystem = fsys.FileSystem;
@@ -115,12 +115,49 @@ local FontMonger_mt = {
 
 function FontMonger.new(self, obj)
     obj = obj or loadFontFaces(FontMonger.systemFontDirectory, passTTF)
+    obj.dpi = 96
 
     setmetatable(obj, FontMonger_mt)
 
+    obj:setUnits("px")
+    periodic(60000, functor(obj.cleansweep, obj))
     return obj;
 end
 
+-- traverse all the fonts that are in the system
+-- removing the ones that were created a long time ago
+function FontMonger.cleansweep(self)
+    print("cleansweep")
+end
+
+function FontMonger.setDpi(self, dpi)
+    self.dpi = dpi;
+end
+
+local unitFactors = {
+    ["in"] = 1;
+    ["mm"] = 25.4;
+    ["px"] = 96;
+    ["pt"] = 72;
+} 
+
+--[[
+    setUnits, specifies the natural units that will be 
+    used when specifying a font size.  It can be one of
+    the unitFactors.
+]]
+function FontMonger.setUnits(self, units)
+    local factor = unitFactors[units]
+    if not factor then
+        return false, 'unknown units specified'
+    end
+
+    self.units = units;
+    self.unitsPerInch = factor
+end
+
+-- Enumerate all the fontfaces that are currently
+-- loaded
 function FontMonger.faces(self)
     local function visitor()
         for family,v in pairs(self) do
@@ -133,18 +170,61 @@ function FontMonger.faces(self)
     return coroutine.wrap(visitor)
 end
 
+-- get a particular font face.  If 'nearest' is true, then
+-- it will try to match the criteria, even if an exact match
+-- is not available.  At least the family must be the same though
 function FontMonger.getFace(self, family, subfamily, nearest)
-    local famslot = self[family]
+    subfamily = subfamily or "regular"
+    local famslot = self[family:lower()]
     if not famslot then
         return nil, "unknown family: "..family
     end
 
-    local subslot = famslot[subfamily]
+    local subslot = famslot[subfamily:lower()]
     if not subslot then
         return nil, "unknown subfamily: "..subfamily
     end
 
     return subslot
+end
+
+-- Get a specific font object at a specific size
+function FontMonger.getFont(self, family, subfamily, size)
+    --print("FontMonger.getFont, size: ", family, subfamily, size)
+    
+    subfamily = subfamily or "regular"
+    local fontSize = size / self.unitsPerInch * self.dpi
+
+    -- try to find the font face
+    local famslot = self[family]
+    if not famslot then
+        return nil, "font family not found: "..family
+    end
+
+    local subslot = famslot[subfamily]
+    if not subslot then
+        return nil, "subfamily not found: "..subfamily
+    end
+
+    -- if we have subslot, it's a fontdata entry
+    -- so look in the sizes to see if the font size
+    -- has already been created.
+    local sizeKey = string.format("%3.2f", fontSize)
+    local fontEntry = subslot.sizes[sizeKey]
+    if not fontEntry then
+        -- create the font of the size
+        font = subslot.face:createFont(fontSize)
+        -- add an entry to the sizes table
+        fontEntry = {font = font;}
+        subslot.sizes[sizeKey] = fontEntry
+    end
+    
+    -- mark the last time this was accessed for later
+    -- garbage collection
+    fontEntry.accessed = runningTime();
+
+    -- Finally, return the actual font object
+    return fontEntry.font;
 end
 
 return FontMonger

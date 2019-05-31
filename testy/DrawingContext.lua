@@ -28,6 +28,7 @@ local blapi = require("blend2d.blend2d")
 
 local enum = require("enum")
 local maths = require("maths")
+local FontMonger = require("FontMonger")
 
 
 local DrawingContext = {
@@ -195,7 +196,6 @@ local DrawingContext = {
 
 
 
-
 setmetatable(DrawingContext, {
     __call = function(self, ...)
         return self:new(...)
@@ -209,7 +209,8 @@ local DrawingContext_mt = {
 function DrawingContext.new(self, obj)
     obj = obj or {}
 
-    obj.dpi = obj.dpi or 96
+    obj.fontMonger = obj.fontMonger or FontMonger:new()
+    obj.fontMonger:setDpi(192)
     obj.BackingBuffer = obj.BackingBuffer or BLImage(obj.width, obj.height)
     obj.DC = obj.DC or ffi.new("struct BLContextCore")
     local bResult = blapi.blContextInitAs(obj.DC, obj.BackingBuffer, nil)
@@ -221,14 +222,11 @@ function DrawingContext.new(self, obj)
     obj.StrokeWeight = 1;
 
     -- Typography
-    obj.TextSize = 18;
+    obj.fontSize = 18;
     obj.TextHAlignment = DrawingContext.constants.LEFT;
     obj.TextVAlignment = DrawingContext.constants.BASELINE;
     obj.TextLeading = 0;
     obj.TextMode = DrawingContext.constants.SCREEN;
-
-    obj.FontFace = BLFontFace:createFromFile("c:\\windows\\fonts\\consola.ttf")
-    obj.Font = obj.FontFace:createFont(obj.TextSize)
 
     obj.AngleMode = DrawingContext.constants.RADIANS;
     obj.ColorMode = DrawingContext.constants.RGB;
@@ -239,6 +237,7 @@ function DrawingContext.new(self, obj)
     obj.DC:clearAll()
     setmetatable(obj, DrawingContext_mt)
 
+    obj:textFont("consolas", 'regular')
 
     return obj;
 end
@@ -282,6 +281,7 @@ function DrawingContext.clear (self)
 end
 
 function DrawingContext.setDpi(self, dpi)
+    self.fontMonger:setDpi(dpi)
     self.dpi = dpi
 end
 
@@ -1013,12 +1013,9 @@ function DrawingContext.strokeWidth(self, weight)
 end
 
 --[[
-
-]]
+-- loadFont does NOT imply it becomes the current font
 function DrawingContext.loadFont(self, faceFilename)
-	local fontDir = "c:\\windows\\fonts\\"
-	local fontfile = fontDir..faceFilename;
-
+    self.fontMonger:loadFont(facefilename)
 	aFace, err = BLFontFace:createFromFile(fontfile)
 	if not aFace then
 		return false, err
@@ -1027,19 +1024,34 @@ function DrawingContext.loadFont(self, faceFilename)
     self.FontFace = aFace;
     -- select font of current font size
 
-    self:textSize(self.TextSize)
+    self:textSize(self.fontSize)
+end
+--]]
+
+function DrawingContext.textFont(self, family, subfamily)
+    subfamily = subfamily or 'regular'
+
+    local face, err = self.fontMonger:getFace(family, subfamily)
+    if not face then
+        return false, err
+    end
+
+    self.fontFamily = family;
+    self.fontSubFamily = subfamily;
+    self.FontFace = face;
+
+    self:textSize(self.fontSize)
 end
 
-function DrawingContext.textSize(self, asize)
-    local realsize = (asize * self.dpi)/72
-    local afont, err = self.FontFace:createFont(realsize)
+function DrawingContext.textSize(self, size)
+    local afont, err = self.fontMonger:getFont(self.fontFamily, self.fontSubFamily, size)
 
-	if not afont then 
-		return false, err;
-	end
+    if not afont then
+        return false, err
+    end
 
 	self.Font = afont
-	self.TextSize = asize
+	self.fontSize = size
 
 	return true;
 end

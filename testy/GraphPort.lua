@@ -688,17 +688,7 @@ end
 function GraphPort.createFont(self)
 end
 
-function GraphPort.loadFont(self, faceFilename)
-	local fontDir = "c:\\windows\\fonts\\"
-	local fontfile = fontDir..faceFilename;
 
-	aFace, err = BLFontFace:createFromFile(fontfile)
-	if not aFace then
-		return false, err
-	end
-
-	appFontFace = aFace;
-end
 
 function GraphPort.textSize(self, asize)
 	aFont, err = appFontFace:createFont(asize)
