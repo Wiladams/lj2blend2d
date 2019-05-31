@@ -21,7 +21,7 @@ function GFontSummary.new(self, obj)
     return obj;
 end
 
-local lineText = "The quick brownfox jumps over the lazy dog. 1234587890"
+local lineText = " The quick brownfox jumps over the lazy dog. 1234587890"
 local lines = {
     {size = 12, lineHeight = 16;};
     {size = 18, lineHeight = 24;};
@@ -66,17 +66,17 @@ function GFontSummary.draw(self, ctx)
 
     ctx:translate(0, 110)
     for _, line in ipairs(lines) do 
-        ctx:translate(0, line.lineHeight);
+        ctx:translate(0, line.lineHeight*1.5);
    
         -- draw the size indicator
-        ctx:textFont("consolas")
+        ctx:textFont("segoe ui")
         ctx:textSize(12)
         ctx:text(tostring(line.size), 2, 0)
    
         -- Draw the line of text
         ctx:textFont(self.fontFamily)
         ctx:textSize(line.size)
-        ctx:text(lineText, 20, 0)
+        ctx:text(lineText, 40, 0)
     end
 --]]
     ctx:restore()
