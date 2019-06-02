@@ -18,6 +18,8 @@
 
 local ffi = require("ffi")
 local C = ffi.C 
+local bit = require("bit")
+local bor, band = bit.bor, bit.band
 
 local min, max = math.min, math.max
 
@@ -900,7 +902,7 @@ BLFontFace_mt = {
     end;
 
     __new = function(ct, ...)
-        print("BLFontFace.__new")
+        --print("BLFontFace.__new")
         local obj = ffi.new(ct)
         local bResult = blapi.blFontFaceInit(obj)
         if bResult ~= C.BL_SUCCESS then
@@ -920,7 +922,8 @@ BLFontFace_mt = {
                 return nil, "failed blFontFaceInit"
             end
 
-            local readFlags = C.BL_FILE_OPEN_READ;
+            local readFlags = bor(C.BL_FILE_OPEN_READ, C.BL_FILE_READ_MMAP_ENABLED, C.BL_FILE_READ_MMAP_AVOID_SMALL);
+            --local readFlags = bor(C.BL_FILE_OPEN_READ);
             local bResult = blapi.blFontFaceCreateFromFile(obj, fileName, readFlags) ;
             --print("blFontFaceCreateFromFile: ", bResult)
 

@@ -17,7 +17,7 @@ end
 
 function GFontIconPage.new(self, obj)
     obj = GraphicGroup:new(obj)
-print("GFontIconPage.new: ", obj, obj.frame.width, obj.frame.height)
+--print("GFontIconPage.new: ", obj, obj.frame.width, obj.frame.height)
 
     obj.fontMonger = obj.fontMonger or FontMonger:new();
 
@@ -33,8 +33,8 @@ function GFontIconPage.setup(self)
 
 
     local column = 1;
-    local maxColumn = 12;
-    local columnGap = 10;
+    local maxColumn = 10;
+    local columnGap = 20;
 
     local row = 1;
     local maxRow = 8;
@@ -46,8 +46,9 @@ function GFontIconPage.setup(self)
         -- create an icon
         local icon, err = GFontFaceIcon:new({familyName = familyName, fontMonger = self.fontMonger})
 
-        icon.frame.x = (column-1) * (size.width+columnGap);
-        icon.frame.y = (row-1) * size.height;
+        --icon.frame.x = (column-1) * (size.width+columnGap);
+        --icon.frame.y = (row-1) * size.height;
+        icon:moveTo((column-1) * (size.width+columnGap), (row-1) * size.height)
 
         --print("create icon: ", familyName, icon, icon.frame.x, icon.frame.y, icon.frame.width, icon.frame.height)
 

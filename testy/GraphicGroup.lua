@@ -1,4 +1,9 @@
-
+--[[
+local function contains(frame, x, y)
+    return x >= frame.x and x < frame.x+frame.width and
+        y >= frame.y and y < frame.y+frame.height
+end
+--]]
 
 local GraphicGroup = {}
 local GraphicGroup_mt = {
@@ -11,9 +16,9 @@ function GraphicGroup.new(self, obj)
     obj = obj or {}
     obj.frame = obj.frame or {x=0,y=0,width=0,height=0};
     obj.children = {};
+    obj.lastMouseChild = nil;
 
     setmetatable(obj, GraphicGroup_mt)
-    --self.__index = self;
 
     return obj;
 end
@@ -23,7 +28,7 @@ function GraphicGroup.getDrawingContext(self)
     return self.drawingContext
 end
 
-function GraphicGroup.contains(self, x, y)
+function GraphicGroup.frameContains(self, x, y)
     return x >= self.frame.x and x < self.frame.x+self.frame.width and
             y >= self.frame.y and y < self.frame.y+self.frame.height
 end
@@ -41,7 +46,7 @@ function GraphicGroup.add(self, child, after)
     table.insert(self.children, child)
 end
 
-function GraphicGroup.ConvertFromParent(self, x, y)
+function GraphicGroup.convertFromParent(self, x, y)
     return x-self.frame.x, y-self.frame.y
 end
 
@@ -64,10 +69,7 @@ function GraphicGroup.childrenInZOrder(self)
     return coroutine.wrap(visitor)
 end
 
-local function contains(frame, x, y)
-    return x >= frame.x and x < frame.x+frame.width and
-        y >= frame.y and y < frame.y+frame.height
-end
+
 
 --[[
     coordinates are in the local context
@@ -80,7 +82,8 @@ function GraphicGroup.graphicAt(self, x, y)
 
     for i = #self.children, 1, -1 do
         graphic = self.children[i]
-        if graphic.frame and contains(graphic.frame, x, y) then
+        if graphic.frameContains and graphic:frameContains(x, y) then
+        --if graphic.frame and contains(graphic.frame, x, y) then
             return graphic
         end
     end
@@ -107,9 +110,10 @@ function GraphicGroup.drawChildren(self, ctxt)
         -- set clip area to child
         -- translate the context to the child's frame
         if child.draw then
+            ctxt:save();
+
             if child.frame then
-                ctxt:save();
-                --ctxt:clip(child.frame.x, child.frame.y, child.frame.width, child.frame.height)
+                ctxt:clip(child.frame.x, child.frame.y, child.frame.width, child.frame.height)
                 ctxt:translate(child.frame.x, child.frame.y)
             end
 
@@ -117,11 +121,10 @@ function GraphicGroup.drawChildren(self, ctxt)
 
             if child.frame then
                 -- remove clip
-                ctxt:noClip()
-                ctxt:restore();
+                --ctxt:noClip()
             end
+            ctxt:restore();
         end
-
     end
 end
 
@@ -184,11 +187,18 @@ function GraphicGroup.mouseEvent(self, event)
     event.parentY = event.y;
     
     -- Convert x, y coordinates to be in the space of the child
-    local x, y = self:ConvertFromParent(event.x, event.y)
+    local x, y = self:convertFromParent(event.x, event.y)
     event.x = x;
     event.y = y;
 
     local child = self:graphicAt(event.x, event.y)
+
+    if child ~= self.lastMouseChild then
+        if self.lastMouseChild and self.lastMouseChild.mouseExit then
+            self.lastMouseChild:mouseExit(event)
+        end
+        self.lastMouseChild = child;
+    end
 
     if child  and child.mouseEvent then
         --print("mouseEvent.child.title: ", tostring(child.title))
@@ -196,6 +206,7 @@ function GraphicGroup.mouseEvent(self, event)
             if child ~= self.activeChild then
                 event.subactivity = "mousehover"
             end
+
         elseif event.activity == "mousedown" then
             if child ~= self.activeChild and not child.refuseFocus then
                 self:setFocus(child)
@@ -203,13 +214,15 @@ function GraphicGroup.mouseEvent(self, event)
         elseif event.activity == "mouseup" then
         end
 
+        self.lastMouseChild = child;
+
         return child:mouseEvent(event)
     else
         -- If we are here, then the mouse activity falls outside
         -- any of the children, so it's on the body of the group
         -- itself.
         -- need to restore original event coordinates
-        local x, y = self:ConvertFromParent(event.parentX, event.parentY)
+        local x, y = self:convertFromParent(event.parentX, event.parentY)
         event.x = x;
         event.y = y;
 

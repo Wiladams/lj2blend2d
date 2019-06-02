@@ -209,16 +209,11 @@ function WMSetFocus(win)
     wmFocusWindow = win
 end
 
-local function contains(frame, x, y)
-    return x >= frame.x and x < frame.x+frame.width and
-        y >= frame.y and y < frame.y+frame.height
-end
-
 function WMWindowAt(x, y)
 
     for i = #windowGroup, 1, -1 do
         win = windowGroup[i]
-        if contains(win.frame, x, y) then
+        if win:frameContains(x, y) then
             return win
         end
     end
@@ -257,6 +252,19 @@ end
 -- Internal functions
 -- Take our desktop backing store and flush it to the
 -- screen in as fast as a manner as possible.
+-- These parameters never change
+local wrect = ffi.new("RECT")
+local pptDst = ffi.new("POINT", {0,0});     -- we're not changing position
+local pptSrc = ffi.new("POINT", {0,0});
+local pblend = ffi.new("BLENDFUNCTION");
+pblend.BlendOp = C.AC_SRC_OVER;
+pblend.BlendFlags = 0
+pblend.SourceConstantAlpha = 255;
+pblend.AlphaFormat = C.AC_SRC_ALPHA;
+local crKey = 0;
+local dwFlags = C.ULW_ALPHA;
+
+
 function flushToScreen()
 
     -- doing the RedrawWindow() method, with RDW_ERASENOW ensures that the 
@@ -267,15 +275,8 @@ function flushToScreen()
 	local hrgnUpdate = nil; -- HRGN
 	local flags = flags or bor(C.RDW_ERASE, C.RDW_INVALIDATE, C.RDW_ERASENOW);
 
-    -- force an immediate redraw of the window
-    if not LAYERED_WINDOW then
 
-	local success = C.RedrawWindow(
-  		appWindowHandle,
-  		lprcUpdate,
-   		hrgnUpdate,
-        flags)~= 0;
-    end
+
     -- Using the UpdateLayeredWindow approach can be even more useful as we can
     -- create a bitmap that represents the backing store of the window, and just
     -- allow windows to compose that.  This would save us one Blt of the appImage
@@ -284,23 +285,10 @@ function flushToScreen()
     -- We can extend the appImage to contain the complete
     -- size of the window plus chrome, and then it can be this bitmap.
     if LAYERED_WINDOW then
-        local wrect = ffi.new("RECT")
         C.GetWindowRect(appWindowHandle, wrect);
         local hdcDst = C.GetDC(nil);     -- use palette of screen
-        local pptDst = ffi.new("POINT", {0,0});     -- we're not changing position
         local psize  = ffi.new("SIZE", {wrect.right-wrect.left,wrect.bottom-wrect.top});     -- we're not repositioning the window
         local hdcSrc = appSurface.DC;     -- we're doing drawing, so this should be set
-        local pptSrc = ffi.new("POINT", {0,0});
-        local crKey = 0;
-        local dwFlags = C.ULW_ALPHA;
-
-        local pblend = ffi.new("BLENDFUNCTION");
-        pblend.BlendOp = C.AC_SRC_OVER;
-        pblend.BlendFlags = 0
-        pblend.SourceConstantAlpha = 255;
-        pblend.AlphaFormat = C.AC_SRC_ALPHA;
-
-
 
         local success = C.UpdateLayeredWindow(appWindowHandle, 
             hdcDst,
@@ -312,8 +300,15 @@ function flushToScreen()
             dwFlags) ~= 0;
 
         --print("UPDATELAYRED: ", success, C.GetLastError())
-    end 
-
+    else     -- LAYERED_WINDOW
+        -- force an immediate redraw of the window
+        local success = C.RedrawWindow(
+              appWindowHandle,
+              lprcUpdate,
+               hrgnUpdate,
+            flags)~= 0;
+    end
+    
     return success;
 end
 
@@ -658,6 +653,15 @@ function TouchActivity(hwnd, msg, wparam, lparam)
     return 0
 end
 
+local gestureId = {
+    [1] = "GID_BEGIN";
+    "GID_END";
+    "GID_ZOOM";
+    "GID_PAN";
+    "GID_ROTATE";
+    "GID_TWOFINGERTAP";
+    "GID_PRESSANDTAP";
+}
 
 function GestureActivity(hwnd, msg, wparam, lparam)
 
@@ -666,7 +670,7 @@ function GestureActivity(hwnd, msg, wparam, lparam)
 
     local bResult = C.GetGestureInfo(ffi.cast("HGESTUREINFO",lparam), pGestureInfo);
 
-    print("GestureActivity: ", pGestureInfo.dwID)
+    print("GestureActivity, ID, Flags: ", gestureId[pGestureInfo.dwID], pGestureInfo.dwFlags)
 
     if bResult == 0 then
         -- error getting gestureinfo, so just pass through 

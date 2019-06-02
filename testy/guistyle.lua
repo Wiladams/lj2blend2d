@@ -88,16 +88,7 @@ local function darker(value)
 end
 
 
---[[
-	Convert to luminance using ITU-R Recommendation BT.709 (CCIR Rec. 709)
-	This is the one that matches modern HDTV and LCD monitors
-	This is a simple 'grayscale' conversion
---]]
-local function lumaBT709(c)
-	local gray = 0.2125 * c[1] + 0.7154 * c[2] + 0.0721 * c[3]
 
-	return gray;
-end
 
 local GUIStyle = {
     Colors = Colorrefs;

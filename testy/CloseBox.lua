@@ -18,15 +18,22 @@ function CloseBox.new(self, obj)
     return obj
 end
 
+function CloseBox.mouseExit(self, event)
+    --print("CloseBox.mouseExit:")
+    self.isHovering = false;
+end
+
 function CloseBox.mouseUp(self, event)
     --print("CloseBox.mouseUp")
     signalAll(self, self)
 end
 
 function CloseBox.mouseMove(self, event)
-    --print("CloseBox.mousemove: ", event.x, event.y)
-    self.lastMouseTime = millis()
+    --print("CloseBox.mousemove: ", event.x, event.y, event.subactivity)
 
+    if event.subactivity == "mousehover" then
+        self.isHovering = true
+    end
 end
 
 function CloseBox.draw(self, ctx)
@@ -35,16 +42,14 @@ function CloseBox.draw(self, ctx)
     ctx:strokeWidth(4)
     ctx:line(4,4,self.frame.width-4, self.frame.height-4)
     ctx:line(self.frame.width-4, 4, 4, self.frame.height-4)
-    -- check last time mouse was moved
-    -- if it's been a while, don't draw
-    -- the highlight
-    -- maybe fade out over time
-    if millis() - self.lastMouseTime < 500 then
+
+    if self.isHovering then
         -- semi-transparent red
         ctx:noStroke()
         ctx:fill(0xff, 0,0, 0x7f)
         ctx:rect(0, 0, self.frame.width, self.frame.height)
     end
+
 
     return self;
 end

@@ -207,6 +207,7 @@ local DrawingContext_mt = {
 
 
 function DrawingContext.new(self, obj)
+    print("DrawingContext.new")
     obj = obj or {}
 
     obj.fontMonger = obj.fontMonger or FontMonger:new()

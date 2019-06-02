@@ -114,7 +114,11 @@ local FontMonger_mt = {
 
 
 function FontMonger.new(self, obj)
+    --local stime = runningTime()
     obj = obj or loadFontFaces(FontMonger.systemFontDirectory, passTTF)
+    --local duration = runningTime() - stime
+    --print("FontMonger, loadFontFaces: ", duration)
+
     obj.dpi = 96
 
     setmetatable(obj, FontMonger_mt)
