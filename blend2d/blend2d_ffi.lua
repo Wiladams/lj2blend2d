@@ -101,18 +101,12 @@ typedef struct BLFontDataVirt BLFontDataVirt;
 typedef struct BLFontLoaderCore BLFontLoaderCore;
 typedef struct BLFontLoaderImpl BLFontLoaderImpl;
 typedef struct BLFontLoaderVirt BLFontLoaderVirt;
-]]
-
-ffi.cdef[[
 typedef uint32_t BLResult;
 typedef uintptr_t BLBitWord;
 typedef uint32_t BLTag;
 typedef void (__cdecl* BLDestroyImplFunc)(void* impl, void* destroyData) ;
 typedef BLResult (__cdecl* BLPathSinkFunc)(BLPathCore* path, const void* info, void* closure) ;
 typedef uint16_t BLGlyphId;
-]]
-
-ffi.cdef[[
 enum BLResultCode {
   BL_SUCCESS = 0,
   BL_ERROR_START_INDEX = 0x00010000u,
@@ -273,417 +267,417 @@ typedef struct { const void* data; size_t size; } BLArrayView;
 typedef struct { const char* data; size_t size; } BLStringView;
 typedef struct { const BLBoxI* data; size_t size; } BLRegionView;
 typedef BLArrayView BLDataView;
-BLResult __cdecl blArrayInit(BLArrayCore* self, uint32_t arrayTypeId) ;
-BLResult __cdecl blArrayReset(BLArrayCore* self) ;
-BLResult __cdecl blArrayCreateFromData(BLArrayCore* self, void* data, size_t size, size_t capacity, uint32_t dataAccessFlags, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-size_t   __cdecl blArrayGetSize(const BLArrayCore* self) ;
-size_t   __cdecl blArrayGetCapacity(const BLArrayCore* self) ;
-const void* __cdecl blArrayGetData(const BLArrayCore* self) ;
-BLResult __cdecl blArrayClear(BLArrayCore* self) ;
-BLResult __cdecl blArrayShrink(BLArrayCore* self) ;
-BLResult __cdecl blArrayReserve(BLArrayCore* self, size_t n) ;
-BLResult __cdecl blArrayResize(BLArrayCore* self, size_t n, const void* fill) ;
-BLResult __cdecl blArrayMakeMutable(BLArrayCore* self, void** dataOut) ;
-BLResult __cdecl blArrayModifyOp(BLArrayCore* self, uint32_t op, size_t n, void** dataOut) ;
-BLResult __cdecl blArrayInsertOp(BLArrayCore* self, size_t index, size_t n, void** dataOut) ;
-BLResult __cdecl blArrayAssignMove(BLArrayCore* self, BLArrayCore* other) ;
-BLResult __cdecl blArrayAssignWeak(BLArrayCore* self, const BLArrayCore* other) ;
-BLResult __cdecl blArrayAssignDeep(BLArrayCore* self, const BLArrayCore* other) ;
-BLResult __cdecl blArrayAssignView(BLArrayCore* self, const void* items, size_t n) ;
-BLResult __cdecl blArrayAppendU8(BLArrayCore* self, uint8_t value) ;
-BLResult __cdecl blArrayAppendU16(BLArrayCore* self, uint16_t value) ;
-BLResult __cdecl blArrayAppendU32(BLArrayCore* self, uint32_t value) ;
-BLResult __cdecl blArrayAppendU64(BLArrayCore* self, uint64_t value) ;
-BLResult __cdecl blArrayAppendF32(BLArrayCore* self, float value) ;
-BLResult __cdecl blArrayAppendF64(BLArrayCore* self, double value) ;
-BLResult __cdecl blArrayAppendItem(BLArrayCore* self, const void* item) ;
-BLResult __cdecl blArrayAppendView(BLArrayCore* self, const void* items, size_t n) ;
-BLResult __cdecl blArrayInsertU8(BLArrayCore* self, size_t index, uint8_t value) ;
-BLResult __cdecl blArrayInsertU16(BLArrayCore* self, size_t index, uint16_t value) ;
-BLResult __cdecl blArrayInsertU32(BLArrayCore* self, size_t index, uint32_t value) ;
-BLResult __cdecl blArrayInsertU64(BLArrayCore* self, size_t index, uint64_t value) ;
-BLResult __cdecl blArrayInsertF32(BLArrayCore* self, size_t index, float value) ;
-BLResult __cdecl blArrayInsertF64(BLArrayCore* self, size_t index, double value) ;
-BLResult __cdecl blArrayInsertItem(BLArrayCore* self, size_t index, const void* item) ;
-BLResult __cdecl blArrayInsertView(BLArrayCore* self, size_t index, const void* items, size_t n) ;
-BLResult __cdecl blArrayReplaceU8(BLArrayCore* self, size_t index, uint8_t value) ;
-BLResult __cdecl blArrayReplaceU16(BLArrayCore* self, size_t index, uint16_t value) ;
-BLResult __cdecl blArrayReplaceU32(BLArrayCore* self, size_t index, uint32_t value) ;
-BLResult __cdecl blArrayReplaceU64(BLArrayCore* self, size_t index, uint64_t value) ;
-BLResult __cdecl blArrayReplaceF32(BLArrayCore* self, size_t index, float value) ;
-BLResult __cdecl blArrayReplaceF64(BLArrayCore* self, size_t index, double value) ;
-BLResult __cdecl blArrayReplaceItem(BLArrayCore* self, size_t index, const void* item) ;
-BLResult __cdecl blArrayReplaceView(BLArrayCore* self, const BLRange* range, const void* items, size_t n) ;
-BLResult __cdecl blArrayRemoveIndex(BLArrayCore* self, size_t index) ;
-BLResult __cdecl blArrayRemoveRange(BLArrayCore* self, const BLRange* range) ;
-_Bool     __cdecl blArrayEquals(const BLArrayCore* a, const BLArrayCore* b) ;
-BLResult __cdecl blContextInit(BLContextCore* self) ;
-BLResult __cdecl blContextInitAs(BLContextCore* self, BLImageCore* image, const BLContextCreateInfo* options) ;
-BLResult __cdecl blContextReset(BLContextCore* self) ;
-BLResult __cdecl blContextAssignMove(BLContextCore* self, BLContextCore* other) ;
-BLResult __cdecl blContextAssignWeak(BLContextCore* self, const BLContextCore* other) ;
-BLResult __cdecl blContextGetType(const BLContextCore* self) ;
-BLResult __cdecl blContextBegin(BLContextCore* self, BLImageCore* image, const BLContextCreateInfo* options) ;
-BLResult __cdecl blContextEnd(BLContextCore* self) ;
-BLResult __cdecl blContextFlush(BLContextCore* self, uint32_t flags) ;
-BLResult __cdecl blContextSave(BLContextCore* self, BLContextCookie* cookie) ;
-BLResult __cdecl blContextRestore(BLContextCore* self, const BLContextCookie* cookie) ;
-BLResult __cdecl blContextGetMetaMatrix(const BLContextCore* self, BLMatrix2D* m) ;
-BLResult __cdecl blContextGetUserMatrix(const BLContextCore* self, BLMatrix2D* m) ;
-BLResult __cdecl blContextUserToMeta(BLContextCore* self) ;
-BLResult __cdecl blContextMatrixOp(BLContextCore* self, uint32_t opType, const void* opData) ;
-BLResult __cdecl blContextSetHint(BLContextCore* self, uint32_t hintType, uint32_t value) ;
-BLResult __cdecl blContextSetHints(BLContextCore* self, const BLContextHints* hints) ;
-BLResult __cdecl blContextSetFlattenMode(BLContextCore* self, uint32_t mode) ;
-BLResult __cdecl blContextSetFlattenTolerance(BLContextCore* self, double tolerance) ;
-BLResult __cdecl blContextSetApproximationOptions(BLContextCore* self, const BLApproximationOptions* options) ;
-BLResult __cdecl blContextSetCompOp(BLContextCore* self, uint32_t compOp) ;
-BLResult __cdecl blContextSetGlobalAlpha(BLContextCore* self, double alpha) ;
-BLResult __cdecl blContextSetFillAlpha(BLContextCore* self, double alpha) ;
-BLResult __cdecl blContextGetFillStyle(const BLContextCore* self, void* object) ;
-BLResult __cdecl blContextGetFillStyleRgba32(const BLContextCore* self, uint32_t* rgba32) ;
-BLResult __cdecl blContextGetFillStyleRgba64(const BLContextCore* self, uint64_t* rgba64) ;
-BLResult __cdecl blContextSetFillStyle(BLContextCore* self, const void* object) ;
-BLResult __cdecl blContextSetFillStyleRgba32(BLContextCore* self, uint32_t rgba32) ;
-BLResult __cdecl blContextSetFillStyleRgba64(BLContextCore* self, uint64_t rgba64) ;
-BLResult __cdecl blContextSetFillRule(BLContextCore* self, uint32_t fillRule) ;
-BLResult __cdecl blContextSetStrokeAlpha(BLContextCore* self, double alpha) ;
-BLResult __cdecl blContextGetStrokeStyle(const BLContextCore* self, void* object) ;
-BLResult __cdecl blContextGetStrokeStyleRgba32(const BLContextCore* self, uint32_t* rgba32) ;
-BLResult __cdecl blContextGetStrokeStyleRgba64(const BLContextCore* self, uint64_t* rgba64) ;
-BLResult __cdecl blContextSetStrokeStyle(BLContextCore* self, const void* object) ;
-BLResult __cdecl blContextSetStrokeStyleRgba32(BLContextCore* self, uint32_t rgba32) ;
-BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgba64) ;
-BLResult __cdecl blContextSetStrokeWidth(BLContextCore* self, double width) ;
-BLResult __cdecl blContextSetStrokeMiterLimit(BLContextCore* self, double miterLimit) ;
-BLResult __cdecl blContextSetStrokeCap(BLContextCore* self, uint32_t position, uint32_t strokeCap) ;
-BLResult __cdecl blContextSetStrokeCaps(BLContextCore* self, uint32_t strokeCap) ;
-BLResult __cdecl blContextSetStrokeJoin(BLContextCore* self, uint32_t strokeJoin) ;
-BLResult __cdecl blContextSetStrokeDashOffset(BLContextCore* self, double dashOffset) ;
-BLResult __cdecl blContextSetStrokeDashArray(BLContextCore* self, const BLArrayCore* dashArray) ;
-BLResult __cdecl blContextSetStrokeTransformOrder(BLContextCore* self, uint32_t transformOrder) ;
-BLResult __cdecl blContextGetStrokeOptions(const BLContextCore* self, BLStrokeOptionsCore* options) ;
-BLResult __cdecl blContextSetStrokeOptions(BLContextCore* self, const BLStrokeOptionsCore* options) ;
-BLResult __cdecl blContextClipToRectI(BLContextCore* self, const BLRectI* rect) ;
-BLResult __cdecl blContextClipToRectD(BLContextCore* self, const BLRect* rect) ;
-BLResult __cdecl blContextRestoreClipping(BLContextCore* self) ;
-BLResult __cdecl blContextClearAll(BLContextCore* self) ;
-BLResult __cdecl blContextClearRectI(BLContextCore* self, const BLRectI* rect) ;
-BLResult __cdecl blContextClearRectD(BLContextCore* self, const BLRect* rect) ;
-BLResult __cdecl blContextFillAll(BLContextCore* self) ;
-BLResult __cdecl blContextFillRectI(BLContextCore* self, const BLRectI* rect) ;
-BLResult __cdecl blContextFillRectD(BLContextCore* self, const BLRect* rect) ;
-BLResult __cdecl blContextFillPathD(BLContextCore* self, const BLPathCore* path) ;
-BLResult __cdecl blContextFillGeometry(BLContextCore* self, uint32_t geometryType, const void* geometryData) ;
-BLResult __cdecl blContextFillTextI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
-BLResult __cdecl blContextFillTextD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
-BLResult __cdecl blContextFillGlyphRunI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
-BLResult __cdecl blContextFillGlyphRunD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
-BLResult __cdecl blContextStrokeRectI(BLContextCore* self, const BLRectI* rect) ;
-BLResult __cdecl blContextStrokeRectD(BLContextCore* self, const BLRect* rect) ;
-BLResult __cdecl blContextStrokePathD(BLContextCore* self, const BLPathCore* path) ;
-BLResult __cdecl blContextStrokeGeometry(BLContextCore* self, uint32_t geometryType, const void* geometryData) ;
-BLResult __cdecl blContextStrokeTextI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
-BLResult __cdecl blContextStrokeTextD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
-BLResult __cdecl blContextStrokeGlyphRunI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
-BLResult __cdecl blContextStrokeGlyphRunD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
-BLResult __cdecl blContextBlitImageI(BLContextCore* self, const BLPointI* pt, const BLImageCore* img, const BLRectI* imgArea) ;
-BLResult __cdecl blContextBlitImageD(BLContextCore* self, const BLPoint* pt, const BLImageCore* img, const BLRectI* imgArea) ;
-BLResult __cdecl blContextBlitScaledImageI(BLContextCore* self, const BLRectI* rect, const BLImageCore* img, const BLRectI* imgArea) ;
-BLResult __cdecl blContextBlitScaledImageD(BLContextCore* self, const BLRect* rect, const BLImageCore* img, const BLRectI* imgArea) ;
-BLResult __cdecl blFileInit(BLFileCore* self) ;
-BLResult __cdecl blFileReset(BLFileCore* self) ;
-BLResult __cdecl blFileOpen(BLFileCore* self, const char* fileName, uint32_t openFlags) ;
-BLResult __cdecl blFileClose(BLFileCore* self) ;
-BLResult __cdecl blFileSeek(BLFileCore* self, int64_t offset, uint32_t seekType, int64_t* positionOut) ;
-BLResult __cdecl blFileRead(BLFileCore* self, void* buffer, size_t n, size_t* bytesReadOut) ;
-BLResult __cdecl blFileWrite(BLFileCore* self, const void* buffer, size_t n, size_t* bytesWrittenOut) ;
-BLResult __cdecl blFileTruncate(BLFileCore* self, int64_t maxSize) ;
-BLResult __cdecl blFileGetSize(BLFileCore* self, uint64_t* fileSizeOut) ;
-BLResult __cdecl blFileSystemReadFile(const char* fileName, BLArrayCore* dst, size_t maxSize, uint32_t readFlags) ;
-BLResult __cdecl blFileSystemWriteFile(const char* fileName, const void* data, size_t size, size_t* bytesWrittenOut) ;
-BLResult __cdecl blFontInit(BLFontCore* self) ;
-BLResult __cdecl blFontReset(BLFontCore* self) ;
-BLResult __cdecl blFontAssignMove(BLFontCore* self, BLFontCore* other) ;
-BLResult __cdecl blFontAssignWeak(BLFontCore* self, const BLFontCore* other) ;
-_Bool     __cdecl blFontEquals(const BLFontCore* a, const BLFontCore* b) ;
-BLResult __cdecl blFontCreateFromFace(BLFontCore* self, const BLFontFaceCore* face, float size) ;
-BLResult __cdecl blFontShape(const BLFontCore* self, BLGlyphBufferCore* gb) ;
-BLResult __cdecl blFontMapTextToGlyphs(const BLFontCore* self, BLGlyphBufferCore* gb, BLGlyphMappingState* stateOut) ;
-BLResult __cdecl blFontPositionGlyphs(const BLFontCore* self, BLGlyphBufferCore* gb, uint32_t positioningFlags) ;
-BLResult __cdecl blFontApplyKerning(const BLFontCore* self, BLGlyphBufferCore* gb) ;
-BLResult __cdecl blFontApplyGSub(const BLFontCore* self, BLGlyphBufferCore* gb, size_t index, BLBitWord lookups) ;
-BLResult __cdecl blFontApplyGPos(const BLFontCore* self, BLGlyphBufferCore* gb, size_t index, BLBitWord lookups) ;
-BLResult __cdecl blFontGetMatrix(const BLFontCore* self, BLFontMatrix* out) ;
-BLResult __cdecl blFontGetMetrics(const BLFontCore* self, BLFontMetrics* out) ;
-BLResult __cdecl blFontGetDesignMetrics(const BLFontCore* self, BLFontDesignMetrics* out) ;
-BLResult __cdecl blFontGetTextMetrics(const BLFontCore* self, BLGlyphBufferCore* gb, BLTextMetrics* out) ;
-BLResult __cdecl blFontGetGlyphBounds(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLBoxI* out, size_t count) ;
-BLResult __cdecl blFontGetGlyphAdvances(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLGlyphPlacement* out, size_t count) ;
-BLResult __cdecl blFontGetGlyphOutlines(const BLFontCore* self, uint32_t glyphId, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
-BLResult __cdecl blFontGetGlyphRunOutlines(const BLFontCore* self, const BLGlyphRun* glyphRun, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
-BLResult __cdecl blFontDataInit(BLFontDataCore* self) ;
-BLResult __cdecl blFontDataInitFromLoader(BLFontDataCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
-BLResult __cdecl blFontDataReset(BLFontDataCore* self) ;
-BLResult __cdecl blFontDataAssignMove(BLFontDataCore* self, BLFontDataCore* other) ;
-BLResult __cdecl blFontDataAssignWeak(BLFontDataCore* self, const BLFontDataCore* other) ;
-BLResult __cdecl blFontDataCreateFromLoader(BLFontDataCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
-_Bool     __cdecl blFontDataEquals(const BLFontDataCore* a, const BLFontDataCore* b) ;
-BLResult __cdecl blFontDataListTags(const BLFontDataCore* self, BLArrayCore* dst) ;
-size_t   __cdecl blFontDataQueryTables(const BLFontDataCore* self, BLFontTable* dst, const BLTag* tags, size_t count) ;
-BLResult __cdecl blFontFaceInit(BLFontFaceCore* self) ;
-BLResult __cdecl blFontFaceReset(BLFontFaceCore* self) ;
-BLResult __cdecl blFontFaceAssignMove(BLFontFaceCore* self, BLFontFaceCore* other) ;
-BLResult __cdecl blFontFaceAssignWeak(BLFontFaceCore* self, const BLFontFaceCore* other) ;
-_Bool     __cdecl blFontFaceEquals(const BLFontFaceCore* a, const BLFontFaceCore* b) ;
-BLResult __cdecl blFontFaceCreateFromFile(BLFontFaceCore* self, const char* fileName, uint32_t readFlags) ;
-BLResult __cdecl blFontFaceCreateFromLoader(BLFontFaceCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
-BLResult __cdecl blFontFaceGetFaceInfo(const BLFontFaceCore* self, BLFontFaceInfo* out) ;
-BLResult __cdecl blFontFaceGetDesignMetrics(const BLFontFaceCore* self, BLFontDesignMetrics* out) ;
-BLResult __cdecl blFontFaceGetUnicodeCoverage(const BLFontFaceCore* self, BLFontUnicodeCoverage* out) ;
-BLResult __cdecl blFontLoaderInit(BLFontLoaderCore* self) ;
-BLResult __cdecl blFontLoaderReset(BLFontLoaderCore* self) ;
-BLResult __cdecl blFontLoaderAssignMove(BLFontLoaderCore* self, BLFontLoaderCore* other) ;
-BLResult __cdecl blFontLoaderAssignWeak(BLFontLoaderCore* self, const BLFontLoaderCore* other) ;
-_Bool     __cdecl blFontLoaderEquals(const BLFontLoaderCore* a, const BLFontLoaderCore* b) ;
-BLResult __cdecl blFontLoaderCreateFromFile(BLFontLoaderCore* self, const char* fileName, uint32_t readFlags) ;
-BLResult __cdecl blFontLoaderCreateFromDataArray(BLFontLoaderCore* self, const BLArrayCore* dataArray) ;
-BLResult __cdecl blFontLoaderCreateFromData(BLFontLoaderCore* self, const void* data, size_t size, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-BLResult __cdecl blFormatInfoSanitize(BLFormatInfo* self) ;
-BLResult __cdecl blGlyphBufferInit(BLGlyphBufferCore* self) ;
-BLResult __cdecl blGlyphBufferReset(BLGlyphBufferCore* self) ;
-BLResult __cdecl blGlyphBufferClear(BLGlyphBufferCore* self) ;
-BLResult __cdecl blGlyphBufferSetText(BLGlyphBufferCore* self, const void* data, size_t size, uint32_t encoding) ;
-BLResult __cdecl blGlyphBufferSetGlyphIds(BLGlyphBufferCore* self, const void* data, intptr_t advance, size_t size) ;
-BLResult __cdecl blGradientInit(BLGradientCore* self) ;
-BLResult __cdecl blGradientInitAs(BLGradientCore* self, uint32_t type, const void* values, uint32_t extendMode, const BLGradientStop* stops, size_t n, const BLMatrix2D* m) ;
-BLResult __cdecl blGradientReset(BLGradientCore* self) ;
-BLResult __cdecl blGradientAssignMove(BLGradientCore* self, BLGradientCore* other) ;
-BLResult __cdecl blGradientAssignWeak(BLGradientCore* self, const BLGradientCore* other) ;
-BLResult __cdecl blGradientCreate(BLGradientCore* self, uint32_t type, const void* values, uint32_t extendMode, const BLGradientStop* stops, size_t n, const BLMatrix2D* m) ;
-BLResult __cdecl blGradientShrink(BLGradientCore* self) ;
-BLResult __cdecl blGradientReserve(BLGradientCore* self, size_t n) ;
-uint32_t __cdecl blGradientGetType(const BLGradientCore* self) ;
-BLResult __cdecl blGradientSetType(BLGradientCore* self, uint32_t type) ;
-double   __cdecl blGradientGetValue(const BLGradientCore* self, size_t index) ;
-BLResult __cdecl blGradientSetValue(BLGradientCore* self, size_t index, double value) ;
-BLResult __cdecl blGradientSetValues(BLGradientCore* self, size_t index, const double* values, size_t n) ;
-uint32_t __cdecl blGradientGetExtendMode(BLGradientCore* self) ;
-BLResult __cdecl blGradientSetExtendMode(BLGradientCore* self, uint32_t extendMode) ;
-const BLGradientStop* __cdecl blGradientGetStops(const BLGradientCore* self) ;
-size_t __cdecl blGradientGetSize(const BLGradientCore* self) ;
-size_t __cdecl blGradientGetCapacity(const BLGradientCore* self) ;
-BLResult __cdecl blGradientResetStops(BLGradientCore* self) ;
-BLResult __cdecl blGradientAssignStops(BLGradientCore* self, const BLGradientStop* stops, size_t n) ;
-BLResult __cdecl blGradientAddStopRgba32(BLGradientCore* self, double offset, uint32_t argb32) ;
-BLResult __cdecl blGradientAddStopRgba64(BLGradientCore* self, double offset, uint64_t argb64) ;
-BLResult __cdecl blGradientRemoveStop(BLGradientCore* self, size_t index) ;
-BLResult __cdecl blGradientRemoveStopByOffset(BLGradientCore* self, double offset, uint32_t all) ;
-BLResult __cdecl blGradientRemoveStops(BLGradientCore* self, const BLRange* range) ;
-BLResult __cdecl blGradientRemoveStopsFromTo(BLGradientCore* self, double offsetMin, double offsetMax) ;
-BLResult __cdecl blGradientReplaceStopRgba32(BLGradientCore* self, size_t index, double offset, uint32_t rgba32) ;
-BLResult __cdecl blGradientReplaceStopRgba64(BLGradientCore* self, size_t index, double offset, uint64_t rgba64) ;
-size_t   __cdecl blGradientIndexOfStop(const BLGradientCore* self, double offset) ;
-BLResult __cdecl blGradientApplyMatrixOp(BLGradientCore* self, uint32_t opType, const void* opData) ;
-_Bool     __cdecl blGradientEquals(const BLGradientCore* a, const BLGradientCore* b) ;
-BLResult __cdecl blImageInit(BLImageCore* self) ;
-BLResult __cdecl blImageInitAs(BLImageCore* self, int w, int h, uint32_t format) ;
-BLResult __cdecl blImageInitAsFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-BLResult __cdecl blImageReset(BLImageCore* self) ;
-BLResult __cdecl blImageAssignMove(BLImageCore* self, BLImageCore* other) ;
-BLResult __cdecl blImageAssignWeak(BLImageCore* self, const BLImageCore* other) ;
-BLResult __cdecl blImageAssignDeep(BLImageCore* self, const BLImageCore* other) ;
-BLResult __cdecl blImageCreate(BLImageCore* self, int w, int h, uint32_t format) ;
-BLResult __cdecl blImageCreateFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-BLResult __cdecl blImageGetData(const BLImageCore* self, BLImageData* dataOut) ;
-BLResult __cdecl blImageMakeMutable(BLImageCore* self, BLImageData* dataOut) ;
-_Bool     __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
-BLResult __cdecl blImageScale(BLImageCore* dst, const BLImageCore* src, const BLSizeI* size, uint32_t filter, const BLImageScaleOptions* options) ;
-BLResult __cdecl blImageReadFromFile(BLImageCore* self, const char* fileName, const BLArrayCore* codecs) ;
-BLResult __cdecl blImageReadFromData(BLImageCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
-BLResult __cdecl blImageWriteToFile(const BLImageCore* self, const char* fileName, const BLImageCodecCore* codec) ;
-BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, const BLImageCodecCore* codec) ;
-BLResult __cdecl blImageCodecInit(BLImageCodecCore* self) ;
-BLResult __cdecl blImageCodecReset(BLImageCodecCore* self) ;
-BLResult __cdecl blImageCodecAssignWeak(BLImageCodecCore* self, const BLImageCodecCore* other) ;
-BLResult __cdecl blImageCodecFindByName(BLImageCodecCore* self, const char* name, size_t size, const BLArrayCore* codecs) ;
-BLResult __cdecl blImageCodecFindByData(BLImageCodecCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
-uint32_t __cdecl blImageCodecInspectData(const BLImageCodecCore* self, const void* data, size_t size) ;
-BLResult __cdecl blImageCodecCreateDecoder(const BLImageCodecCore* self, BLImageDecoderCore* dst) ;
-BLResult __cdecl blImageCodecCreateEncoder(const BLImageCodecCore* self, BLImageEncoderCore* dst) ;
-BLResult __cdecl blImageCodecArrayInitBuiltInCodecs(BLArrayCore* self) ;
-BLResult __cdecl blImageCodecArrayAssignBuiltInCodecs(BLArrayCore* self) ;
-BLResult __cdecl blImageCodecAddToBuiltIn(const BLImageCodecCore* codec) ;
-BLResult __cdecl blImageCodecRemoveFromBuiltIn(const BLImageCodecCore* codec) ;
-BLResult __cdecl blImageDecoderInit(BLImageDecoderCore* self) ;
-BLResult __cdecl blImageDecoderReset(BLImageDecoderCore* self) ;
-BLResult __cdecl blImageDecoderAssignMove(BLImageDecoderCore* self, BLImageDecoderCore* other) ;
-BLResult __cdecl blImageDecoderAssignWeak(BLImageDecoderCore* self, const BLImageDecoderCore* other) ;
-BLResult __cdecl blImageDecoderRestart(BLImageDecoderCore* self) ;
-BLResult __cdecl blImageDecoderReadInfo(BLImageDecoderCore* self, BLImageInfo* infoOut, const uint8_t* data, size_t size) ;
-BLResult __cdecl blImageDecoderReadFrame(BLImageDecoderCore* self, BLImageCore* imageOut, const uint8_t* data, size_t size) ;
-BLResult __cdecl blImageEncoderInit(BLImageEncoderCore* self) ;
-BLResult __cdecl blImageEncoderReset(BLImageEncoderCore* self) ;
-BLResult __cdecl blImageEncoderAssignMove(BLImageEncoderCore* self, BLImageEncoderCore* other) ;
-BLResult __cdecl blImageEncoderAssignWeak(BLImageEncoderCore* self, const BLImageEncoderCore* other) ;
-BLResult __cdecl blImageEncoderRestart(BLImageEncoderCore* self) ;
-BLResult __cdecl blImageEncoderWriteFrame(BLImageEncoderCore* self, BLArrayCore* dst, const BLImageCore* image) ;
-BLResult __cdecl blMatrix2DSetIdentity(BLMatrix2D* self) ;
-BLResult __cdecl blMatrix2DSetTranslation(BLMatrix2D* self, double x, double y) ;
-BLResult __cdecl blMatrix2DSetScaling(BLMatrix2D* self, double x, double y) ;
-BLResult __cdecl blMatrix2DSetSkewing(BLMatrix2D* self, double x, double y) ;
-BLResult __cdecl blMatrix2DSetRotation(BLMatrix2D* self, double angle, double cx, double cy) ;
-BLResult __cdecl blMatrix2DApplyOp(BLMatrix2D* self, uint32_t opType, const void* opData) ;
-BLResult __cdecl blMatrix2DInvert(BLMatrix2D* dst, const BLMatrix2D* src) ;
-uint32_t __cdecl blMatrix2DGetType(const BLMatrix2D* self) ;
-BLResult __cdecl blMatrix2DMapPointDArray(const BLMatrix2D* self, BLPoint* dst, const BLPoint* src, size_t count) ;
-BLResult __cdecl blPathInit(BLPathCore* self) ;
-BLResult __cdecl blPathReset(BLPathCore* self) ;
-size_t   __cdecl blPathGetSize(const BLPathCore* self) ;
-size_t   __cdecl blPathGetCapacity(const BLPathCore* self) ;
-const uint8_t* __cdecl blPathGetCommandData(const BLPathCore* self) ;
-const BLPoint* __cdecl blPathGetVertexData(const BLPathCore* self) ;
-BLResult __cdecl blPathClear(BLPathCore* self) ;
-BLResult __cdecl blPathShrink(BLPathCore* self) ;
-BLResult __cdecl blPathReserve(BLPathCore* self, size_t n) ;
-BLResult __cdecl blPathModifyOp(BLPathCore* self, uint32_t op, size_t n, uint8_t** cmdDataOut, BLPoint** vtxDataOut) ;
-BLResult __cdecl blPathAssignMove(BLPathCore* self, BLPathCore* other) ;
-BLResult __cdecl blPathAssignWeak(BLPathCore* self, const BLPathCore* other) ;
-BLResult __cdecl blPathAssignDeep(BLPathCore* self, const BLPathCore* other) ;
-BLResult __cdecl blPathSetVertexAt(BLPathCore* self, size_t index, uint32_t cmd, double x, double y) ;
-BLResult __cdecl blPathMoveTo(BLPathCore* self, double x0, double y0) ;
-BLResult __cdecl blPathLineTo(BLPathCore* self, double x1, double y1) ;
-BLResult __cdecl blPathPolyTo(BLPathCore* self, const BLPoint* poly, size_t count) ;
-BLResult __cdecl blPathQuadTo(BLPathCore* self, double x1, double y1, double x2, double y2) ;
-BLResult __cdecl blPathCubicTo(BLPathCore* self, double x1, double y1, double x2, double y2, double x3, double y3) ;
-BLResult __cdecl blPathSmoothQuadTo(BLPathCore* self, double x2, double y2) ;
-BLResult __cdecl blPathSmoothCubicTo(BLPathCore* self, double x2, double y2, double x3, double y3) ;
-BLResult __cdecl blPathArcTo(BLPathCore* self, double x, double y, double rx, double ry, double start, double sweep, _Bool forceMoveTo) ;
-BLResult __cdecl blPathArcQuadrantTo(BLPathCore* self, double x1, double y1, double x2, double y2) ;
-BLResult __cdecl blPathEllipticArcTo(BLPathCore* self, double rx, double ry, double xAxisRotation, _Bool largeArcFlag, _Bool sweepFlag, double x1, double y1) ;
-BLResult __cdecl blPathClose(BLPathCore* self) ;
-BLResult __cdecl blPathAddGeometry(BLPathCore* self, uint32_t geometryType, const void* geometryData, const BLMatrix2D* m, uint32_t dir) ;
-BLResult __cdecl blPathAddBoxI(BLPathCore* self, const BLBoxI* box, uint32_t dir) ;
-BLResult __cdecl blPathAddBoxD(BLPathCore* self, const BLBox* box, uint32_t dir) ;
-BLResult __cdecl blPathAddRectI(BLPathCore* self, const BLRectI* rect, uint32_t dir) ;
-BLResult __cdecl blPathAddRectD(BLPathCore* self, const BLRect* rect, uint32_t dir) ;
-BLResult __cdecl blPathAddPath(BLPathCore* self, const BLPathCore* other, const BLRange* range) ;
-BLResult __cdecl blPathAddTranslatedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLPoint* p) ;
-BLResult __cdecl blPathAddTransformedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLMatrix2D* m) ;
-BLResult __cdecl blPathAddReversedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, uint32_t reverseMode) ;
-BLResult __cdecl blPathAddStrokedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLStrokeOptionsCore* options, const BLApproximationOptions* approx) ;
-BLResult __cdecl blPathTranslate(BLPathCore* self, const BLRange* range, const BLPoint* p) ;
-BLResult __cdecl blPathTransform(BLPathCore* self, const BLRange* range, const BLMatrix2D* m) ;
-BLResult __cdecl blPathFitTo(BLPathCore* self, const BLRange* range, const BLRect* rect, uint32_t fitFlags) ;
-_Bool     __cdecl blPathEquals(const BLPathCore* a, const BLPathCore* b) ;
-BLResult __cdecl blPathGetInfoFlags(const BLPathCore* self, uint32_t* flagsOut) ;
-BLResult __cdecl blPathGetControlBox(const BLPathCore* self, BLBox* boxOut) ;
-BLResult __cdecl blPathGetBoundingBox(const BLPathCore* self, BLBox* boxOut) ;
-BLResult __cdecl blPathGetFigureRange(const BLPathCore* self, size_t index, BLRange* rangeOut) ;
-BLResult __cdecl blPathGetLastVertex(const BLPathCore* self, BLPoint* vtxOut) ;
-BLResult __cdecl blPathGetClosestVertex(const BLPathCore* self, const BLPoint* p, double maxDistance, size_t* indexOut, double* distanceOut) ;
-uint32_t __cdecl blPathHitTest(const BLPathCore* self, const BLPoint* p, uint32_t fillRule) ;
-BLResult __cdecl blPatternInit(BLPatternCore* self) ;
-BLResult __cdecl blPatternInitAs(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
-BLResult __cdecl blPatternReset(BLPatternCore* self) ;
-BLResult __cdecl blPatternAssignMove(BLPatternCore* self, BLPatternCore* other) ;
-BLResult __cdecl blPatternAssignWeak(BLPatternCore* self, const BLPatternCore* other) ;
-BLResult __cdecl blPatternAssignDeep(BLPatternCore* self, const BLPatternCore* other) ;
-BLResult __cdecl blPatternCreate(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
-BLResult __cdecl blPatternSetImage(BLPatternCore* self, const BLImageCore* image, const BLRectI* area) ;
-BLResult __cdecl blPatternSetArea(BLPatternCore* self, const BLRectI* area) ;
-BLResult __cdecl blPatternSetExtendMode(BLPatternCore* self, uint32_t extendMode) ;
-BLResult __cdecl blPatternApplyMatrixOp(BLPatternCore* self, uint32_t opType, const void* opData) ;
-_Bool     __cdecl blPatternEquals(const BLPatternCore* a, const BLPatternCore* b) ;
-BLResult __cdecl blPixelConverterInit(BLPixelConverterCore* self) ;
-BLResult __cdecl blPixelConverterInitWeak(BLPixelConverterCore* self, const BLPixelConverterCore* other) ;
-BLResult __cdecl blPixelConverterReset(BLPixelConverterCore* self) ;
-BLResult __cdecl blPixelConverterAssign(BLPixelConverterCore* self, const BLPixelConverterCore* other) ;
-BLResult __cdecl blPixelConverterCreate(BLPixelConverterCore* self, const BLFormatInfo* dstInfo, const BLFormatInfo* srcInfo) ;
-BLResult __cdecl blPixelConverterConvert(const BLPixelConverterCore* self,
+__declspec(dllimport) BLResult __cdecl blArrayInit(BLArrayCore* self, uint32_t arrayTypeId) ;
+__declspec(dllimport) BLResult __cdecl blArrayReset(BLArrayCore* self) ;
+__declspec(dllimport) BLResult __cdecl blArrayCreateFromData(BLArrayCore* self, void* data, size_t size, size_t capacity, uint32_t dataAccessFlags, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+__declspec(dllimport) size_t   __cdecl blArrayGetSize(const BLArrayCore* self) ;
+__declspec(dllimport) size_t   __cdecl blArrayGetCapacity(const BLArrayCore* self) ;
+__declspec(dllimport) const void* __cdecl blArrayGetData(const BLArrayCore* self) ;
+__declspec(dllimport) BLResult __cdecl blArrayClear(BLArrayCore* self) ;
+__declspec(dllimport) BLResult __cdecl blArrayShrink(BLArrayCore* self) ;
+__declspec(dllimport) BLResult __cdecl blArrayReserve(BLArrayCore* self, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blArrayResize(BLArrayCore* self, size_t n, const void* fill) ;
+__declspec(dllimport) BLResult __cdecl blArrayMakeMutable(BLArrayCore* self, void** dataOut) ;
+__declspec(dllimport) BLResult __cdecl blArrayModifyOp(BLArrayCore* self, uint32_t op, size_t n, void** dataOut) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertOp(BLArrayCore* self, size_t index, size_t n, void** dataOut) ;
+__declspec(dllimport) BLResult __cdecl blArrayAssignMove(BLArrayCore* self, BLArrayCore* other) ;
+__declspec(dllimport) BLResult __cdecl blArrayAssignWeak(BLArrayCore* self, const BLArrayCore* other) ;
+__declspec(dllimport) BLResult __cdecl blArrayAssignDeep(BLArrayCore* self, const BLArrayCore* other) ;
+__declspec(dllimport) BLResult __cdecl blArrayAssignView(BLArrayCore* self, const void* items, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendU8(BLArrayCore* self, uint8_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendU16(BLArrayCore* self, uint16_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendU32(BLArrayCore* self, uint32_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendU64(BLArrayCore* self, uint64_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendF32(BLArrayCore* self, float value) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendF64(BLArrayCore* self, double value) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendItem(BLArrayCore* self, const void* item) ;
+__declspec(dllimport) BLResult __cdecl blArrayAppendView(BLArrayCore* self, const void* items, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertU8(BLArrayCore* self, size_t index, uint8_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertU16(BLArrayCore* self, size_t index, uint16_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertU32(BLArrayCore* self, size_t index, uint32_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertU64(BLArrayCore* self, size_t index, uint64_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertF32(BLArrayCore* self, size_t index, float value) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertF64(BLArrayCore* self, size_t index, double value) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertItem(BLArrayCore* self, size_t index, const void* item) ;
+__declspec(dllimport) BLResult __cdecl blArrayInsertView(BLArrayCore* self, size_t index, const void* items, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceU8(BLArrayCore* self, size_t index, uint8_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceU16(BLArrayCore* self, size_t index, uint16_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceU32(BLArrayCore* self, size_t index, uint32_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceU64(BLArrayCore* self, size_t index, uint64_t value) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceF32(BLArrayCore* self, size_t index, float value) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceF64(BLArrayCore* self, size_t index, double value) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceItem(BLArrayCore* self, size_t index, const void* item) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceView(BLArrayCore* self, const BLRange* range, const void* items, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blArrayRemoveIndex(BLArrayCore* self, size_t index) ;
+__declspec(dllimport) BLResult __cdecl blArrayRemoveRange(BLArrayCore* self, const BLRange* range) ;
+__declspec(dllimport) _Bool     __cdecl blArrayEquals(const BLArrayCore* a, const BLArrayCore* b) ;
+__declspec(dllimport) BLResult __cdecl blContextInit(BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextInitAs(BLContextCore* self, BLImageCore* image, const BLContextCreateInfo* options) ;
+__declspec(dllimport) BLResult __cdecl blContextReset(BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextAssignMove(BLContextCore* self, BLContextCore* other) ;
+__declspec(dllimport) BLResult __cdecl blContextAssignWeak(BLContextCore* self, const BLContextCore* other) ;
+__declspec(dllimport) BLResult __cdecl blContextGetType(const BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextBegin(BLContextCore* self, BLImageCore* image, const BLContextCreateInfo* options) ;
+__declspec(dllimport) BLResult __cdecl blContextEnd(BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextFlush(BLContextCore* self, uint32_t flags) ;
+__declspec(dllimport) BLResult __cdecl blContextSave(BLContextCore* self, BLContextCookie* cookie) ;
+__declspec(dllimport) BLResult __cdecl blContextRestore(BLContextCore* self, const BLContextCookie* cookie) ;
+__declspec(dllimport) BLResult __cdecl blContextGetMetaMatrix(const BLContextCore* self, BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blContextGetUserMatrix(const BLContextCore* self, BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blContextUserToMeta(BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextMatrixOp(BLContextCore* self, uint32_t opType, const void* opData) ;
+__declspec(dllimport) BLResult __cdecl blContextSetHint(BLContextCore* self, uint32_t hintType, uint32_t value) ;
+__declspec(dllimport) BLResult __cdecl blContextSetHints(BLContextCore* self, const BLContextHints* hints) ;
+__declspec(dllimport) BLResult __cdecl blContextSetFlattenMode(BLContextCore* self, uint32_t mode) ;
+__declspec(dllimport) BLResult __cdecl blContextSetFlattenTolerance(BLContextCore* self, double tolerance) ;
+__declspec(dllimport) BLResult __cdecl blContextSetApproximationOptions(BLContextCore* self, const BLApproximationOptions* options) ;
+__declspec(dllimport) BLResult __cdecl blContextSetCompOp(BLContextCore* self, uint32_t compOp) ;
+__declspec(dllimport) BLResult __cdecl blContextSetGlobalAlpha(BLContextCore* self, double alpha) ;
+__declspec(dllimport) BLResult __cdecl blContextSetFillAlpha(BLContextCore* self, double alpha) ;
+__declspec(dllimport) BLResult __cdecl blContextGetFillStyle(const BLContextCore* self, void* object) ;
+__declspec(dllimport) BLResult __cdecl blContextGetFillStyleRgba32(const BLContextCore* self, uint32_t* rgba32) ;
+__declspec(dllimport) BLResult __cdecl blContextGetFillStyleRgba64(const BLContextCore* self, uint64_t* rgba64) ;
+__declspec(dllimport) BLResult __cdecl blContextSetFillStyle(BLContextCore* self, const void* object) ;
+__declspec(dllimport) BLResult __cdecl blContextSetFillStyleRgba32(BLContextCore* self, uint32_t rgba32) ;
+__declspec(dllimport) BLResult __cdecl blContextSetFillStyleRgba64(BLContextCore* self, uint64_t rgba64) ;
+__declspec(dllimport) BLResult __cdecl blContextSetFillRule(BLContextCore* self, uint32_t fillRule) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeAlpha(BLContextCore* self, double alpha) ;
+__declspec(dllimport) BLResult __cdecl blContextGetStrokeStyle(const BLContextCore* self, void* object) ;
+__declspec(dllimport) BLResult __cdecl blContextGetStrokeStyleRgba32(const BLContextCore* self, uint32_t* rgba32) ;
+__declspec(dllimport) BLResult __cdecl blContextGetStrokeStyleRgba64(const BLContextCore* self, uint64_t* rgba64) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeStyle(BLContextCore* self, const void* object) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeStyleRgba32(BLContextCore* self, uint32_t rgba32) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgba64) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeWidth(BLContextCore* self, double width) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeMiterLimit(BLContextCore* self, double miterLimit) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeCap(BLContextCore* self, uint32_t position, uint32_t strokeCap) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeCaps(BLContextCore* self, uint32_t strokeCap) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeJoin(BLContextCore* self, uint32_t strokeJoin) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeDashOffset(BLContextCore* self, double dashOffset) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeDashArray(BLContextCore* self, const BLArrayCore* dashArray) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeTransformOrder(BLContextCore* self, uint32_t transformOrder) ;
+__declspec(dllimport) BLResult __cdecl blContextGetStrokeOptions(const BLContextCore* self, BLStrokeOptionsCore* options) ;
+__declspec(dllimport) BLResult __cdecl blContextSetStrokeOptions(BLContextCore* self, const BLStrokeOptionsCore* options) ;
+__declspec(dllimport) BLResult __cdecl blContextClipToRectI(BLContextCore* self, const BLRectI* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextClipToRectD(BLContextCore* self, const BLRect* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextRestoreClipping(BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextClearAll(BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextClearRectI(BLContextCore* self, const BLRectI* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextClearRectD(BLContextCore* self, const BLRect* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextFillAll(BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextFillRectI(BLContextCore* self, const BLRectI* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextFillRectD(BLContextCore* self, const BLRect* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextFillPathD(BLContextCore* self, const BLPathCore* path) ;
+__declspec(dllimport) BLResult __cdecl blContextFillGeometry(BLContextCore* self, uint32_t geometryType, const void* geometryData) ;
+__declspec(dllimport) BLResult __cdecl blContextFillTextI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
+__declspec(dllimport) BLResult __cdecl blContextFillTextD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
+__declspec(dllimport) BLResult __cdecl blContextFillGlyphRunI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
+__declspec(dllimport) BLResult __cdecl blContextFillGlyphRunD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokeRectI(BLContextCore* self, const BLRectI* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokeRectD(BLContextCore* self, const BLRect* rect) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokePathD(BLContextCore* self, const BLPathCore* path) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokeGeometry(BLContextCore* self, uint32_t geometryType, const void* geometryData) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokeTextI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokeTextD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokeGlyphRunI(BLContextCore* self, const BLPointI* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
+__declspec(dllimport) BLResult __cdecl blContextStrokeGlyphRunD(BLContextCore* self, const BLPoint* pt, const BLFontCore* font, const BLGlyphRun* glyphRun) ;
+__declspec(dllimport) BLResult __cdecl blContextBlitImageI(BLContextCore* self, const BLPointI* pt, const BLImageCore* img, const BLRectI* imgArea) ;
+__declspec(dllimport) BLResult __cdecl blContextBlitImageD(BLContextCore* self, const BLPoint* pt, const BLImageCore* img, const BLRectI* imgArea) ;
+__declspec(dllimport) BLResult __cdecl blContextBlitScaledImageI(BLContextCore* self, const BLRectI* rect, const BLImageCore* img, const BLRectI* imgArea) ;
+__declspec(dllimport) BLResult __cdecl blContextBlitScaledImageD(BLContextCore* self, const BLRect* rect, const BLImageCore* img, const BLRectI* imgArea) ;
+__declspec(dllimport) BLResult __cdecl blFileInit(BLFileCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFileReset(BLFileCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFileOpen(BLFileCore* self, const char* fileName, uint32_t openFlags) ;
+__declspec(dllimport) BLResult __cdecl blFileClose(BLFileCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFileSeek(BLFileCore* self, int64_t offset, uint32_t seekType, int64_t* positionOut) ;
+__declspec(dllimport) BLResult __cdecl blFileRead(BLFileCore* self, void* buffer, size_t n, size_t* bytesReadOut) ;
+__declspec(dllimport) BLResult __cdecl blFileWrite(BLFileCore* self, const void* buffer, size_t n, size_t* bytesWrittenOut) ;
+__declspec(dllimport) BLResult __cdecl blFileTruncate(BLFileCore* self, int64_t maxSize) ;
+__declspec(dllimport) BLResult __cdecl blFileGetSize(BLFileCore* self, uint64_t* fileSizeOut) ;
+__declspec(dllimport) BLResult __cdecl blFileSystemReadFile(const char* fileName, BLArrayCore* dst, size_t maxSize, uint32_t readFlags) ;
+__declspec(dllimport) BLResult __cdecl blFileSystemWriteFile(const char* fileName, const void* data, size_t size, size_t* bytesWrittenOut) ;
+__declspec(dllimport) BLResult __cdecl blFontInit(BLFontCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontReset(BLFontCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontAssignMove(BLFontCore* self, BLFontCore* other) ;
+__declspec(dllimport) BLResult __cdecl blFontAssignWeak(BLFontCore* self, const BLFontCore* other) ;
+__declspec(dllimport) _Bool     __cdecl blFontEquals(const BLFontCore* a, const BLFontCore* b) ;
+__declspec(dllimport) BLResult __cdecl blFontCreateFromFace(BLFontCore* self, const BLFontFaceCore* face, float size) ;
+__declspec(dllimport) BLResult __cdecl blFontShape(const BLFontCore* self, BLGlyphBufferCore* gb) ;
+__declspec(dllimport) BLResult __cdecl blFontMapTextToGlyphs(const BLFontCore* self, BLGlyphBufferCore* gb, BLGlyphMappingState* stateOut) ;
+__declspec(dllimport) BLResult __cdecl blFontPositionGlyphs(const BLFontCore* self, BLGlyphBufferCore* gb, uint32_t positioningFlags) ;
+__declspec(dllimport) BLResult __cdecl blFontApplyKerning(const BLFontCore* self, BLGlyphBufferCore* gb) ;
+__declspec(dllimport) BLResult __cdecl blFontApplyGSub(const BLFontCore* self, BLGlyphBufferCore* gb, size_t index, BLBitWord lookups) ;
+__declspec(dllimport) BLResult __cdecl blFontApplyGPos(const BLFontCore* self, BLGlyphBufferCore* gb, size_t index, BLBitWord lookups) ;
+__declspec(dllimport) BLResult __cdecl blFontGetMatrix(const BLFontCore* self, BLFontMatrix* out) ;
+__declspec(dllimport) BLResult __cdecl blFontGetMetrics(const BLFontCore* self, BLFontMetrics* out) ;
+__declspec(dllimport) BLResult __cdecl blFontGetDesignMetrics(const BLFontCore* self, BLFontDesignMetrics* out) ;
+__declspec(dllimport) BLResult __cdecl blFontGetTextMetrics(const BLFontCore* self, BLGlyphBufferCore* gb, BLTextMetrics* out) ;
+__declspec(dllimport) BLResult __cdecl blFontGetGlyphBounds(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLBoxI* out, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blFontGetGlyphAdvances(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLGlyphPlacement* out, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blFontGetGlyphOutlines(const BLFontCore* self, uint32_t glyphId, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
+__declspec(dllimport) BLResult __cdecl blFontGetGlyphRunOutlines(const BLFontCore* self, const BLGlyphRun* glyphRun, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
+__declspec(dllimport) BLResult __cdecl blFontDataInit(BLFontDataCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontDataInitFromLoader(BLFontDataCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
+__declspec(dllimport) BLResult __cdecl blFontDataReset(BLFontDataCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontDataAssignMove(BLFontDataCore* self, BLFontDataCore* other) ;
+__declspec(dllimport) BLResult __cdecl blFontDataAssignWeak(BLFontDataCore* self, const BLFontDataCore* other) ;
+__declspec(dllimport) BLResult __cdecl blFontDataCreateFromLoader(BLFontDataCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
+__declspec(dllimport) _Bool     __cdecl blFontDataEquals(const BLFontDataCore* a, const BLFontDataCore* b) ;
+__declspec(dllimport) BLResult __cdecl blFontDataListTags(const BLFontDataCore* self, BLArrayCore* dst) ;
+__declspec(dllimport) size_t   __cdecl blFontDataQueryTables(const BLFontDataCore* self, BLFontTable* dst, const BLTag* tags, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceInit(BLFontFaceCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceReset(BLFontFaceCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceAssignMove(BLFontFaceCore* self, BLFontFaceCore* other) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceAssignWeak(BLFontFaceCore* self, const BLFontFaceCore* other) ;
+__declspec(dllimport) _Bool     __cdecl blFontFaceEquals(const BLFontFaceCore* a, const BLFontFaceCore* b) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceCreateFromFile(BLFontFaceCore* self, const char* fileName, uint32_t readFlags) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceCreateFromLoader(BLFontFaceCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceGetFaceInfo(const BLFontFaceCore* self, BLFontFaceInfo* out) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceGetDesignMetrics(const BLFontFaceCore* self, BLFontDesignMetrics* out) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceGetUnicodeCoverage(const BLFontFaceCore* self, BLFontUnicodeCoverage* out) ;
+__declspec(dllimport) BLResult __cdecl blFontLoaderInit(BLFontLoaderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontLoaderReset(BLFontLoaderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontLoaderAssignMove(BLFontLoaderCore* self, BLFontLoaderCore* other) ;
+__declspec(dllimport) BLResult __cdecl blFontLoaderAssignWeak(BLFontLoaderCore* self, const BLFontLoaderCore* other) ;
+__declspec(dllimport) _Bool     __cdecl blFontLoaderEquals(const BLFontLoaderCore* a, const BLFontLoaderCore* b) ;
+__declspec(dllimport) BLResult __cdecl blFontLoaderCreateFromFile(BLFontLoaderCore* self, const char* fileName, uint32_t readFlags) ;
+__declspec(dllimport) BLResult __cdecl blFontLoaderCreateFromDataArray(BLFontLoaderCore* self, const BLArrayCore* dataArray) ;
+__declspec(dllimport) BLResult __cdecl blFontLoaderCreateFromData(BLFontLoaderCore* self, const void* data, size_t size, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+__declspec(dllimport) BLResult __cdecl blFormatInfoSanitize(BLFormatInfo* self) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferInit(BLGlyphBufferCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferReset(BLGlyphBufferCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferClear(BLGlyphBufferCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferSetText(BLGlyphBufferCore* self, const void* data, size_t size, uint32_t encoding) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferSetGlyphIds(BLGlyphBufferCore* self, const void* data, intptr_t advance, size_t size) ;
+__declspec(dllimport) BLResult __cdecl blGradientInit(BLGradientCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGradientInitAs(BLGradientCore* self, uint32_t type, const void* values, uint32_t extendMode, const BLGradientStop* stops, size_t n, const BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blGradientReset(BLGradientCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGradientAssignMove(BLGradientCore* self, BLGradientCore* other) ;
+__declspec(dllimport) BLResult __cdecl blGradientAssignWeak(BLGradientCore* self, const BLGradientCore* other) ;
+__declspec(dllimport) BLResult __cdecl blGradientCreate(BLGradientCore* self, uint32_t type, const void* values, uint32_t extendMode, const BLGradientStop* stops, size_t n, const BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blGradientShrink(BLGradientCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGradientReserve(BLGradientCore* self, size_t n) ;
+__declspec(dllimport) uint32_t __cdecl blGradientGetType(const BLGradientCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGradientSetType(BLGradientCore* self, uint32_t type) ;
+__declspec(dllimport) double   __cdecl blGradientGetValue(const BLGradientCore* self, size_t index) ;
+__declspec(dllimport) BLResult __cdecl blGradientSetValue(BLGradientCore* self, size_t index, double value) ;
+__declspec(dllimport) BLResult __cdecl blGradientSetValues(BLGradientCore* self, size_t index, const double* values, size_t n) ;
+__declspec(dllimport) uint32_t __cdecl blGradientGetExtendMode(BLGradientCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGradientSetExtendMode(BLGradientCore* self, uint32_t extendMode) ;
+__declspec(dllimport) const BLGradientStop* __cdecl blGradientGetStops(const BLGradientCore* self) ;
+__declspec(dllimport) size_t __cdecl blGradientGetSize(const BLGradientCore* self) ;
+__declspec(dllimport) size_t __cdecl blGradientGetCapacity(const BLGradientCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGradientResetStops(BLGradientCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGradientAssignStops(BLGradientCore* self, const BLGradientStop* stops, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blGradientAddStopRgba32(BLGradientCore* self, double offset, uint32_t argb32) ;
+__declspec(dllimport) BLResult __cdecl blGradientAddStopRgba64(BLGradientCore* self, double offset, uint64_t argb64) ;
+__declspec(dllimport) BLResult __cdecl blGradientRemoveStop(BLGradientCore* self, size_t index) ;
+__declspec(dllimport) BLResult __cdecl blGradientRemoveStopByOffset(BLGradientCore* self, double offset, uint32_t all) ;
+__declspec(dllimport) BLResult __cdecl blGradientRemoveStops(BLGradientCore* self, const BLRange* range) ;
+__declspec(dllimport) BLResult __cdecl blGradientRemoveStopsFromTo(BLGradientCore* self, double offsetMin, double offsetMax) ;
+__declspec(dllimport) BLResult __cdecl blGradientReplaceStopRgba32(BLGradientCore* self, size_t index, double offset, uint32_t rgba32) ;
+__declspec(dllimport) BLResult __cdecl blGradientReplaceStopRgba64(BLGradientCore* self, size_t index, double offset, uint64_t rgba64) ;
+__declspec(dllimport) size_t   __cdecl blGradientIndexOfStop(const BLGradientCore* self, double offset) ;
+__declspec(dllimport) BLResult __cdecl blGradientApplyMatrixOp(BLGradientCore* self, uint32_t opType, const void* opData) ;
+__declspec(dllimport) _Bool     __cdecl blGradientEquals(const BLGradientCore* a, const BLGradientCore* b) ;
+__declspec(dllimport) BLResult __cdecl blImageInit(BLImageCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageInitAs(BLImageCore* self, int w, int h, uint32_t format) ;
+__declspec(dllimport) BLResult __cdecl blImageInitAsFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+__declspec(dllimport) BLResult __cdecl blImageReset(BLImageCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageAssignMove(BLImageCore* self, BLImageCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageAssignWeak(BLImageCore* self, const BLImageCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageAssignDeep(BLImageCore* self, const BLImageCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageCreate(BLImageCore* self, int w, int h, uint32_t format) ;
+__declspec(dllimport) BLResult __cdecl blImageCreateFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+__declspec(dllimport) BLResult __cdecl blImageGetData(const BLImageCore* self, BLImageData* dataOut) ;
+__declspec(dllimport) BLResult __cdecl blImageMakeMutable(BLImageCore* self, BLImageData* dataOut) ;
+__declspec(dllimport) _Bool     __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
+__declspec(dllimport) BLResult __cdecl blImageScale(BLImageCore* dst, const BLImageCore* src, const BLSizeI* size, uint32_t filter, const BLImageScaleOptions* options) ;
+__declspec(dllimport) BLResult __cdecl blImageReadFromFile(BLImageCore* self, const char* fileName, const BLArrayCore* codecs) ;
+__declspec(dllimport) BLResult __cdecl blImageReadFromData(BLImageCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
+__declspec(dllimport) BLResult __cdecl blImageWriteToFile(const BLImageCore* self, const char* fileName, const BLImageCodecCore* codec) ;
+__declspec(dllimport) BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, const BLImageCodecCore* codec) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecInit(BLImageCodecCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecReset(BLImageCodecCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecAssignWeak(BLImageCodecCore* self, const BLImageCodecCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecFindByName(BLImageCodecCore* self, const char* name, size_t size, const BLArrayCore* codecs) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecFindByData(BLImageCodecCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
+__declspec(dllimport) uint32_t __cdecl blImageCodecInspectData(const BLImageCodecCore* self, const void* data, size_t size) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecCreateDecoder(const BLImageCodecCore* self, BLImageDecoderCore* dst) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecCreateEncoder(const BLImageCodecCore* self, BLImageEncoderCore* dst) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecArrayInitBuiltInCodecs(BLArrayCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecArrayAssignBuiltInCodecs(BLArrayCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecAddToBuiltIn(const BLImageCodecCore* codec) ;
+__declspec(dllimport) BLResult __cdecl blImageCodecRemoveFromBuiltIn(const BLImageCodecCore* codec) ;
+__declspec(dllimport) BLResult __cdecl blImageDecoderInit(BLImageDecoderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageDecoderReset(BLImageDecoderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageDecoderAssignMove(BLImageDecoderCore* self, BLImageDecoderCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageDecoderAssignWeak(BLImageDecoderCore* self, const BLImageDecoderCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageDecoderRestart(BLImageDecoderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageDecoderReadInfo(BLImageDecoderCore* self, BLImageInfo* infoOut, const uint8_t* data, size_t size) ;
+__declspec(dllimport) BLResult __cdecl blImageDecoderReadFrame(BLImageDecoderCore* self, BLImageCore* imageOut, const uint8_t* data, size_t size) ;
+__declspec(dllimport) BLResult __cdecl blImageEncoderInit(BLImageEncoderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageEncoderReset(BLImageEncoderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageEncoderAssignMove(BLImageEncoderCore* self, BLImageEncoderCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageEncoderAssignWeak(BLImageEncoderCore* self, const BLImageEncoderCore* other) ;
+__declspec(dllimport) BLResult __cdecl blImageEncoderRestart(BLImageEncoderCore* self) ;
+__declspec(dllimport) BLResult __cdecl blImageEncoderWriteFrame(BLImageEncoderCore* self, BLArrayCore* dst, const BLImageCore* image) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DSetIdentity(BLMatrix2D* self) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DSetTranslation(BLMatrix2D* self, double x, double y) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DSetScaling(BLMatrix2D* self, double x, double y) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DSetSkewing(BLMatrix2D* self, double x, double y) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DSetRotation(BLMatrix2D* self, double angle, double cx, double cy) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DApplyOp(BLMatrix2D* self, uint32_t opType, const void* opData) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DInvert(BLMatrix2D* dst, const BLMatrix2D* src) ;
+__declspec(dllimport) uint32_t __cdecl blMatrix2DGetType(const BLMatrix2D* self) ;
+__declspec(dllimport) BLResult __cdecl blMatrix2DMapPointDArray(const BLMatrix2D* self, BLPoint* dst, const BLPoint* src, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blPathInit(BLPathCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPathReset(BLPathCore* self) ;
+__declspec(dllimport) size_t   __cdecl blPathGetSize(const BLPathCore* self) ;
+__declspec(dllimport) size_t   __cdecl blPathGetCapacity(const BLPathCore* self) ;
+__declspec(dllimport) const uint8_t* __cdecl blPathGetCommandData(const BLPathCore* self) ;
+__declspec(dllimport) const BLPoint* __cdecl blPathGetVertexData(const BLPathCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPathClear(BLPathCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPathShrink(BLPathCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPathReserve(BLPathCore* self, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blPathModifyOp(BLPathCore* self, uint32_t op, size_t n, uint8_t** cmdDataOut, BLPoint** vtxDataOut) ;
+__declspec(dllimport) BLResult __cdecl blPathAssignMove(BLPathCore* self, BLPathCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPathAssignWeak(BLPathCore* self, const BLPathCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPathAssignDeep(BLPathCore* self, const BLPathCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPathSetVertexAt(BLPathCore* self, size_t index, uint32_t cmd, double x, double y) ;
+__declspec(dllimport) BLResult __cdecl blPathMoveTo(BLPathCore* self, double x0, double y0) ;
+__declspec(dllimport) BLResult __cdecl blPathLineTo(BLPathCore* self, double x1, double y1) ;
+__declspec(dllimport) BLResult __cdecl blPathPolyTo(BLPathCore* self, const BLPoint* poly, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blPathQuadTo(BLPathCore* self, double x1, double y1, double x2, double y2) ;
+__declspec(dllimport) BLResult __cdecl blPathCubicTo(BLPathCore* self, double x1, double y1, double x2, double y2, double x3, double y3) ;
+__declspec(dllimport) BLResult __cdecl blPathSmoothQuadTo(BLPathCore* self, double x2, double y2) ;
+__declspec(dllimport) BLResult __cdecl blPathSmoothCubicTo(BLPathCore* self, double x2, double y2, double x3, double y3) ;
+__declspec(dllimport) BLResult __cdecl blPathArcTo(BLPathCore* self, double x, double y, double rx, double ry, double start, double sweep, _Bool forceMoveTo) ;
+__declspec(dllimport) BLResult __cdecl blPathArcQuadrantTo(BLPathCore* self, double x1, double y1, double x2, double y2) ;
+__declspec(dllimport) BLResult __cdecl blPathEllipticArcTo(BLPathCore* self, double rx, double ry, double xAxisRotation, _Bool largeArcFlag, _Bool sweepFlag, double x1, double y1) ;
+__declspec(dllimport) BLResult __cdecl blPathClose(BLPathCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPathAddGeometry(BLPathCore* self, uint32_t geometryType, const void* geometryData, const BLMatrix2D* m, uint32_t dir) ;
+__declspec(dllimport) BLResult __cdecl blPathAddBoxI(BLPathCore* self, const BLBoxI* box, uint32_t dir) ;
+__declspec(dllimport) BLResult __cdecl blPathAddBoxD(BLPathCore* self, const BLBox* box, uint32_t dir) ;
+__declspec(dllimport) BLResult __cdecl blPathAddRectI(BLPathCore* self, const BLRectI* rect, uint32_t dir) ;
+__declspec(dllimport) BLResult __cdecl blPathAddRectD(BLPathCore* self, const BLRect* rect, uint32_t dir) ;
+__declspec(dllimport) BLResult __cdecl blPathAddPath(BLPathCore* self, const BLPathCore* other, const BLRange* range) ;
+__declspec(dllimport) BLResult __cdecl blPathAddTranslatedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLPoint* p) ;
+__declspec(dllimport) BLResult __cdecl blPathAddTransformedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blPathAddReversedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, uint32_t reverseMode) ;
+__declspec(dllimport) BLResult __cdecl blPathAddStrokedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLStrokeOptionsCore* options, const BLApproximationOptions* approx) ;
+__declspec(dllimport) BLResult __cdecl blPathTranslate(BLPathCore* self, const BLRange* range, const BLPoint* p) ;
+__declspec(dllimport) BLResult __cdecl blPathTransform(BLPathCore* self, const BLRange* range, const BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blPathFitTo(BLPathCore* self, const BLRange* range, const BLRect* rect, uint32_t fitFlags) ;
+__declspec(dllimport) _Bool     __cdecl blPathEquals(const BLPathCore* a, const BLPathCore* b) ;
+__declspec(dllimport) BLResult __cdecl blPathGetInfoFlags(const BLPathCore* self, uint32_t* flagsOut) ;
+__declspec(dllimport) BLResult __cdecl blPathGetControlBox(const BLPathCore* self, BLBox* boxOut) ;
+__declspec(dllimport) BLResult __cdecl blPathGetBoundingBox(const BLPathCore* self, BLBox* boxOut) ;
+__declspec(dllimport) BLResult __cdecl blPathGetFigureRange(const BLPathCore* self, size_t index, BLRange* rangeOut) ;
+__declspec(dllimport) BLResult __cdecl blPathGetLastVertex(const BLPathCore* self, BLPoint* vtxOut) ;
+__declspec(dllimport) BLResult __cdecl blPathGetClosestVertex(const BLPathCore* self, const BLPoint* p, double maxDistance, size_t* indexOut, double* distanceOut) ;
+__declspec(dllimport) uint32_t __cdecl blPathHitTest(const BLPathCore* self, const BLPoint* p, uint32_t fillRule) ;
+__declspec(dllimport) BLResult __cdecl blPatternInit(BLPatternCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPatternInitAs(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blPatternReset(BLPatternCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPatternAssignMove(BLPatternCore* self, BLPatternCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPatternAssignWeak(BLPatternCore* self, const BLPatternCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPatternAssignDeep(BLPatternCore* self, const BLPatternCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPatternCreate(BLPatternCore* self, const BLImageCore* image, const BLRectI* area, uint32_t extendMode, const BLMatrix2D* m) ;
+__declspec(dllimport) BLResult __cdecl blPatternSetImage(BLPatternCore* self, const BLImageCore* image, const BLRectI* area) ;
+__declspec(dllimport) BLResult __cdecl blPatternSetArea(BLPatternCore* self, const BLRectI* area) ;
+__declspec(dllimport) BLResult __cdecl blPatternSetExtendMode(BLPatternCore* self, uint32_t extendMode) ;
+__declspec(dllimport) BLResult __cdecl blPatternApplyMatrixOp(BLPatternCore* self, uint32_t opType, const void* opData) ;
+__declspec(dllimport) _Bool     __cdecl blPatternEquals(const BLPatternCore* a, const BLPatternCore* b) ;
+__declspec(dllimport) BLResult __cdecl blPixelConverterInit(BLPixelConverterCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPixelConverterInitWeak(BLPixelConverterCore* self, const BLPixelConverterCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPixelConverterReset(BLPixelConverterCore* self) ;
+__declspec(dllimport) BLResult __cdecl blPixelConverterAssign(BLPixelConverterCore* self, const BLPixelConverterCore* other) ;
+__declspec(dllimport) BLResult __cdecl blPixelConverterCreate(BLPixelConverterCore* self, const BLFormatInfo* dstInfo, const BLFormatInfo* srcInfo) ;
+__declspec(dllimport) BLResult __cdecl blPixelConverterConvert(const BLPixelConverterCore* self,
   void* dstData, intptr_t dstStride,
   const void* srcData, intptr_t srcStride,
   uint32_t w, uint32_t h, const BLPixelConverterOptions* options) ;
-void     __cdecl blRandomReset(BLRandom* self, uint64_t seed) ;
-uint32_t __cdecl blRandomNextUInt32(BLRandom* self) ;
-uint64_t __cdecl blRandomNextUInt64(BLRandom* self) ;
-double   __cdecl blRandomNextDouble(BLRandom* self) ;
-BLResult __cdecl blRegionInit(BLRegionCore* self) ;
-BLResult __cdecl blRegionReset(BLRegionCore* self) ;
-BLResult __cdecl blRegionClear(BLRegionCore* self) ;
-BLResult __cdecl blRegionShrink(BLRegionCore* self) ;
-BLResult __cdecl blRegionReserve(BLRegionCore* self, size_t n) ;
-BLResult __cdecl blRegionAssignMove(BLRegionCore* self, BLRegionCore* other) ;
-BLResult __cdecl blRegionAssignWeak(BLRegionCore* self, const BLRegionCore* other) ;
-BLResult __cdecl blRegionAssignDeep(BLRegionCore* self, const BLRegionCore* other) ;
-BLResult __cdecl blRegionAssignBoxI(BLRegionCore* self, const BLBoxI* src) ;
-BLResult __cdecl blRegionAssignBoxIArray(BLRegionCore* self, const BLBoxI* data, size_t n) ;
-BLResult __cdecl blRegionAssignRectI(BLRegionCore* self, const BLRectI* rect) ;
-BLResult __cdecl blRegionAssignRectIArray(BLRegionCore* self, const BLRectI* data, size_t n) ;
-BLResult __cdecl blRegionCombine(BLRegionCore* self, const BLRegionCore* a, const BLRegionCore* b, uint32_t op) ;
-BLResult __cdecl blRegionCombineRB(BLRegionCore* self, const BLRegionCore* a, const BLBoxI* b, uint32_t op) ;
-BLResult __cdecl blRegionCombineBR(BLRegionCore* self, const BLBoxI* a, const BLRegionCore* b, uint32_t op) ;
-BLResult __cdecl blRegionCombineBB(BLRegionCore* self, const BLBoxI* a, const BLBoxI* b, uint32_t op) ;
-BLResult __cdecl blRegionTranslate(BLRegionCore* self, const BLRegionCore* r, const BLPointI* pt) ;
-BLResult __cdecl blRegionTranslateAndClip(BLRegionCore* self, const BLRegionCore* r, const BLPointI* pt, const BLBoxI* clipBox) ;
-BLResult __cdecl blRegionIntersectAndClip(BLRegionCore* self, const BLRegionCore* a, const BLRegionCore* b, const BLBoxI* clipBox) ;
-_Bool     __cdecl blRegionEquals(const BLRegionCore* a, const BLRegionCore* b) ;
-uint32_t __cdecl blRegionGetType(const BLRegionCore* self) ;
-uint32_t __cdecl blRegionHitTest(const BLRegionCore* self, const BLPointI* pt) ;
-uint32_t __cdecl blRegionHitTestBoxI(const BLRegionCore* self, const BLBoxI* box) ;
-BLResult __cdecl blRuntimeInit() ;
-BLResult __cdecl blRuntimeShutdown() ;
-BLResult __cdecl blRuntimeCleanup(uint32_t cleanupFlags) ;
-BLResult __cdecl blRuntimeQueryInfo(uint32_t infoType, void* infoOut) ;
-BLResult __cdecl blRuntimeMessageOut(const char* msg) ;
-BLResult __cdecl blRuntimeMessageFmt(const char* fmt, ...) ;
-BLResult __cdecl blRuntimeMessageVFmt(const char* fmt, va_list ap) ;
-uint32_t __cdecl blRuntimeGetTickCount(void) ;
-__declspec(noreturn) void __cdecl blRuntimeAssertionFailure(const char* file, int line, const char* msg) ;
-BLResult __cdecl blResultFromWinError(uint32_t e) ;
-BLResult __cdecl blStringInit(BLStringCore* self) ;
-BLResult __cdecl blStringReset(BLStringCore* self) ;
-size_t   __cdecl blStringGetSize(const BLStringCore* self) ;
-size_t   __cdecl blStringGetCapacity(const BLStringCore* self) ;
-const char* __cdecl blStringGetData(const BLStringCore* self) ;
-BLResult __cdecl blStringClear(BLStringCore* self) ;
-BLResult __cdecl blStringShrink(BLStringCore* self) ;
-BLResult __cdecl blStringReserve(BLStringCore* self, size_t n) ;
-BLResult __cdecl blStringResize(BLStringCore* self, size_t n, char fill) ;
-BLResult __cdecl blStringMakeMutable(BLStringCore* self, char** dataOut) ;
-BLResult __cdecl blStringModifyOp(BLStringCore* self, uint32_t op, size_t n, char** dataOut) ;
-BLResult __cdecl blStringInsertOp(BLStringCore* self, size_t index, size_t n, char** dataOut) ;
-BLResult __cdecl blStringAssignMove(BLStringCore* self, BLStringCore* other) ;
-BLResult __cdecl blStringAssignWeak(BLStringCore* self, const BLStringCore* other) ;
-BLResult __cdecl blStringAssignDeep(BLStringCore* self, const BLStringCore* other) ;
-BLResult __cdecl blStringAssignData(BLStringCore* self, const char* str, size_t n) ;
-BLResult __cdecl blStringApplyOpChar(BLStringCore* self, uint32_t op, char c, size_t n) ;
-BLResult __cdecl blStringApplyOpData(BLStringCore* self, uint32_t op, const char* str, size_t n) ;
-BLResult __cdecl blStringApplyOpString(BLStringCore* self, uint32_t op, const BLStringCore* other) ;
-BLResult __cdecl blStringApplyOpFormat(BLStringCore* self, uint32_t op, const char* fmt, ...) ;
-BLResult __cdecl blStringApplyOpFormatV(BLStringCore* self, uint32_t op, const char* fmt, va_list ap) ;
-BLResult __cdecl blStringInsertChar(BLStringCore* self, size_t index, char c, size_t n) ;
-BLResult __cdecl blStringInsertData(BLStringCore* self, size_t index, const char* str, size_t n) ;
-BLResult __cdecl blStringInsertString(BLStringCore* self, size_t index, const BLStringCore* other) ;
-BLResult __cdecl blStringRemoveRange(BLStringCore* self, const BLRange* range) ;
-_Bool     __cdecl blStringEquals(const BLStringCore* self, const BLStringCore* other) ;
-_Bool     __cdecl blStringEqualsData(const BLStringCore* self, const char* str, size_t n) ;
-int      __cdecl blStringCompare(const BLStringCore* self, const BLStringCore* other) ;
-int      __cdecl blStringCompareData(const BLStringCore* self, const char* str, size_t n) ;
-BLResult __cdecl blStrokeOptionsInit(BLStrokeOptionsCore* self) ;
-BLResult __cdecl blStrokeOptionsInitMove(BLStrokeOptionsCore* self, BLStrokeOptionsCore* other) ;
-BLResult __cdecl blStrokeOptionsInitWeak(BLStrokeOptionsCore* self, const BLStrokeOptionsCore* other) ;
-BLResult __cdecl blStrokeOptionsReset(BLStrokeOptionsCore* self) ;
-BLResult __cdecl blStrokeOptionsAssignMove(BLStrokeOptionsCore* self, BLStrokeOptionsCore* other) ;
-BLResult __cdecl blStrokeOptionsAssignWeak(BLStrokeOptionsCore* self, const BLStrokeOptionsCore* other) ;
-BLResult __cdecl blVariantInit(void* self) ;
-BLResult __cdecl blVariantInitMove(void* self, void* other) ;
-BLResult __cdecl blVariantInitWeak(void* self, const void* other) ;
-BLResult __cdecl blVariantReset(void* self) ;
-uint32_t __cdecl blVariantGetImplType(const void* self) ;
-BLResult __cdecl blVariantAssignMove(void* self, void* other) ;
-BLResult __cdecl blVariantAssignWeak(void* self, const void* other) ;
-_Bool     __cdecl blVariantEquals(const void* a, const void* b) ;
+__declspec(dllimport) void     __cdecl blRandomReset(BLRandom* self, uint64_t seed) ;
+__declspec(dllimport) uint32_t __cdecl blRandomNextUInt32(BLRandom* self) ;
+__declspec(dllimport) uint64_t __cdecl blRandomNextUInt64(BLRandom* self) ;
+__declspec(dllimport) double   __cdecl blRandomNextDouble(BLRandom* self) ;
+__declspec(dllimport) BLResult __cdecl blRegionInit(BLRegionCore* self) ;
+__declspec(dllimport) BLResult __cdecl blRegionReset(BLRegionCore* self) ;
+__declspec(dllimport) BLResult __cdecl blRegionClear(BLRegionCore* self) ;
+__declspec(dllimport) BLResult __cdecl blRegionShrink(BLRegionCore* self) ;
+__declspec(dllimport) BLResult __cdecl blRegionReserve(BLRegionCore* self, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blRegionAssignMove(BLRegionCore* self, BLRegionCore* other) ;
+__declspec(dllimport) BLResult __cdecl blRegionAssignWeak(BLRegionCore* self, const BLRegionCore* other) ;
+__declspec(dllimport) BLResult __cdecl blRegionAssignDeep(BLRegionCore* self, const BLRegionCore* other) ;
+__declspec(dllimport) BLResult __cdecl blRegionAssignBoxI(BLRegionCore* self, const BLBoxI* src) ;
+__declspec(dllimport) BLResult __cdecl blRegionAssignBoxIArray(BLRegionCore* self, const BLBoxI* data, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blRegionAssignRectI(BLRegionCore* self, const BLRectI* rect) ;
+__declspec(dllimport) BLResult __cdecl blRegionAssignRectIArray(BLRegionCore* self, const BLRectI* data, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombine(BLRegionCore* self, const BLRegionCore* a, const BLRegionCore* b, uint32_t op) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombineRB(BLRegionCore* self, const BLRegionCore* a, const BLBoxI* b, uint32_t op) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombineBR(BLRegionCore* self, const BLBoxI* a, const BLRegionCore* b, uint32_t op) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombineBB(BLRegionCore* self, const BLBoxI* a, const BLBoxI* b, uint32_t op) ;
+__declspec(dllimport) BLResult __cdecl blRegionTranslate(BLRegionCore* self, const BLRegionCore* r, const BLPointI* pt) ;
+__declspec(dllimport) BLResult __cdecl blRegionTranslateAndClip(BLRegionCore* self, const BLRegionCore* r, const BLPointI* pt, const BLBoxI* clipBox) ;
+__declspec(dllimport) BLResult __cdecl blRegionIntersectAndClip(BLRegionCore* self, const BLRegionCore* a, const BLRegionCore* b, const BLBoxI* clipBox) ;
+__declspec(dllimport) _Bool     __cdecl blRegionEquals(const BLRegionCore* a, const BLRegionCore* b) ;
+__declspec(dllimport) uint32_t __cdecl blRegionGetType(const BLRegionCore* self) ;
+__declspec(dllimport) uint32_t __cdecl blRegionHitTest(const BLRegionCore* self, const BLPointI* pt) ;
+__declspec(dllimport) uint32_t __cdecl blRegionHitTestBoxI(const BLRegionCore* self, const BLBoxI* box) ;
+__declspec(dllimport) BLResult __cdecl blRuntimeInit() ;
+__declspec(dllimport) BLResult __cdecl blRuntimeShutdown() ;
+__declspec(dllimport) BLResult __cdecl blRuntimeCleanup(uint32_t cleanupFlags) ;
+__declspec(dllimport) BLResult __cdecl blRuntimeQueryInfo(uint32_t infoType, void* infoOut) ;
+__declspec(dllimport) BLResult __cdecl blRuntimeMessageOut(const char* msg) ;
+__declspec(dllimport) BLResult __cdecl blRuntimeMessageFmt(const char* fmt, ...) ;
+__declspec(dllimport) BLResult __cdecl blRuntimeMessageVFmt(const char* fmt, va_list ap) ;
+__declspec(dllimport) uint32_t __cdecl blRuntimeGetTickCount(void) ;
+__declspec(dllimport) __declspec(noreturn) void __cdecl blRuntimeAssertionFailure(const char* file, int line, const char* msg) ;
+__declspec(dllimport) BLResult __cdecl blResultFromWinError(uint32_t e) ;
+__declspec(dllimport) BLResult __cdecl blStringInit(BLStringCore* self) ;
+__declspec(dllimport) BLResult __cdecl blStringReset(BLStringCore* self) ;
+__declspec(dllimport) size_t   __cdecl blStringGetSize(const BLStringCore* self) ;
+__declspec(dllimport) size_t   __cdecl blStringGetCapacity(const BLStringCore* self) ;
+__declspec(dllimport) const char* __cdecl blStringGetData(const BLStringCore* self) ;
+__declspec(dllimport) BLResult __cdecl blStringClear(BLStringCore* self) ;
+__declspec(dllimport) BLResult __cdecl blStringShrink(BLStringCore* self) ;
+__declspec(dllimport) BLResult __cdecl blStringReserve(BLStringCore* self, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStringResize(BLStringCore* self, size_t n, char fill) ;
+__declspec(dllimport) BLResult __cdecl blStringMakeMutable(BLStringCore* self, char** dataOut) ;
+__declspec(dllimport) BLResult __cdecl blStringModifyOp(BLStringCore* self, uint32_t op, size_t n, char** dataOut) ;
+__declspec(dllimport) BLResult __cdecl blStringInsertOp(BLStringCore* self, size_t index, size_t n, char** dataOut) ;
+__declspec(dllimport) BLResult __cdecl blStringAssignMove(BLStringCore* self, BLStringCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStringAssignWeak(BLStringCore* self, const BLStringCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStringAssignDeep(BLStringCore* self, const BLStringCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStringAssignData(BLStringCore* self, const char* str, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStringApplyOpChar(BLStringCore* self, uint32_t op, char c, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStringApplyOpData(BLStringCore* self, uint32_t op, const char* str, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStringApplyOpString(BLStringCore* self, uint32_t op, const BLStringCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStringApplyOpFormat(BLStringCore* self, uint32_t op, const char* fmt, ...) ;
+__declspec(dllimport) BLResult __cdecl blStringApplyOpFormatV(BLStringCore* self, uint32_t op, const char* fmt, va_list ap) ;
+__declspec(dllimport) BLResult __cdecl blStringInsertChar(BLStringCore* self, size_t index, char c, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStringInsertData(BLStringCore* self, size_t index, const char* str, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStringInsertString(BLStringCore* self, size_t index, const BLStringCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStringRemoveRange(BLStringCore* self, const BLRange* range) ;
+__declspec(dllimport) _Bool     __cdecl blStringEquals(const BLStringCore* self, const BLStringCore* other) ;
+__declspec(dllimport) _Bool     __cdecl blStringEqualsData(const BLStringCore* self, const char* str, size_t n) ;
+__declspec(dllimport) int      __cdecl blStringCompare(const BLStringCore* self, const BLStringCore* other) ;
+__declspec(dllimport) int      __cdecl blStringCompareData(const BLStringCore* self, const char* str, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStrokeOptionsInit(BLStrokeOptionsCore* self) ;
+__declspec(dllimport) BLResult __cdecl blStrokeOptionsInitMove(BLStrokeOptionsCore* self, BLStrokeOptionsCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStrokeOptionsInitWeak(BLStrokeOptionsCore* self, const BLStrokeOptionsCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStrokeOptionsReset(BLStrokeOptionsCore* self) ;
+__declspec(dllimport) BLResult __cdecl blStrokeOptionsAssignMove(BLStrokeOptionsCore* self, BLStrokeOptionsCore* other) ;
+__declspec(dllimport) BLResult __cdecl blStrokeOptionsAssignWeak(BLStrokeOptionsCore* self, const BLStrokeOptionsCore* other) ;
+__declspec(dllimport) BLResult __cdecl blVariantInit(void* self) ;
+__declspec(dllimport) BLResult __cdecl blVariantInitMove(void* self, void* other) ;
+__declspec(dllimport) BLResult __cdecl blVariantInitWeak(void* self, const void* other) ;
+__declspec(dllimport) BLResult __cdecl blVariantReset(void* self) ;
+__declspec(dllimport) uint32_t __cdecl blVariantGetImplType(const void* self) ;
+__declspec(dllimport) BLResult __cdecl blVariantAssignMove(void* self, void* other) ;
+__declspec(dllimport) BLResult __cdecl blVariantAssignWeak(void* self, const void* other) ;
+__declspec(dllimport) _Bool     __cdecl blVariantEquals(const void* a, const void* b) ;
 enum BLImplType {
   BL_IMPL_TYPE_NULL = 0,
   BL_IMPL_TYPE_BIT_ARRAY = 1,
@@ -752,7 +746,7 @@ struct BLVariantImpl {
 struct BLVariantCore {
   BLVariantImpl* impl;
 };
-BLVariantCore blNone[BL_IMPL_TYPE_COUNT];
+__declspec(dllimport) BLVariantCore blNone[BL_IMPL_TYPE_COUNT];
 struct BLArrayImpl {
   union {
     struct {
@@ -776,7 +770,6 @@ struct BLArrayImpl {
 struct BLArrayCore {
   BLArrayImpl* impl;
 };
-
 enum BLGeometryDirection {
   BL_GEOMETRY_DIRECTION_NONE = 0,
   BL_GEOMETRY_DIRECTION_CW = 1,
@@ -886,7 +879,6 @@ struct BLArc {
   double start;
   double sweep;
 };
-
 enum BLGlyphItemFlags {
   BL_GLYPH_ITEM_FLAG_MARK = 0x80000000u
 };
@@ -1392,7 +1384,6 @@ struct BLTextMetrics {
   BLPoint advance;
   BLBox boundingBox;
 };
-
 struct BLGlyphBufferImpl {
   union {
     struct {
@@ -1484,7 +1475,7 @@ struct BLApproximationOptions {
   double simplifyTolerance;
   double offsetParameter;
 };
-const BLApproximationOptions blDefaultApproximationOptions;
+__declspec(dllimport) const BLApproximationOptions blDefaultApproximationOptions;
 struct BLStrokeOptionsCore {
   union {
     struct {
@@ -1638,7 +1629,7 @@ enum BLFormat {
   BL_FORMAT_XRGB32 = 2,
   BL_FORMAT_A8 = 3,
   BL_FORMAT_COUNT = 4,
-  BL_FORMAT_RESERVED_COUNT = 8
+  BL_FORMAT_RESERVED_COUNT = 16
 };
 enum BLFormatFlags {
   BL_FORMAT_FLAG_RGB = 0x00000001u,
@@ -1672,7 +1663,7 @@ struct BLFormatInfo {
     const BLRgba32* palette;
   };
 };
-const BLFormatInfo blFormatInfo[BL_FORMAT_RESERVED_COUNT];
+__declspec(dllimport) const BLFormatInfo blFormatInfo[BL_FORMAT_RESERVED_COUNT];
 enum BLImageCodecFeatures {
   BL_IMAGE_CODEC_FEATURE_READ                 = 0x00000001u,
   BL_IMAGE_CODEC_FEATURE_WRITE                = 0x00000002u,
@@ -1811,7 +1802,6 @@ struct BLImageEncoderImpl {
 struct BLImageEncoderCore {
   BLImageEncoderImpl* impl;
 };
-
 typedef BLResult (__cdecl* BLMapPointDArrayFunc)(const void* ctx, BLPoint* dst, const BLPoint* src, size_t count) ;
 enum BLMatrix2DType {
   BL_MATRIX2D_TYPE_IDENTITY = 0,
@@ -1863,12 +1853,7 @@ struct BLMatrix2D {
     };
   };
 };
-BLMapPointDArrayFunc blMatrix2DMapPointDArrayFuncs[BL_MATRIX2D_TYPE_COUNT];
-]]
---[[
-  The BLRgba32 structure needs to be endian aware
-]]
-ffi.cdef[[
+__declspec(dllimport) BLMapPointDArrayFunc blMatrix2DMapPointDArrayFuncs[BL_MATRIX2D_TYPE_COUNT];
 struct BLRgba32 {
   union {
     uint32_t value;
@@ -1901,7 +1886,6 @@ struct BLRgba128 {
   float b;
   float a;
 };
-
 enum BLRegionType {
   BL_REGION_TYPE_EMPTY = 0,
   BL_REGION_TYPE_RECT = 1,
@@ -2140,7 +2124,6 @@ enum BLFileReadFlags {
 struct BLFileCore {
   intptr_t handle;
 };
-
 enum BLGradientType {
   BL_GRADIENT_TYPE_LINEAR = 0,
   BL_GRADIENT_TYPE_RADIAL = 1,
@@ -2186,10 +2169,10 @@ struct BLGradientImpl {
       
       size_t size;
     };
-    
+    BLArrayView values;
   };
   size_t capacity;
-  volatile size_t refCount;
+  size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
   uint16_t memPoolData;
@@ -2212,7 +2195,6 @@ struct BLGradientImpl {
 struct BLGradientCore {
   BLGradientImpl* impl;
 };
-
 struct BLPatternImpl {
   BLImageCore image;
   void* reservedHeader[2];
@@ -2282,66 +2264,9 @@ enum BLRuntimeCpuFeatures {
 enum BLRuntimeCleanupFlags {
   BL_RUNTIME_CLEANUP_OBJECT_POOL = 0x00000001u,
   BL_RUNTIME_CLEANUP_ZEROED_POOL = 0x00000002u,
-  BL_RUNTIME_CLEANUO_THREAD_POOL = 0x00000010u,
+  BL_RUNTIME_CLEANUP_THREAD_POOL = 0x00000010u,
   BL_RUNTIME_CLEANUP_EVERYTHING = 0xFFFFFFFFu
 };
-]]
-
---[[
-  BUGBUG
-
-  This is drop in surgery to original file to deal with 
-endianness
---]]
-if ffi.abi("le") then
-  ffi.cdef[[
-  //! Blend2D build information.
-  struct BLRuntimeBuildInfo {
-    union {
-      //! Blend2D version stored as `((MAJOR << 16) | (MINOR << 8) | PATCH)`.
-      uint32_t version;
-  
-      //! Decomposed Blend2D version so its easier to access without bit shifting.
-      struct {
-        uint8_t patchVersion;
-        uint8_t minorVersion;
-        uint16_t majorVersion;
-      };
-    };
-  
-    //! Blend2D build type, see `BLRuntimeBuildType`.
-    uint32_t buildType;
-  
-    //! Identification of the C++ compiler used to build Blend2D.
-    char compilerInfo[24];
-  };
-  ]]
-else
-  ffi.cdef[[
-          //! Blend2D build information.
-          struct BLRuntimeBuildInfo {
-            union {
-              //! Blend2D version stored as `((MAJOR << 16) | (MINOR << 8) | PATCH)`.
-              uint32_t version;
-          
-              //! Decomposed Blend2D version so its easier to access without bit shifting.
-              struct {
-                uint16_t majorVersion;
-                uint8_t minorVersion;
-                uint8_t patchVersion;
-              };
-            };
-          
-            //! Blend2D build type, see `BLRuntimeBuildType`.
-            uint32_t buildType;
-          
-            //! Identification of the C++ compiler used to build Blend2D.
-            char compilerInfo[24];
-  };
-  ]]
-end
-
---[[
 struct BLRuntimeBuildInfo {
   union {
     
@@ -2363,9 +2288,6 @@ struct BLRuntimeBuildInfo {
   uint32_t reserved[2];
   char compilerInfo[32];
 };
---]]
-
-ffi.cdef[[
 struct BLRuntimeSystemInfo {
   uint32_t cpuArch;
   uint32_t cpuFeatures;

@@ -32,16 +32,21 @@ BLStringView = ffi.typeof("BLStringView")
 BLRegionView = ffi.typeof("BLRegionView")
 BLDataView = BLArrayView
 
+
+--[[
+    BLRgba
+]]
+BLRgba32 = ffi.typeof("struct BLRgba32")
+BLRgba64 = ffi.typeof("struct BLRgba64")
+
+
 -- blcontext types
-BLContextCreateInfo = ffi.new("struct BLContextCreateInfo")   -- BLContextCreateOptions
+BLContextCreateInfo = ffi.new("struct BLContextCreateInfo")
 BLContextCookie = ffi.typeof("struct BLContextCookie")
 BLContextHints = ffi.typeof("struct BLContextHints")
 BLContextState = ffi.typeof("struct BLContextState")
 
--- Only used by `BLContext` to make invocation of functions in `BLContextVirt`.
---enum OpType : uint32_t {
-local  kOpFill = C.BL_CONTEXT_OP_TYPE_FILL;
-local kOpStroke = C.BL_CONTEXT_OP_TYPE_STROKE;
+
 
 
 --[[
@@ -101,12 +106,12 @@ BLEllipse = ffi.typeof("struct BLEllipse")
 
 BLArc = ffi.typeof("struct BLArc")
 
-
+---[=[
 BLContext = ffi.typeof("struct BLContextCore")
 ffi.metatype(BLContext, {
     __gc = function(self)
+      --print("BLContext.gc")
       local bResult = blapi.blContextReset(self) ;
-      return bResult == 0 or bResult;
     end;
 
     __new = function(ct, ...)
@@ -452,29 +457,27 @@ ffi.metatype(BLContext, {
       --[[
         Actual Drawing
       ]]
-      blit = function(self, img, dstX, dstY, imgArea)
-          local imgSize = img:size()
-          imgArea = imgArea or BLRectI(0,0,imgSize.w, imgSize.h)
-          --print(imgArea)
-          --BLResult (__cdecl* blitImageI              )(BLContextImpl* impl, const BLPointI* pt, const BLImageCore* img, const BLRectI* imgArea) ;
+      -- dst is a BLPoint
+      -- srcArea is BLRectI or nil
+      blitImage = function(self, dst, src, srcArea )
+        local bResult = self.impl.virt.blitImageD(self.impl, dst, src, srcArea);
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
 
-          local bResult = self.impl.virt.blitImageI(self.impl, BLPointI(dstX, dstY), img, imgArea)
-          if bResult == C.BL_SUCCESS then
-            return true;
-          end
-  
-          return false, bResult;
+        return false, bResult;
       end;
 
-      stretchBlt = function(self, dstRect, img, imgArea)
-          local bResult = blapi.blContextBlitScaledImageD(self, dstRect, img, imgArea) ;
-          if bResult == C.BL_SUCCESS then
-            return true;
-          end
-  
-          return false, bResult;
-      end;
+      -- dst is a BLRect, 
+      -- srcArea is BLRectI, or nil
+      blitScaledImage = function(self, dst, src, srcArea)
+        local bResult = self.impl.virt.blitScaledImageD(impl, dst, src, srcArea);
+        if bResult == C.BL_SUCCESS then
+          return true;
+        end
 
+        return false, bResult;
+      end;
 
       -- Whole canvas drawing functions
       clearAll = function(self)
@@ -515,28 +518,13 @@ ffi.metatype(BLContext, {
       end;
 
 
-      fillCircle = function(self, ...)
-          local nargs = select('#', ...)
-          if nargs == 1 then
-              local circle = select(1,...)
-              return self:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle);
-          elseif nargs == 3 then
-              local cx = select(1,...)
-              local cy = select(2,...)
-              local r = select(3,...)
-              local circle = BLCircle(cx, cy, r)
-              return self:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle)
-          end
+      fillCircle = function(self, geo)
+        return self:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, geo);
       end;
 
 
-      fillEllipse = function(self, ...)
-        local nargs = select("#",...)
-        if nargs == 4 then
-            local geo = BLEllipse(...)
-            --print("fillEllipse: ", geo.cx, geo.cy, geo.rx, geo.ry)
-            self:fillGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
-        end
+      fillEllipse = function(self, geo)
+        return self:fillGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
       end;
 
       fillPathD = function(self, path)
@@ -579,24 +567,8 @@ ffi.metatype(BLContext, {
         return false, bResult;
       end;
 
-      fillRoundRect = function(self, ...)
-        local nargs = select('#', ...)
-        
-        if nargs < 1 then return false end
-
-        local rrect = select(1,...)
-
-        if nargs == 1 then
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
-        elseif nargs == 2 then
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rr)
-        elseif nargs == 3 then
-          local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(3,...))
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
-        elseif nargs == 5 then
-          local rrect = BLRoundRect(select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(5,...))
-          return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
-        end
+      fillRoundRect = function(self, rr)
+        return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rr);
       end;
 
       fillTriangle = function(self, ...)
@@ -607,23 +579,8 @@ ffi.metatype(BLContext, {
           end
       end;
 
-      fillRoundRect = function(self, rr)
-        return self:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rr);
-      end;
 
---[[
-    //! Fills a rounded rectangle.
-  BL_INLINE BLResult fillRoundRect(const BLRoundRect& rr) noexcept { return fillGeometry(BL_GEOMETRY_TYPE_ROUND_RECT, &rr); }
-  //! \overload
-  BL_INLINE BLResult fillRoundRect(const BLRect& rect, double r) noexcept { return fillRoundRect(BLRoundRect(rect.x, rect.y, rect.w, rect.h, r)); }
-  //! \overload
-  BL_INLINE BLResult fillRoundRect(const BLRect& rect, double rx, double ry) noexcept { return fillRoundRect(BLRoundRect(rect.x, rect.y, rect.w, rect.h, rx, ry)); }
-  //! \overload
-  BL_INLINE BLResult fillRoundRect(double x, double y, double w, double h, double r) noexcept { return fillRoundRect(BLRoundRect(x, y, w, h, r)); }
-  //! \overload
-  BL_INLINE BLResult fillRoundRect(double x, double y, double w, double h, double rx, double ry) noexcept { return fillRoundRect(BLRoundRect(x, y, w, h, rx, ry)); }
 
-]]
       --(BLContextImpl* impl, const BLPoint* pt, const BLFontCore* font, const void* text, size_t size, uint32_t encoding) ;
       fillTextD = function(self, pt, font, text, size, encoding)
         local bResult = self.impl.virt.fillTextD(self.impl, pt, font, text, size, encoding) ;
@@ -638,22 +595,6 @@ ffi.metatype(BLContext, {
           return self:fillTextD(dst, font, text, size, C.BL_TEXT_ENCODING_UTF8)
       end;
 
-
-      --[[
-BLResult __cdecl blContextSetStrokeMiterLimit(BLContextCore* self, double miterLimit) ;
-BLResult __cdecl blContextSetStrokeCaps(BLContextCore* self, uint32_t strokeCap) ;
-BLResult __cdecl blContextSetStrokeDashOffset(BLContextCore* self, double dashOffset) ;
-BLResult __cdecl blContextSetStrokeDashArray(BLContextCore* self, const BLArrayCore* dashArray) ;
-BLResult __cdecl blContextSetStrokeTransformOrder(BLContextCore* self, uint32_t transformOrder) ;
-BLResult __cdecl blContextSetStrokeOptions(BLContextCore* self, const BLStrokeOptionsCore* options) ;
-BLResult __cdecl blContextSetStrokeAlpha(BLContextCore* self, double alpha) ;
-BLResult __cdecl blContextGetStrokeStyle(const BLContextCore* self, void* object) ;
-BLResult __cdecl blContextGetStrokeStyleRgba32(const BLContextCore* self, uint32_t* rgba32) ;
-BLResult __cdecl blContextGetStrokeStyleRgba64(const BLContextCore* self, uint64_t* rgba64) ;
-
-BLResult __cdecl blContextSetStrokeStyleRgba32(BLContextCore* self, uint32_t rgba32) ;
-BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgba64) ;
-      ]]
 
       strokeGeometry = function(self, geometryType, geometryData)
         local bResult = self.impl.virt.strokeGeometry(self.impl, geometryType, geometryData);
@@ -754,7 +695,7 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
         return false, bResult;
       end;
 
-      strokeUtf8Text = function(self,pt, font, text, size)
+      strokeTextUtf8 = function(self,pt, font, text, size)
         return self:strokeTextD(pt, font, text, size, C.BL_TEXT_ENCODING_UTF8)
       end;
 
@@ -769,7 +710,7 @@ BLResult __cdecl blContextSetStrokeStyleRgba64(BLContextCore* self, uint64_t rgb
 
     };
 })
-
+--]=]
 
 BLFile = ffi.typeof("struct BLFileCore")
 local BLFile_mt = {
@@ -1006,6 +947,7 @@ BLFontFace_mt = {
 }
 ffi.metatype(BLFontFace, BLFontFace_mt)
 
+
 BLFont = ffi.typeof("struct BLFontCore")
 BLFontCore = BLFont
 BLFont_mt = {
@@ -1065,27 +1007,6 @@ BLFont_mt = {
 
 
     }
---[[
-
-BLResult __cdecl blFontAssignMove(BLFontCore* self, BLFontCore* other) ;
-BLResult __cdecl blFontAssignWeak(BLFontCore* self, const BLFontCore* other) ;
-bool     __cdecl blFontEquals(const BLFontCore* a, const BLFontCore* b) ;
-BLResult __cdecl blFontCreateFromFace(BLFontCore* self, const BLFontFaceCore* face, float size) ;
-BLResult __cdecl blFontMapTextToGlyphs(const BLFontCore* self, BLGlyphBufferCore* buf, BLGlyphMappingState* stateOut) ;
-BLResult __cdecl blFontPositionGlyphs(const BLFontCore* self, BLGlyphBufferCore* buf, uint32_t positioningFlags) ;
-BLResult __cdecl blFontApplyKerning(const BLFontCore* self, BLGlyphBufferCore* buf) ;
-BLResult __cdecl blFontApplyGSub(const BLFontCore* self, BLGlyphBufferCore* buf, size_t index, BLBitWord lookups) ;
-BLResult __cdecl blFontApplyGPos(const BLFontCore* self, BLGlyphBufferCore* buf, size_t index, BLBitWord lookups) ;
-BLResult __cdecl blFontGetMatrix(const BLFontCore* self, BLFontMatrix* out) ;
-BLResult __cdecl blFontGetMetrics(const BLFontCore* self, BLFontMetrics* out) ;
-BLResult __cdecl blFontGetDesignMetrics(const BLFontCore* self, BLFontDesignMetrics* out) ;
-BLResult __cdecl blFontGetTextMetrics(const BLFontCore* self, BLGlyphBufferCore* buf, BLTextMetrics* out) ;
-BLResult __cdecl blFontGetGlyphBounds(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLBoxI* out, size_t count) ;
-BLResult __cdecl blFontGetGlyphAdvances(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLGlyphPlacement* out, size_t count) ;
-BLResult __cdecl blFontGetGlyphOutlines(const BLFontCore* self, uint32_t glyphId, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
-BLResult __cdecl blFontGetGlyphRunOutlines(const BLFontCore* self, const BLGlyphRun* glyphRun, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
-
-]]
 }
 ffi.metatype(BLFont, BLFont_mt)
 
@@ -1152,6 +1073,7 @@ local BLGlyphBuffer_mt = {
 }
 ffi.metatype(BLGlyphBuffer, BLGlyphBuffer_mt)
 
+
 --[[
     BLGradient
 ]]
@@ -1160,11 +1082,13 @@ BLLinearGradientValues = ffi.typeof("struct BLLinearGradientValues")
 BLRadialGradientValues = ffi.typeof("struct BLRadialGradientValues")
 BLConicalGradientValues = ffi.typeof("struct BLConicalGradientValues")
 
+
 BLGradient = ffi.typeof("struct BLGradientCore")
-BLGradientCore = BLGradient
 local BLGradient_mt = {
+
     __gc = function(self)
-        return blapi.blGradientReset(self);
+      print("BLGradient.gc")  
+      return blapi.blGradientReset(self);
     end;
 
     -- This function is only called when you use the 'constructor'
@@ -1173,6 +1097,7 @@ local BLGradient_mt = {
     -- it is NOT called when you simply do ffi.new("struct BLGradientCore")
     __new = function(ct, ...)
         local nargs = select("#", ...)
+        print("BLGradient.__new: ", nargs)
         local obj = ffi.new(ct);
 
         if nargs == 0 then
@@ -1180,12 +1105,14 @@ local BLGradient_mt = {
         elseif nargs == 1 then
             local gType = 0
             local values = select(1,...)
+            print("typeof(values): ", ffi.typeof(values))
             if ffi.typeof(values) ==   BLLinearGradientValues then
                 local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
                 if bResult ~= C.BL_SUCCESS then
                   return false, bResult;
                 end
             elseif ffi.typeof(values) == BLRadialGradientValues then
+              print("init with BLRadialGradientValues")
               local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_RADIAL, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
               if bResult ~= C.BL_SUCCESS then
                 return false, bResult;
@@ -1205,7 +1132,7 @@ local BLGradient_mt = {
 
         return obj;
     end;
-
+---[=[
     __index = {
         addStopRgba64 = function(self, offset, argb64)
           return blapi.blGradientAddStopRgba64(self, offset, argb64);
@@ -1246,9 +1173,11 @@ local BLGradient_mt = {
           return self
         end;
     };
+    --]=]
 }
 ffi.metatype(BLGradient, BLGradient_mt )
 
+---[=[
 --[[
     BLImage
 ]]
@@ -1669,11 +1598,8 @@ ffi.metatype(BLRandom, {
     }
 })
 
---[[
-    BLRgba
-]]
-BLRgba32 = ffi.typeof("struct BLRgba32")
-BLRgba64 = ffi.typeof("struct BLRgba64")
+--]=]
+
 
 
 --[[
@@ -1687,5 +1613,6 @@ ffi.metatype(BLString, {
     return ffi.string(self.impl.data, self.impl.size)
   end;
 })
+
 
 return blapi

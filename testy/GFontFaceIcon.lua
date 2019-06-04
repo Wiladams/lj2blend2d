@@ -3,6 +3,8 @@ local C = ffi.C
 
 local FontMonger = require("FontMonger")
 local GraphicGroup = require("GraphicGroup")
+local Gradient = require("Gradient")
+
 
 local GFontFaceIcon = {}
 ---[[
@@ -25,7 +27,15 @@ function GFontFaceIcon.new(self, obj)
 
     obj.fontMonger = obj.fontMonger or FontMonger:new()
     obj.frame = {x=0,y=0,width = size.width, height = size.height}
-    
+    obj.gradient = Gradient.LinearGradient({
+        values = {obj.frame.width/4, 0, obj.frame.width/2, obj.frame.height};
+        stops = {
+            {offset = 0.0, uint32 = 0xFFf0f0f0},
+            {offset = 1.0, uint32 = 0xFFb0bcb0},
+        }
+      });
+
+
     setmetatable(obj, GFontFaceIcon_mt)
 
     return obj;
@@ -68,7 +78,8 @@ function GFontFaceIcon.drawPlaccard(self, ctx)
     ctx:strokeWidth(1)
     ctx:stroke(30)
     ctx:strokeJoin(C.BL_STROKE_JOIN_ROUND)
-    ctx:fill(210)
+    --ctx:fill(210)
+    ctx:setFillStyle(self.gradient)
 
     local p = BLPath()
     p:moveTo(0,0)

@@ -42,8 +42,17 @@ function GKeyboard.new(self, obj)
     local obj = obj or {}
     obj.unit = obj.unit or 40
     obj.xmargin = 4;
-    --obj.keysState = ffi.new("BYTE[256]")
     obj.showKeyState = true;
+    
+    obj.gradient = Gradient.LinearGradient({
+        values = {obj.unit/2, obj.unit/2, obj.unit/2, obj.unit/2};
+        stops = {
+            {offset = 0.0, uint32 = 0xFF4f4f4f},
+            {offset = 1.0, uint32 = 0xFF9f9f9f},
+        }
+      });
+
+    --[[
     obj.gradient = Gradient.RadialGradient({
         values = {obj.unit/2, obj.unit/2, obj.unit/2, obj.unit/2, obj.unit};
         stops = {
@@ -52,6 +61,8 @@ function GKeyboard.new(self, obj)
 --            {offset = 1.0, uint32 = 0xFFCCCCCC},
         }
       });
+      --]]
+
     obj.keyFrames = keylayout
     
     setmetatable(obj, GKeyboard)
@@ -59,8 +70,8 @@ function GKeyboard.new(self, obj)
     -- setup the backingcontext
     local extent = obj:getPreferredSize()
 
-    obj.backingContext = DrawingContext(extent) 
-    obj:drawNeutral(obj.backingContext)
+    --obj.backingContext = DrawingContext(extent) 
+    --obj:drawNeutral(obj.backingContext)
 
     return obj;
 end
@@ -103,28 +114,6 @@ function GKeyboard.drawKeyStates(self, ctx)
         end
     end
 
-    --]]
---[[
-    -- go through the states
-    for i=0,255 do
-        if lpKeyState[i] ~= 0 then
-            local key = findVKey(self.keyFrames, i)
-            if key then
-                -- draw translucent dark gray over key
-                local rrect = BLRoundRect(key.frame.x,key.frame.y,key.frame.width, key.frame.height, 3, 3)
-                local crect = insetRect(rrect,self.unit*0.30,self.unit*0.30)
-
-                -- first check if it's a toggle key
-                --if band(lpKeyState[i], 0x01) ~= 0 then
-                if band(lpKeyState[i], 0x80) ~= 0 then
-                    print(string.format("key: 0x%02x  %10s    state: %02x", i, tostring(key.caption), lpKeyState[i]))
-                    ctx:fill(0x30, 0x6f)
-                    ctx:fillRoundRect(crect)
-                end
-            end
-        end
-    end
-    --]]
 end
 
 
@@ -146,33 +135,39 @@ function GKeyboard.drawNeutral(self, ctx)
     ctx:textAlign(MIDDLE, MIDDLE)
     ctx:textFont("segoe ui")
     ctx:textSize(8);
-
     for _, key in ipairs(self.keyFrames) do
+
         local rrect = BLRoundRect(key.frame.x,key.frame.y,key.frame.width, key.frame.height, 3, 3)
         local crect = insetRect(rrect,self.unit*0.30,self.unit*0.30)
-
         -- need to adjust values of linear gradient
         local cx = key.frame.x + key.frame.width/2;
         local cy = key.frame.y + key.frame.height/2;
         local r = key.frame.height
-        local values = BLRadialGradientValues(cx, cy, cx, cy, r)
-        --local values = BLLinearGradientValues(cx, cy, cx, key.frame.y+key.frame.height)
+        --local values = BLRadialGradientValues(cx, cy, cx, cy, r)
+        local values = BLLinearGradientValues(cx, cy, cx, key.frame.y+key.frame.height)
+
         self.gradient:setValues(values)
+
+        --ctx:fill(self.gradient)
         ctx:setFillStyle(self.gradient)
+
         ctx:fillRoundRect(rrect)    
-        ctx:setFillStyle(BLRgba32(0))
+
+        --ctx:setFillStyle(BLRgba32(0))
+        ctx:fill(0)
 
         ctx:stroke(0)
         ctx:strokeRoundRect(rrect)
-
+---[[
 
         ctx:fill(255, 0x6f)
         ctx:fillRoundRect(crect)
-
+--]]
         ctx:fill(0)
         ctx:text(key.caption, key.frame.x+key.frame.width/2, key.frame.y+key.frame.height/2)
 
     end
+
 end
 
 function GKeyboard.draw(self, ctx)
@@ -183,7 +178,8 @@ function GKeyboard.draw(self, ctx)
     end
 --]]
 
-    ctx:blit(self.backingContext:getReadyBuffer(), self.frame.x, self.frame.y)
+    --ctx:blit(self.backingContext:getReadyBuffer(), self.frame.x, self.frame.y)
+    self:drawNeutral(ctx)
     self:drawKeyStates(ctx)
 end
 

@@ -521,12 +521,14 @@ function KeyboardActivity(hwnd, msg, wparam, lparam)
         if wmFocusWindow then
             wmFocusWindow:keyEvent(event)
         end
+        signalAll("gap_keydown", event)
     elseif msg == C.WM_KEYUP or
         msg == C.WM_SYSKEYUP then
         event.activity = "keyup"
         if wmFocusWindow then
             wmFocusWindow:keyEvent(event)
         end
+        signalAll("gap_keyup", event)
     elseif msg == C.WM_CHAR or
         msg == C.WM_SYSCHAR then
         event.activity = "keytyped"
@@ -534,6 +536,7 @@ function KeyboardActivity(hwnd, msg, wparam, lparam)
         if wmFocusWindow then
             wmFocusWindow:keyEvent(event)
         end
+        signalAll("gap_keytyped", event)
     else 
         res = C.DefWindowProcA(hwnd, msg, wparam, lparam);
     end
@@ -709,7 +712,6 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     local res = 0;
 
     if msg == C.WM_DESTROY then
-
         C.PostQuitMessage(0);
         signalAllImmediate('gap_quitting');
         return 0;
@@ -734,37 +736,6 @@ local function WindowProc(hwnd, msg, wparam, lparam)
     elseif msg == C.WM_ERASEBKGND then
         --print("WM_ERASEBKGND: ", frameCount)
         --local hdc = ffi.cast("HDC", wparam); 
-        if appSurface then
-            local cRect = ffi.new("RECT")
-            local bResult = C.GetClientRect(hwnd, cRect);
-
-            local imgSize = appImage:size()
-            --print("Size: ", imgSize.w, imgSize.h)
-
-            -- BitBlt, StretchBlt, and StretchDIBits are probably 
-            -- all hardware accelerated
-            -- Ideally we'd be doing UpdateLayeredWindow, but 
-            -- we're not there yet, so we'll do StretchBlt and
-            -- ensure the bitmap matches the size of the client area
-            local xDest = 0;
-            local yDest = 0;
-            local wDest = cRect.right-cRect.left;
-            local hDest = cRect.bottom-cRect.top;
-            local hdcSrc = appSurface.DC;
-            local xSrc = 0;
-            local ySrc = 0;
-            local wSrc = imgSize.w;
-            local hSrc = imgSize.h;
-            local rop = C.SRCCOPY;
-            
-if not LAYERED_WINDOW then
-            local bResult = C.StretchBlt(appWindowDC,xDest,yDest,wDest,hDest,hdcSrc,
-                xSrc, ySrc,wSrc,hSrc,rop);
-end
-            -- StretchDIBits could also be used without a DC
-            --local bResult  C.BitBlt(  appWindowDC,  xDest,  yDest,  imgSize.w,  imgSize.h,  
-            --    hdcSrc,  0,  0,  C.SRCCOPY);
-        end
         res = 0; 
     elseif msg == C.WM_PAINT then
         -- multiple WM_PAINT commands can be issued

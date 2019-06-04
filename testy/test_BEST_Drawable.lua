@@ -38,7 +38,7 @@ local function app(params)
     --function win.drawBackground(self, ctx)
     --end
 
-    local g = graphic:new()
+    local g = graphic:new(params)
 
     function win.drawForeground(self, ctx)
         g:draw(ctx)

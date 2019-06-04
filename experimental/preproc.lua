@@ -1,8 +1,13 @@
 --[[
 -- first do this
     copy the blend2d.h file into this directory
+
+    copy c:\repos\blendwsp\blend2d\src\blend2d.h .
+
 then
     mkdir blend2d
+
+    copy c:\repos\blendwsp\blend2d\src\blend2d\blapi.h blend2d
 
     Copy the rest of the interesting header files into that directory
     blapi.h
@@ -37,12 +42,12 @@ then
 -- and delete everything before that
 
 Of Note:
-Endian things are not taken care of
+Endian things are not taken care of, meaning, they default to little-endian
 blruntime
 blfontdefs
 blformat
 blrgba
-union/structs are collapsed
+some union/structs are collapsed
 --]]
 
 

@@ -18,7 +18,10 @@ print(string.sub(S,1,1))
 print(string.sub(S,2,2))
 end
 
-
+--[[
+    Checking to see if a basic copy constructor works 
+    it should
+]]
 local function test_struct()
     local p1 = Point(10,20)
     local p2 = Point(p1)
@@ -28,6 +31,8 @@ local function test_struct()
 
 end
 
+-- check to see if parameterized array can be
+-- constructed and initialized
 local function test_array()
     local pts = {
         {200; 320};
@@ -68,8 +73,20 @@ local function test_class()
 end
 
 
+local function test_logarithm()
+    local e = 2.718281828459;
+
+    log = math.log10
+    
+    -- values range from 0.0 to 1.0
+    for i=1, 10, 0.1 do
+        local idx = i
+        print(idx, log(idx))
+    end
+end
 
 
 --test_struct();
 --test_array();
-test_class();
+--test_class();
+test_logarithm()

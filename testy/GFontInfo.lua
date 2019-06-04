@@ -1,4 +1,7 @@
 -- Display information about a specified font
+local Gradient = require("Gradient")
+
+
 local maths = require("maths")
 local map = maths.map
 
@@ -16,6 +19,14 @@ function GFontInfo.new(self, obj)
 
     obj.FontFace = BLFontFace:createFromFile(fontDir.."consola.ttf")
     obj.Font = obj.FontFace:createFont(96)
+
+    obj.gradient = Gradient.LinearGradient({
+        values = {obj.frame.widht/2, 0, obj.frame/2, obj.frame.height};
+        stops = {
+            {offset = 0.0, uint32 = 0xFF4f4f4f},
+            {offset = 1.0, uint32 = 0xFF9f9f9f},
+        }
+      });
 
     setmetatable(obj, GFontInfo_mt)
 

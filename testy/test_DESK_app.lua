@@ -10,13 +10,11 @@
 
 package.path = "../?.lua;"..package.path;
 
-local winman = require("WinMan")
+local DeskTopper = require("DeskTopper")
+local vkeys = require("vkeys")
 
 local appname = arg[1]
-local makeVideo = false;
-if arg[2] == "video" then
-    makeVideo = true;
-end
+
 
 if not appname then 
     print("you must specify a STOPlet name")
@@ -24,11 +22,20 @@ if not appname then
 end
 
 local app = require(appname)
-local desktopWidth = 1920
-local desktopHeight = 1920
 
-local function startup()
-    spawn(app, {frame = {x=0, y=0, width=desktopWidth, height=desktopHeight}})
+local function handleKeyEvent(event)
+    --print(string.format("0x%x",event.keyCode))
+    if event.keyCode == vkeys.VK_ESCAPE then
+        halt()
+    end
 end
 
-winman {width = desktopWidth, height=desktopHeight, startup = startup, frameRate=30}
+local function startup()
+    print(width, height)
+    spawn(app, {frame = {x=0, y=0, width=width, height=height}})
+
+    on("gap_keytyped", handleKeyEvent)
+end
+
+
+DeskTopper {startup = startup, frameRate=15}

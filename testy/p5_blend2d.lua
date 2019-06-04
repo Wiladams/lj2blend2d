@@ -750,7 +750,7 @@ end
 
 function text(txt, x, y)
 	local x, y = calcTextPosition(txt, x, y)
-	appContext:fillUtf8Text(BLPoint(x,y), appFont, txt, #txt)
+	appContext:fillTextUtf8(BLPoint(x,y), appFont, txt, #txt)
 end
 
 -- Attributes

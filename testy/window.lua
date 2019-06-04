@@ -141,9 +141,10 @@ function Window.drawBackground(self, ctxt)
     -- a background to be drawn, and whether clearing
     -- is the desired behavior or not
     ctxt:clear()
-    ctxt:fill(0xC0, 180)    -- light gray
-    --ctxt:fill(58,104,108)
-    ctxt:fillAll()
+    if self.backgroundStyle then
+        ctxt:fill(self.backgroundStyle)    -- light gray
+        ctxt:fillAll()
+    end
 
     -- draw a black border
     local border = 0xff000000

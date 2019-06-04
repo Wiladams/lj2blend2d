@@ -531,13 +531,13 @@ function DrawingContext.fillCircle (self, ...)
     local nargs = select('#', ...)
     if nargs == 1 then
         local circle = select(1,...)
-        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle);
+        return self.DC:fillCircle(circle)
     elseif nargs == 3 then
         local cx = select(1,...)
         local cy = select(2,...)
         local r = select(3,...)
         local circle = BLCircle(cx, cy, r)
-        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_CIRCLE, circle)
+        return self.DC:fillCircle(circle)
     end
 end
 
@@ -548,7 +548,7 @@ function DrawingContext.fillEllipse (self, ...)
     if nargs == 4 then
         local geo = BLEllipse(...)
             --print("fillEllipse: ", geo.cx, geo.cy, geo.rx, geo.ry)
-        return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
+        return self.DC:fillEllipse(geo)
     end
 end
 
@@ -571,7 +571,11 @@ function DrawingContext.fillRect(self, x, y, w, h)
     return self.DC:fillRectD(BLRect({x,y,w,h}))
 end
 
+function DrawingContext.fillRoundRect(self, rect)
+    return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
+end
 
+--[[
 function DrawingContext.fillRoundRect (self, ...)
     local nargs = select('#', ...)
         
@@ -592,6 +596,7 @@ function DrawingContext.fillRoundRect (self, ...)
           return self.DC:fillGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
     end
 end
+--]]
 
 function DrawingContext.fillTriangle (self, ...)
     local nargs = select("#",...)
@@ -967,13 +972,13 @@ end
 
 function DrawingContext.text(self, txt, x, y)
 	local x, y = self:calcTextPosition(txt, x, y)
-	self.DC:fillUtf8Text(BLPoint(x,y), self.Font, txt, #txt)
+	self.DC:fillTextUtf8(BLPoint(x,y), self.Font, txt, #txt)
 end
 
 function DrawingContext.textOutline(self, txt, x, y)
     local x, y = self:calcTextPosition(txt, x, y)
     --print("textOutline: ", x, y)
-    self.DC:strokeUtf8Text(BLPoint(x,y), self.Font, txt, #txt)
+    self.DC:strokeTextUtf8(BLPoint(x,y), self.Font, txt, #txt)
 end
 
 
@@ -1102,6 +1107,8 @@ end
     Images
 ]]
 function DrawingContext.blit (self, img, x, y)
+    return self.DC:blitImage(BLPoint(x,y), img)
+--[[
     local imgArea = BLRectI(0,0,img:size().w, img:size().h)
     local bResult = blapi.blContextBlitImageD(self.DC, BLPoint(x,y), img, imgArea) ;
     
@@ -1110,9 +1117,12 @@ function DrawingContext.blit (self, img, x, y)
     end
 
     return false, bResult
+--]]
 end
 
 function DrawingContext.stretchBlt (self, dstRect, img, imgArea)
+    return self.DC:blitScaledImage(dstRect, img, imgArea)
+--[[
     local bResult = blapi.blContextBlitScaledImageD(self.DC, dstRect, img, imgArea) ;
 
     if bResult == C.BL_SUCCESS then
@@ -1120,6 +1130,7 @@ function DrawingContext.stretchBlt (self, dstRect, img, imgArea)
     end
 
     return false, bResult
+--]]
 end
 
 return DrawingContext

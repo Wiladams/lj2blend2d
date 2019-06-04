@@ -23,7 +23,7 @@ local function main()
 
   ctx:setCompOp(C.BL_COMP_OP_SRC_OVER);
   ctx:setFillStyle(BLRgba32(0xFFFFFFFF));
-  ctx:fillPath(path);
+  ctx:fillPathD(path);
 
   -- Detach the rendering context from `img`.
   ctx:finish();

@@ -25,7 +25,7 @@ local function main()
 
   ctx:setCompOp(C.BL_COMP_OP_SRC_OVER);
   ctx:setFillStyle(pattern);
-  ctx:fillRoundRect(40.0, 40.0, 400.0, 400.0, 45.5);
+  ctx:fillRoundRect(BLRoundRect(40.0, 40.0, 400.0, 400.0, 45.5));
 
   ctx:finish();
 

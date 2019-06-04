@@ -33,6 +33,8 @@ local function app(params)
     local g = graphic:new({frame = gframe})
 
     local win1 = WMCreateWindow(params)
+--local william = color(58, 104, 108)
+    win1.backgroundStyle = color(255)
 
     function win1.drawForeground(self, ctx)
         g:draw(ctx)
