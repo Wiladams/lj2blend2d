@@ -538,14 +538,8 @@ local  BLContext = ffi.typeof("struct BLContextCore")
             return false, bResult;
           end;
           
-          strokeEllipse = function(self, ...)
-            local nargs = select("#",...)
-            if nargs == 4 then
-                local geo = BLEllipse(...)
-                return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
-            end
-    
-            return false, 'not enough arguments specified'
+          strokeEllipse = function(self, geo)
+            return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
           end;
     
           strokePolygon = function(self, pts)
@@ -576,6 +570,10 @@ local  BLContext = ffi.typeof("struct BLContextCore")
             return false, bResult;
           end;
     
+          strokeRoundRect = function(self, geo)
+            return self:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, geo)
+          end;
+
           strokePathD = function(self, path)
             local bResult = self.impl.virt.strokePathD(self.impl, path);
             if bResult == C.BL_SUCCESS then

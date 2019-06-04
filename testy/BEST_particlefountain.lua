@@ -5,15 +5,14 @@ local radians = math.rad
 local function app(params)
     local winparams = {frame = {x=0,y=0, width = params.frame.width, height = params.frame.height-40}}
     local win1 = WMCreateWindow(winparams)
-    local g = graphic:new({frame = {x=0, y = 0, width = params.frame.width, height = params.frame.height}})
-
+ 
     function win1.drawBackground(self, ctxt)
         --print("win1.drawBackground")
         -- doing the clear might waste some time
         -- need to be more aware of whether there is
         -- a background to be drawn, and whether clearing
         -- is the desired behavior or not
-        --ctxt:clear()
+
         ctxt:fill(30);
         ctxt:fillAll()
     end
@@ -26,7 +25,6 @@ local function app(params)
         end
     end
 
-    win1:add(g)
     win1:show()
 
 ---[[

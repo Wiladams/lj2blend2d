@@ -20,7 +20,7 @@ local function main()
    -- Create a pattern.
   ctx:setCompOp(C.BL_COMP_OP_SRC_OVER);
   ctx:setFillStyle(BLPattern(BLImageCodec:readImageFromFile("resources/texture.jpeg")));
-  ctx:fillRoundRect(BLRoundRect(50.0, 50.0, 380.0, 380.0, 80.5));
+  ctx:fillRoundRect(BLRoundRect(50.0, 50.0, 380.0, 380.0, 80.5, 80.5));
 
   ctx:finish();
   

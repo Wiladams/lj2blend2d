@@ -608,35 +608,6 @@ function DrawingContext.fillTriangle (self, ...)
     return false, "wrong number of parameters"
 end
 
-
-
-      -- Fills the passed UTF-8 text by using the given `font`.
-      -- the 'size' is the number of characters in the text.
-      -- This is vague, as for utf8 and latin, it's a one to one with 
-      -- the bytes.  With unicode, it's the number of code points.
-function DrawingContext.fillUtf8Text (self, dst, font, text, size)
-    size = size or math.huge
-    local bResult = self.DC.impl.virt.fillTextD(self.DC.impl, dst, font, text, size, C.BL_TEXT_ENCODING_UTF8);
-
-    if bResult ~= C.BL_SUCCESS then
-        return false, bResult;
-    end
-
-    return self
-end
-
---[[
-function DrawingContext.strokeGeometry (self, geometryType, geometryData)
-    local bResult = self.DC.impl.virt.strokeGeometry(self.DC.impl, geometryType, geometryData);
-    
-    if bResult == C.BL_SUCCESS then
-            return self;
-    end
-    
-    return false, bResult
-end
---]]
-
 function DrawingContext.strokeGlyphRunI (self, pt, font, glyphRun)
     local bResult = self.DC.impl.virt.strokeGlyphRunI(self.DC.impl,  pt, font, glyphRun);
     
@@ -663,7 +634,7 @@ function DrawingContext.strokeEllipse (self, ...)
     local nargs = select("#",...)
     if nargs == 4 then
         local geo = BLEllipse(...)
-        return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ELLIPSE, geo)
+        return self.DC:strokeEllipse(geo)
     end
 
     return false, "wrong number of arguments"
@@ -680,40 +651,9 @@ function DrawingContext.strokePolygon (self, pts)
 
     return false, "wrong number of arguments"
 end
---[[
-function DrawingContext.strokeRectI (self, rect)
-    local bResult = self.DC.impl.virt.strokeRectI(self.DC.impl, rect);
 
-    if bResult == C.BL_SUCCESS then
-        return self;
-    end
-    
-    return false, bResult    
-end
-
-function DrawingContext.strokeRectD (self, ...)
-    local nargs = select('#',...)
-    local rect = select(1,...)
-
-    if nargs == 4 then
-        rect = BLRect(...)
-    end
-
-    if not rect then
-        return false;
-    end
-
-    local bResult = self.DC.impl.virt.strokeRectD(self.DC.impl, rect);
-    
-    if bResult ~= C.BL_SUCCESS then
-        return nil, bResult;
-    end
-
-    return self;
-end
---]]
 function DrawingContext.strokeRect(self, x, y, w, h)
-    return self.DC:strokeRectD(BLRect({x,y,w,h}))
+    return self.DC:strokeRectD(BLRect(x,y,w,h))
 end
 
 function DrawingContext.strokeRoundRect (self, ...)
@@ -724,16 +664,27 @@ function DrawingContext.strokeRoundRect (self, ...)
     local rect = select(1,...)
 
     if nargs == 1 then
+        -- BLRoundRect
           return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rect)
     elseif nargs == 2 then
+        -- 1 - rect
+        -- 2 - radius
           local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(2,...))
-          return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:strokeRoundRect(rrect)
     elseif nargs == 3 then
+        -- 1 - rect
+        -- 2 radius
+        -- 3 radius
           local rrect = BLRoundRect(rect.x, rect.y, rect.w, rect.h, select(2,...), select(3,...))
-          return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:strokeRoundRect(rrect)
     elseif nargs == 5 then
+        -- x
+        -- y 
+        -- w
+        -- h
+        -- radius
           local rrect = BLRoundRect(select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(5,...))
-          return self.DC:strokeGeometry(C.BL_GEOMETRY_TYPE_ROUND_RECT, rrect)
+          return self.DC:strokeRoundRect(rrect)
     end
 end
 
@@ -1086,13 +1037,14 @@ function DrawingContext.ellipse(self, cx, cy, rx, ry)
 
 	--print("ellipse: ", cx, cy, rx, ry)
 	local cx, cy, rx, ry = calcEllipseParams(self.EllipseMode, cx, cy, rx, ry)
+    local geo = BLEllipse(cx, cy, rx, ry)
 
 	if self.useFill then
-		self.DC:fillEllipse(cx, cy, rx, ry)
+		self.DC:fillEllipse(geo)
 	end
 	
-	if self.useStroke then
-		local bResult, err = self.DC:strokeEllipse(cx, cy, rx, ry)
+    if self.useStroke then
+		local bResult, err = self.DC:strokeEllipse(geo)
 	end
 
 	return self

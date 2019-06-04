@@ -138,8 +138,6 @@ local BLFile_mt = {
         end;
 
         open = function(self, fileName, openFlags)
-            --print("open: ", fileName, string.format("0x%x",openFlags))
-
             openFlags = openFlags or C.BL_FILE_OPEN_READ;
             local bResult = blapi.blFileOpen(self, fileName, openFlags) ;
 
@@ -494,7 +492,6 @@ BLGradient = ffi.typeof("struct BLGradientCore")
 local BLGradient_mt = {
 
     __gc = function(self)
-      print("BLGradient.gc")  
       return blapi.blGradientReset(self);
     end;
 
@@ -504,7 +501,7 @@ local BLGradient_mt = {
     -- it is NOT called when you simply do ffi.new("struct BLGradientCore")
     __new = function(ct, ...)
         local nargs = select("#", ...)
-        print("BLGradient.__new: ", nargs)
+
         local obj = ffi.new(ct);
 
         if nargs == 0 then
@@ -512,14 +509,12 @@ local BLGradient_mt = {
         elseif nargs == 1 then
             local gType = 0
             local values = select(1,...)
-            print("typeof(values): ", ffi.typeof(values))
             if ffi.typeof(values) ==   BLLinearGradientValues then
                 local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
                 if bResult ~= C.BL_SUCCESS then
                   return false, bResult;
                 end
             elseif ffi.typeof(values) == BLRadialGradientValues then
-              print("init with BLRadialGradientValues")
               local bResult = blapi.blGradientInitAs(obj, C.BL_GRADIENT_TYPE_RADIAL, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil) ;
               if bResult ~= C.BL_SUCCESS then
                 return false, bResult;

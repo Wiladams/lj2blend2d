@@ -19,7 +19,7 @@ end
 
 function draw()
     appContext:fillPath(path)
-    appContext:strokePath(path)
+    appContext:strokePathD(path)
 end
 
 go()

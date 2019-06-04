@@ -493,7 +493,7 @@ function bezier(x1, y1,  x2, y2,  x3, y3,  x4, y4)
 	local path = BLPath()
 	path:moveTo(x1, y1)
 	path:cubicTo(x2,y2,x3,y3, x4,y4)
-	appContext:strokePath(path)
+	appContext:strokePathD(path)
 end
 
 function bezierDetail(...)
