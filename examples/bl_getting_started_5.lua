@@ -1,4 +1,4 @@
-package.path = "../?.lua;"..package.path;
+
 
 local ffi = require("ffi")
 local C = ffi.C 

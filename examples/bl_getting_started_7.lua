@@ -1,4 +1,4 @@
-package.path = "../?.lua;"..package.path;
+
 
 local ffi = require("ffi")
 local C = ffi.C 
@@ -24,10 +24,10 @@ local function main()
   local font = face:createFont(50.0)
   
   ctx:setFillStyle(BLRgba32(0xFFFFFFFF));
-  ctx:fillUtf8Text(BLPoint(60, 80), font, "Hello Blend2D!", 14);
+  ctx:fillTextUtf8(BLPoint(60, 80), font, "Hello Blend2D!", 14);
 
   ctx:rotate(0.785398);
-  ctx:fillUtf8Text(BLPoint(250, 80), font, "Rotated Text", 12);
+  ctx:fillTextUtf8(BLPoint(250, 80), font, "Rotated Text", 12);
 
 
   ctx:finish();
