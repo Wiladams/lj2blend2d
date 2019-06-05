@@ -5,6 +5,31 @@ local functor = require("functor")
 local collections = require("collections")
 local queue = collections.queue
 
+local colors = {
+color(255, 192, 203),   -- PINK
+color(255,255,255),     -- WHITE
+color(255, 215, 0),   -- gold
+}
+local nColors = #colors
+print("nColors: ", nColors)
+
+--[[
+local function randomColor()
+  local idx = math.floor(random(1,nColors))
+  print(idx)
+  return colors[idx]
+end
+--]]
+
+---[[
+local function randomColor()
+  local r = random(30,255)
+  local g = random(30,255)
+  local b = random(30,255)
+  return color(r,g,b,255)
+end
+--]]
+
 -- A simple Particle class
 local Particle = {}
 Particle.__index = Particle
@@ -22,6 +47,7 @@ function Particle.new(self, position)
     velocity = {x=random(-1.0, 1.0), y=random(-1.0, 0)};
     position = {x = position.x, y = position.y};
     lifespan = 255;
+    color = randomColor();
   }
   setmetatable(obj, Particle)
 
@@ -47,7 +73,8 @@ function Particle.draw(self, ctx)
     --ctx:stroke(200, self.lifespan);
     ctx:noStroke()
     --ctx:strokeWidth(1);
-    ctx:fill(127, self.lifespan);
+    self.color.a = self.lifespan
+    ctx:fill(self.color);
     --ctx:ellipse(self.position.x, self.position.y, 12, 12);
     ctx:rect(self.position.x, self.position.y, 12, 12)
 end

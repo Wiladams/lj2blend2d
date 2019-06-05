@@ -234,7 +234,7 @@ local  BLContext = ffi.typeof("struct BLContextCore")
           end;
     
           userToMeta = function(self)
-            local bResult = self.implvirt.userToMeta(self.impl);
+            local bResult = self.impl.virt.userToMeta(self.impl);
             
             if bResult == C.BL_SUCCESS then
               return true;

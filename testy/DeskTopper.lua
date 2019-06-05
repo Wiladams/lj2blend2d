@@ -1021,6 +1021,7 @@ local function start(params)
     params.width = gScreenX;
     params.height = gScreenY;
     params.title = params.title or "WinMan";
+    params.winxstyle = bor(C.WS_EX_LAYERED, C.WS_EX_TOPMOST, C.WS_EX_NOREDIRECTIONBITMAP);
     params.frameRate = params.frameRate or 30;
 
     run(main, params)

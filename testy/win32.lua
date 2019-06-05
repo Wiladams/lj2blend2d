@@ -148,7 +148,12 @@ static const int CS_HREDRAW         = 0x0002;
 static const int CS_OWNDC           = 0x0020;
 
 // Extended Window Styles
+static const int WS_EX_TOPMOST           = 0x00000008L;
+static const int WS_EX_ACCEPTFILES       = 0x00000010L;
+static const int WS_EX_TRANSPARENT       = 0x00000020L;
+
 static const int WS_EX_LAYERED           = 0x00080000;
+static const int WS_EX_NOREDIRECTIONBITMAP = 0x00200000;
 
 // Window styles
 static const int WS_OVERLAPPED       = 0x00000000;
