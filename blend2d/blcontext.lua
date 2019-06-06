@@ -459,8 +459,6 @@ local  BLContext = ffi.typeof("struct BLContextCore")
                 local arrview = BLArrayView(polypts, npts)
     
                 self:fillGeometry(C.BL_GEOMETRY_TYPE_POLYGOND, arrview)
-    
-                --print(polypts, arrview.data, arrview.size)
               end
           end;
     

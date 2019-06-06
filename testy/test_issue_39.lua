@@ -6,10 +6,6 @@ local C = ffi.C
 --local blapi = require("blend2d.blend2d_ffi")
 local blapi = require("blend2d.blend2d")
 
-local Gradient = require("Gradient")
-local LinearGradient, RadialGradient = Gradient.LinearGradient, Gradient.RadialGradient
-
-
 local function main()
     local img = ffi.new("struct BLImageCore");
     blapi.blImageInitAs(img, 480, 480, C.BL_FORMAT_PRGB32) ;
@@ -20,13 +16,7 @@ local function main()
     blapi.blContextSetCompOp(ctx, C.BL_COMP_OP_SRC_COPY);
     blapi.blContextFillAll(ctx);
 
---[[
-    local values = BLLinearGradientValues( 0, 0, 256, 256 );
-    local gradient, err = BLGradient(C.BL_GRADIENT_TYPE_LINEAR, values, C.BL_EXTEND_MODE_PAD, nil, 0, nil);
-    print("BLGradient: ", gradient, err)
-    blapi.blGradientAddStopRgba32(gradient, 1.0, 0xFFFFFFFF)
-    blapi.blGradientAddStopRgba32(gradient, 0.5, 0xFFFF6F3F)
---]]
+
 
 ---[[
     -- THIS WILL CRASH
