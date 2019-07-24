@@ -29,36 +29,35 @@ local  BLContext = ffi.typeof("struct BLContextCore")
           local bResult = blapi.blContextReset(self) ;
         end;
     
-        __new = function(ct, ...)
-            local nargs = select("#", ...)
+        __new = function(ct, a, b)
             local obj = ffi.new(ct);
-    
-            if nargs == 0 then
+            if (not b) and (not a) then
+              -- zero arguments
               local bResult = blapi.blContextInit(obj)
               if bResult ~= C.BL_SUCCESS then
                 return nil, bResult
               end
-            elseif nargs == 1 then
-              local bResult = blapi.blContextInitAs(obj, select(1,...), nil) ;
+            elseif a and (not b) then
+              -- one argument, should be an image
+              local bResult = blapi.blContextInitAs(obj, a, nil) ;
               if bResult ~= C.BL_SUCCESS then
                 return nil, bResult
               end
-            elseif nargs == 2 then
+            elseif a and b then
               -- it could be two numbers indicating size
               -- or it could be an image and creation options
-              if ffi.typeof(select(1,...)) == BLImage then
-                local bResult = blapi.blContextInitAs(obj, select(1,...), select(2,...)) ;
-                if bResult ~= C.BL_SUCCESS then
-                  return nil, bResult
-                end
-              elseif type(select(1,...)) == "number" and type(select(2,...)) == "number" then
-                local img = BLImage(select(1, ...), select(2,...))
+              if type(a) == "number" and type(b) == "number" then
+                local img = BLImage(a, b)
                 local bResult = blapi.blContextInitAs(obj, img, nil)
                 if bResult ~= C.BL_SUCCESS then
                   return nil, bResult;
                 end
+              elseif ffi.typeof(a) == BLImage then
+                local bResult = blapi.blContextInitAs(obj, a, b) ;
+                if bResult ~= C.BL_SUCCESS then
+                  return nil, bResult
+                end
               end
-    
             end
     
             return obj;

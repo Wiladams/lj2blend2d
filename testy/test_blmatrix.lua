@@ -3,7 +3,7 @@ package.path = "../?.lua;"..package.path;
 local ffi = require("ffi")
 
 local blapi = require("blend2d.blend2d")
-local enum = require("enum")
+local enum = require("blend2d.enum")
 
 local BLMatrix2DType = enum {
 
@@ -83,8 +83,50 @@ local function test_applyop()
     applyOp(1, 2, 3)
 end
 
+local function test_usermeta()
+
+    -- create scaling matrix
+    --local s1 = BLMatrix2D:createScaling(16,9)
+    --print("SCALING")
+    --print(s1)
+
+    -- get meta matrix
+    local ctx = BLContext(640, 480)
+    local meta1 = ctx:metaMatrix()
+    print("META BEFORE")
+    print(meta1)
+
+    -- blcontext scale
+    ctx:scale(16, 9)
+    local user1 = ctx:userMatrix()
+    local meta1 = ctx:metaMatrix()
+
+    print("AFTER SCALE")
+    print("USER")
+    print(user1)
+    print("META")
+    print(meta1)
+
+    -- apply user to meta
+    ctx:userToMeta()
+    print("AFTER USER TO META")
+    print("USER")
+    print(ctx:userMatrix())
+    print("META")
+    print(ctx:metaMatrix())
+
+    print("AFTER CLEAR ALL")
+    ctx:clearAll()
+    print("USER")
+    print(ctx:userMatrix())
+    print("META")
+    print(ctx:metaMatrix())
+
+end
+
 --test_identity()
-test_scale()
+--test_scale()
 --test_translate()
 --test_rotate()
 --test_applyop()
+test_usermeta()

@@ -1,4 +1,7 @@
 --[[
+    This file exists to turn the .h files of blend2d into the 
+    appropriate LuaJIT FFI form.
+    
 -- first do this
     copy the blend2d.h file into this directory
 
