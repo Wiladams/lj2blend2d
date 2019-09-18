@@ -582,6 +582,9 @@ ffi.metatype(BLGradient, BLGradient_mt )
 
 --[[
     BLImage
+
+    Metatype for the BLImage struct
+
 ]]
 BLImage = ffi.typeof("struct BLImageCore")
 BLImageCore = BLImage
@@ -596,20 +599,7 @@ BLImage_mt = {
   end;
 
 
---[[
-BLResult __cdecl blImageAssignMove(BLImageCore* self, BLImageCore* other) ;
-BLResult __cdecl blImageAssignWeak(BLImageCore* self, const BLImageCore* other) ;
-BLResult __cdecl blImageAssignDeep(BLImageCore* self, const BLImageCore* other) ;
-BLResult __cdecl blImageCreate(BLImageCore* self, int w, int h, uint32_t format) ;
-BLResult __cdecl blImageCreateFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-BLResult __cdecl blImageGetData(const BLImageCore* self, BLImageData* dataOut) ;
-BLResult __cdecl blImageMakeMutable(BLImageCore* self, BLImageData* dataOut) ;
-bool     __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
-BLResult __cdecl blImageScale(BLImageCore* dst, const BLImageCore* src, const BLSizeI* size, uint32_t filter, const BLImageScaleOptions* options) ;
-BLResult __cdecl blImageReadFromData(BLImageCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
-BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, const BLImageCodecCore* codec) ;
 
---]]
     __new = function(ct, ...)
       --print("BLImageCore.__new: ",...)
       local nargs = select('#', ...)
@@ -637,10 +627,12 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
           return false, bResult;
       end
 
-      --print("BLImageCore.__new, constructor: ", nargs, bResult)
       return obj
     end;
 
+    __tostring = function(self)
+      return string.format("BLImage(%d,%d)", self.impl.size.w, self.impl.size.h)
+    end;
 
     __index = {
         size = function(self)
@@ -693,9 +685,6 @@ BLResult __cdecl blImageWriteToData(const BLImageCore* self, BLArrayCore* dst, c
 --]]
     };
 
-    __tostring = function(self)
-      return string.format("BLImage(%d,%d)", self.impl.size.w, self.impl.size.h)
-    end;
 }
 ffi.metatype(BLImage, BLImage_mt)
 
@@ -762,18 +751,15 @@ local BLImageCodec_mt = {
 ffi.metatype(BLImageCodec, BLImageCodec_mt)
 
 --[[
---BLResult __cdecl blMatrix2DSetIdentity(BLMatrix2D* self) ;
---BLResult __cdecl blMatrix2DSetTranslation(BLMatrix2D* self, double x, double y) ;
---BLResult __cdecl blMatrix2DSetSkewing(BLMatrix2D* self, double x, double y) ;
---BLResult __cdecl blMatrix2DSetRotation(BLMatrix2D* self, double angle, double cx, double cy) ;
-BLResult __cdecl blMatrix2DApplyOp(BLMatrix2D* self, uint32_t opType, const void* opData) ;
---BLResult __cdecl blMatrix2DInvert(BLMatrix2D* dst, const BLMatrix2D* src) ;
---uint32_t __cdecl blMatrix2DGetType(const BLMatrix2D* self) ;
---BLResult __cdecl blMatrix2DMapPointDArray(const BLMatrix2D* self, BLPoint* dst, const BLPoint* src, size_t count) ;
+  BLMatrix2D
+
+  Represents 2D transforms
 --]]
 
 BLMatrix2D = ffi.typeof("struct BLMatrix2D")
 local BLMatrix2D_mt = {
+
+
     __tostring = function(self)
         local tbl = {}
         table.insert(tbl, string.format("%3.2f  %3.2f", self.m00, self.m01))
@@ -810,7 +796,7 @@ local BLMatrix2D_mt = {
 
         createRotation = function(self, angle, cx, cy)
           local m1 = BLMatrix2D()
-          blapi.blMatrix2DSetRotation(m1, angle, cx, cy)     -- 45 degrees
+          blapi.blMatrix2DSetRotation(m1, angle, cx, cy)
           return m1
         end;
 
@@ -914,6 +900,7 @@ addReversedPath = blapi.blPathAddReversedPath  ;
 
 strokePath = blapi.blPathAddStrokedPath ;
 }
+
 local BLPath_mt = {
     __gc = function(self)
         local bResult = blapi.blPathReset(self);
