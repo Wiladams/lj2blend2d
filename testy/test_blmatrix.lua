@@ -101,7 +101,7 @@ local function test_usermeta()
     local user1 = ctx:userMatrix()
     local meta1 = ctx:metaMatrix()
 
-    print("AFTER SCALE")
+    print("AFTER SCALE (16, 9)")
     print("USER")
     print(user1)
     print("META")
@@ -124,9 +124,58 @@ local function test_usermeta()
 
 end
 
+local function test_flip()
+    -- get meta matrix
+    local dpi = 192
+    local scalex = dpi / 72
+    local scaley = dpi / 72
+
+    local w = math.floor(8.5 * dpi)
+    local h = math.floor(11 * dpi)
+    print("w,h: ", w, h)
+
+    local ctx = BLContext(w, h)
+    local meta1 = ctx:metaMatrix()
+    print("META BEFORE")
+    print(meta1)
+
+
+    -- translate
+    ctx:scale(1,-1)
+    ctx:translate(0,-h)
+    ctx:scale(scalex, scaley)
+
+    -- blcontext scale
+    local user1 = ctx:userMatrix()
+    local meta1 = ctx:metaMatrix()
+
+    print("AFTER SCALE (1, -1)")
+    print("USER")
+    print(user1)
+    print("META")
+    print(meta1)
+
+    -- apply user to meta
+    ctx:userToMeta()
+    print("AFTER USER TO META")
+    print("USER")
+    print(ctx:userMatrix())
+    print("META")
+    print(ctx:metaMatrix())
+
+    print("AFTER USER SCALE")
+    ctx:scale(72,72)
+    print("USER")
+    print(ctx:userMatrix())
+    print("META")
+    print(ctx:metaMatrix())
+
+end
+
 --test_identity()
 --test_scale()
 --test_translate()
 --test_rotate()
 --test_applyop()
-test_usermeta()
+--test_usermeta()
+test_flip()

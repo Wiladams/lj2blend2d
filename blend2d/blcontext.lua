@@ -309,6 +309,16 @@ local  BLContext = ffi.typeof("struct BLContextCore")
           --
           -- Stroke specifics
           --
+          setStrokeTransformOrder = function(self, transformOrder)
+            local bResult = self.impl.virt.setStrokeTransformOrder(self.impl, transformOrder)
+            
+            if bResult == C.BL_SUCCESS then
+              return true;
+            end
+    
+            return false, bResult;
+          end;
+
           setStrokeStartCap = function(self, strokeCap)
             local bResult = blapi.blContextSetStrokeCap(self, C.BL_STROKE_CAP_POSITION_START, strokeCap) ;
             if bResult == C.BL_SUCCESS then
