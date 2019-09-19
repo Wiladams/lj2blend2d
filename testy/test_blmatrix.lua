@@ -17,17 +17,6 @@ local BLMatrix2DType = enum {
     BL_MATRIX2D_TYPE_COUNT = 6
   };
 
---[[
-BLResult __cdecl blMatrix2DSetIdentity(BLMatrix2D* self) ;
-BLResult __cdecl blMatrix2DSetTranslation(BLMatrix2D* self, double x, double y) ;
-BLResult __cdecl blMatrix2DSetScaling(BLMatrix2D* self, double x, double y) ;
-BLResult __cdecl blMatrix2DSetSkewing(BLMatrix2D* self, double x, double y) ;
-BLResult __cdecl blMatrix2DSetRotation(BLMatrix2D* self, double angle, double cx, double cy) ;
-BLResult __cdecl blMatrix2DApplyOp(BLMatrix2D* self, uint32_t opType, const void* opData) ;
-BLResult __cdecl blMatrix2DInvert(BLMatrix2D* dst, const BLMatrix2D* src) ;
-uint32_t __cdecl blMatrix2DGetType(const BLMatrix2D* self) ;
-BLResult __cdecl blMatrix2DMapPointDArray(const BLMatrix2D* self, BLPoint* dst, const BLPoint* src, size_t count) ;
---]]
 
 local function test_identity()
     print("== IDENTITY ==")
