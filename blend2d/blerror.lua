@@ -1,4 +1,4 @@
-local enum = require("enum")
+local enum = require("blend2d.enum")
 
 local errors = enum {
     [0] = "BL_SUCCESS",
