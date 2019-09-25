@@ -161,10 +161,27 @@ local function test_flip()
 
 end
 
+local function test_concat()
+    local m1 = BLMatrix2D:createScaling(3,4)
+    local m2 = BLMatrix2D:createScaling(2,2)
+
+    print("SCALE(3,4)")
+    print(m1)
+
+    print("SCALE(2,2)")
+    print(m2)
+    
+    print("CONCAT(m1,m4")
+    m1:concatenate(m2)
+    print(m1)
+
+end
+
 --test_identity()
 --test_scale()
 --test_translate()
 --test_rotate()
 --test_applyop()
 --test_usermeta()
-test_flip()
+--test_flip()
+test_concat()

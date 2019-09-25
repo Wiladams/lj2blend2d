@@ -807,12 +807,53 @@ local BLMatrix2D_mt = {
         end;
 
         -- Matrix operations
+        set = function(self, m00, m01, m10, m11, m20, m21)
+          self.m00 = m00;
+          self.m01 = m01;
+          self.m10 = m10;
+          self.m11 = m11;
+          self.m20 = m20;
+          self.m21 = m21;
+        end;
+
         applyOperation = function(self, opType, opData)
           local bResult = blapi.blMatrix2DApplyOp(self, opType, opData) ;
         end;
 
         getType = function(self)
           return blapi.blMatrix2DGetType(self) ;
+        end;
+
+        translate = function(self, tx, ty)
+          local bResult = self:applyOperation(C.BL_MATRIX2D_OP_TRANSLATE, BLPoint(tx,ty))
+        end;
+
+        postTranslate = function(self, tx, ty)
+          local bResult = self:applyOperation(C.BL_MATRIX2D_OP_POST_TRANSLATE, BLPoint(tx,ty))
+        end;
+
+        scale = function(self, sx, sy)
+          local bResult = self:applyOperation(C.BL_MATRIX2D_OP_SCALE, BLPoint(sx, sy))
+        end;
+        
+        postScale = function(self, sx, sy)
+          local bResult = self:applyOperation(C.BL_MATRIX2D_OP_POST_SCALE, BLPoint(sx, sy))
+        end;
+
+        rotate = function(self, rads)
+
+          local bResult = self:applyOperation(C.BL_MATRIX2D_OP_ROTATE, rads)
+        end;
+
+        rotateAroundPoint = function(self, radians, x, y)
+        end;
+
+        concat = function(self, other)
+          return self:applyOperation(C.BL_MATRIX2D_OP_TRANSFORM, other);
+        end;
+
+        postConcat = function(self, other)
+          return self:applyOperation(C.BL_MATRIX2D_OP_POST_TRANSFORM, other);
         end;
 
         -- apply the current transformation to an array of points
