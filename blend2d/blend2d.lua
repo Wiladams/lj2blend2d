@@ -898,7 +898,7 @@ addTranslatedPath = blapi.blPathAddTranslatedPath  ;
 addTransformedPath = blapi.blPathAddTransformedPath  ;
 addReversedPath = blapi.blPathAddReversedPath  ;
 
-strokePath = blapi.blPathAddStrokedPath ;
+addStrokedPath = blapi.blPathAddStrokedPath ;
 }
 
 local BLPath_mt = {
