@@ -7,21 +7,24 @@ local C = ffi.C
 local blapi = require("blend2d.blend2d")
 
 local function inch(c) return 72 * c end
+local red = BLRgba32() red.r = 255; red.a = 255;
+local black = BLRgba32() black.a = 255;
+local white = BLRgba32() white.r = 255; white.g = 255; white.b = 255; white.a = 255;
+local gray = BLRgba32() gray.r = 0xcc; gray.g = 0xcc; gray.b = 0xcc; gray.a = 0xff;
+
 
 local function crosshair(ctx)
-    local path = BLPath()
-    path:moveTo(0,0)
-    path:rlineTo(0, 0.25)
-    path:moveTo(0,0)
-    path:rlineTo(0.25, 0)
+
+    ctx:setStrokeStyle(red)
+    ctx:setStrokeWidth(8)
     
-    local c = BLRgba32()
-    c.r = 255;
-    c.a = 255;
+    local path = BLPath()
 
-    ctx:setStrokeStyleRgba32(c.value)
+    path:moveTo(-72,0)
+    path:lineTo(72, 0)
+    path:moveTo(0,72)
+    path:lineTo(0, -72)
 
-    ctx:setStrokeWidth(1/36)
     ctx:strokePathD(path)
 end
 
@@ -32,59 +35,92 @@ local function wedge(ctx)
     -- we essentially want this transform to be
     -- applied to the upcoming arc segment, but
     -- not to the overall path, so gsave?
+    local m = BLMatrix2D()
+    m:translate(1, 0)
+    m:rotate(math.rad(15))
+    m:translate(0, math.sin(math.rad(15)))
+
+--[[
     ctx:save()
     -- just use the context to get the transformation matrix
     ctx:translate(1,0)
     ctx:rotate(math.rad(15))
     ctx:translate(0,math.sin(math.rad(15)))
     local m = ctx:userMatrix()
-    print("M: ", m)
+    --print("M: ", m)
     ctx:restore()
+--]]
 
     -- now use that user matrix to add the arc section in its own transform
-    -- do the arc part
-    local arcpath = BLPath()
-    arcpath:moveTo(0,0)
     local angle1 = -90
     local angle2 = 90
     local sweep = math.rad(angle2 - angle1)
-    local r = math.sin(math.rad(15))
-    local bResult = arcpath:arcTo(0, 0, r, r, math.rad(angle1), sweep, false)
-    
-    path:addTransformedPath(arcpath, nil, m)
+    local r = 144*math.sin(math.rad(15))
+    local arc = ffi.new("struct BLArc")
+    arc.cx = r
+    arc.cy = 0
+    arc.rx = r
+    arc.ry = r 
+    arc.start = math.rad(angle1)
+    arc.sweep = sweep
+    print("arc: ", arc.rx, arc.ry, arc.start, arc.sweep)
 
+    --local bResult = path:addGeometry(C.BL_GEOMETRY_TYPE_ARC, arc, m, C.BL_GEOMETRY_DIRECTION_CW)
+    local bResult = path:addGeometry(C.BL_GEOMETRY_TYPE_ARC, arc, nil, C.BL_GEOMETRY_DIRECTION_CW)
+    --path:lineTo(r,0)
+    --path:lineTo(r, r)
 
     path:close()
 
-    ctx:setStrokeWidth(1/72)
-    ctx:fillPathD(path)
+    --ctx:setStrokeWidth(1/72)
+    print("fillStyle: ", ctx:setFillStyle(black))
+    print("strokeStyle: ", ctx:setStrokeStyle(black))
+    
+    print("fillPathD: ", ctx:fillPathD(path))
+    print("strokePathD: ", ctx:strokePathD(path))
 end
 
-local red = BLRgba32() red.r = 255; red.a = 255;
-local black = BLRgba32() black.a = 255;
-local white = BLRgba32() white.r = 255; white.g = 255; white.b = 255; white.a = 255;
 
 local function main()
-    local img = BLImage(8.5*192,11*192)
+    local dpi = 192
+    local pageWidth = 8.5
+    local pageHeight = 11
+
+    local w = math.floor((pageWidth * dpi)+0.5)
+    local h = pageHeight*dpi
+
+    print("w,h: ", w, h)
+
+    local scalex = dpi / 72
+    local scaley = dpi / 72
+
+    local img = BLImage(w,h)
     local ctx = BLContext(img)
 
-    -- fill with black initially
+    ctx:setStrokeTransformOrder(C.BL_STROKE_TRANSFORM_ORDER_BEFORE)
+
+    -- setup initial coordinate system
+    -- 0,0 in lower left, increase right,up
+    ctx:translate(0, h)
+    ctx:scale(1, -1)
+    ctx:scale(scalex, scaley)
+
+    -- Using userToMeta with definitely throw off the usage
+    -- of fillPathD
+    --ctx:userToMeta()
+
+    -- fill with background color
     ctx:setCompOp(C.BL_COMP_OP_SRC_COPY)
+    ctx:setFillStyle(gray)
     ctx:fillAll()
 
-    -- Create a red color for fill and stroke
+    local cx = pageWidth*72 / 2
+    local cy = pageHeight*72 / 2
 
-
-    --blapi.blContextSetFillStyleRgba32(ctx, c.value)
-    --blapi.blContextSetStrokeStyleRgba32(ctx, c.value)
-    --ctx:setStrokeWidth(0.025)
-
-    ctx:translate(inch(3.75), inch(7.25))
-    ctx:scale(inch(1), inch(1))
-
+    -- crosshair in the middle of the page
+    ctx:translate(cx, cy)
     crosshair(ctx)
 
-    ctx:setFillStyleRgba32(white.value)
     wedge(ctx)
 
 

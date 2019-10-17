@@ -452,7 +452,7 @@ local  BLContext = ffi.typeof("struct BLContextCore")
           end;
     
           fillPathD = function(self, path)
-              local bReasult = blapi.blContextFillPathD(self, path) ;
+              local bResult = blapi.blContextFillPathD(self, path) ;
               if bResult == C.BL_SUCCESS then
                 return true;
               end

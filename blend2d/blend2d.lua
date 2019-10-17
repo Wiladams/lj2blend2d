@@ -841,8 +841,8 @@ local BLMatrix2D_mt = {
         end;
 
         rotate = function(self, rads)
-
-          local bResult = self:applyOperation(C.BL_MATRIX2D_OP_ROTATE, rads)
+          local opData = ffi.new("double[1]", rads)
+          local bResult = self:applyOperation(C.BL_MATRIX2D_OP_ROTATE, opData)
         end;
 
         rotateAroundPoint = function(self, radians, x, y)
