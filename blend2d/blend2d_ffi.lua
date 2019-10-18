@@ -554,7 +554,7 @@ __declspec(dllimport) BLResult __cdecl blPathSmoothQuadTo(BLPathCore* self, doub
 __declspec(dllimport) BLResult __cdecl blPathSmoothCubicTo(BLPathCore* self, double x2, double y2, double x3, double y3) ;
 __declspec(dllimport) BLResult __cdecl blPathArcTo(BLPathCore* self, double x, double y, double rx, double ry, double start, double sweep, _Bool forceMoveTo) ;
 __declspec(dllimport) BLResult __cdecl blPathArcQuadrantTo(BLPathCore* self, double x1, double y1, double x2, double y2) ;
-__declspec(dllimport) BLResult __cdecl blPathEllipticArcTo(BLPathCore* self, double rx, double ry, double xAxisRotation, _Bool largeArcFlag, _Bool sweepFlag, double x1, double y1) ;
+__declspec(dllimport) BLResult __cdecl blPathEllipticArcTo(BLPathCore* self, double rx, double ry, double xAxisRotation, bool largeArcFlag, bool sweepFlag, double x1, double y1) ;
 __declspec(dllimport) BLResult __cdecl blPathClose(BLPathCore* self) ;
 __declspec(dllimport) BLResult __cdecl blPathAddGeometry(BLPathCore* self, uint32_t geometryType, const void* geometryData, const BLMatrix2D* m, uint32_t dir) ;
 __declspec(dllimport) BLResult __cdecl blPathAddBoxI(BLPathCore* self, const BLBoxI* box, uint32_t dir) ;
