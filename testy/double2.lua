@@ -49,20 +49,24 @@ function vec2_ops.cross(self, other)
     return self.x*other.y - self.y*other.x
 end
 
-function vec2_ops.normal(self)
+--[[
+    return the unitized version of a vector
+]]
+function vec2_ops.unit(self)
     local scalar = 1/self:mag()
     return vec2(self.x*scalar, self.y*scalar)
 end
 
 --[[
     Unary Operator
+    return unary minus of a vector
 ]]
 function vec2_ops.negative(self)
     return vec2(-self.x, -self.y)
 end
 
 --[[
-    Add to a vector.
+    return a new vector.
     other - either a scalar, or another vector
 ]]
 function vec2_ops.add(self, other)
@@ -76,6 +80,10 @@ function vec2_ops.add(self, other)
     return nil
 end
 
+--[[
+    return a new vector
+    other - either a scalar, or another vector
+]]
 function vec2_ops.sub(self, other)
     if type(other) == "cdata" then
         return vec2(self.x-other.x, self.y-other.y)
