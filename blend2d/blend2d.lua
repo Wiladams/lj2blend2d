@@ -201,6 +201,7 @@ ffi.metatype(BLFile, BLFile_mt)
 --[[
     BLFontLoader
 ]]
+--[=[
 BLFontLoader = ffi.typeof("struct BLFontLoaderCore")
 BLFontLoader_mt = {
   __gc = function(self)
@@ -233,7 +234,7 @@ BLFontLoader_mt = {
   };
 }
 ffi.metatype(BLFontLoader, BLFontLoader_mt)
-
+--]=]
 
 
 --[[

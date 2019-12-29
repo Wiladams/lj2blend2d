@@ -29,13 +29,13 @@ typedef struct BLCircle BLCircle;
 typedef struct BLEllipse BLEllipse;
 typedef struct BLArc BLArc;
 typedef struct BLMatrix2D BLMatrix2D;
+typedef struct BLApproximationOptions BLApproximationOptions;
+typedef struct BLStrokeOptionsCore BLStrokeOptionsCore;
 typedef struct BLPathCore BLPathCore;
 typedef struct BLPathImpl BLPathImpl;
 typedef struct BLPathView BLPathView;
 typedef struct BLRegionCore BLRegionCore;
 typedef struct BLRegionImpl BLRegionImpl;
-typedef struct BLApproximationOptions BLApproximationOptions;
-typedef struct BLStrokeOptionsCore BLStrokeOptionsCore;
 typedef struct BLFormatInfo BLFormatInfo;
 typedef struct BLImageCore BLImageCore;
 typedef struct BLImageImpl BLImageImpl;
@@ -98,9 +98,9 @@ typedef struct BLFontFaceVirt BLFontFaceVirt;
 typedef struct BLFontDataCore BLFontDataCore;
 typedef struct BLFontDataImpl BLFontDataImpl;
 typedef struct BLFontDataVirt BLFontDataVirt;
-typedef struct BLFontLoaderCore BLFontLoaderCore;
-typedef struct BLFontLoaderImpl BLFontLoaderImpl;
-typedef struct BLFontLoaderVirt BLFontLoaderVirt;
+typedef struct BLFontManagerCore BLFontManagerCore;
+typedef struct BLFontManagerImpl BLFontManagerImpl;
+typedef struct BLFontManagerVirt BLFontManagerVirt;
 typedef uint32_t BLResult;
 typedef uintptr_t BLBitWord;
 typedef uint32_t BLTag;
@@ -270,9 +270,9 @@ typedef BLArrayView BLDataView;
 __declspec(dllimport) BLResult __cdecl blArrayInit(BLArrayCore* self, uint32_t arrayTypeId) ;
 __declspec(dllimport) BLResult __cdecl blArrayReset(BLArrayCore* self) ;
 __declspec(dllimport) BLResult __cdecl blArrayCreateFromData(BLArrayCore* self, void* data, size_t size, size_t capacity, uint32_t dataAccessFlags, BLDestroyImplFunc destroyFunc, void* destroyData) ;
-__declspec(dllimport) size_t   __cdecl blArrayGetSize(const BLArrayCore* self) ;
-__declspec(dllimport) size_t   __cdecl blArrayGetCapacity(const BLArrayCore* self) ;
-__declspec(dllimport) const void* __cdecl blArrayGetData(const BLArrayCore* self) ;
+__declspec(dllimport) size_t __cdecl blArrayGetSize(const BLArrayCore* self)  ;
+__declspec(dllimport) size_t __cdecl blArrayGetCapacity(const BLArrayCore* self)  ;
+__declspec(dllimport) const void* __cdecl blArrayGetData(const BLArrayCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blArrayClear(BLArrayCore* self) ;
 __declspec(dllimport) BLResult __cdecl blArrayShrink(BLArrayCore* self) ;
 __declspec(dllimport) BLResult __cdecl blArrayReserve(BLArrayCore* self, size_t n) ;
@@ -307,10 +307,10 @@ __declspec(dllimport) BLResult __cdecl blArrayReplaceU64(BLArrayCore* self, size
 __declspec(dllimport) BLResult __cdecl blArrayReplaceF32(BLArrayCore* self, size_t index, float value) ;
 __declspec(dllimport) BLResult __cdecl blArrayReplaceF64(BLArrayCore* self, size_t index, double value) ;
 __declspec(dllimport) BLResult __cdecl blArrayReplaceItem(BLArrayCore* self, size_t index, const void* item) ;
-__declspec(dllimport) BLResult __cdecl blArrayReplaceView(BLArrayCore* self, const BLRange* range, const void* items, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blArrayReplaceView(BLArrayCore* self, size_t rStart, size_t rEnd, const void* items, size_t n) ;
 __declspec(dllimport) BLResult __cdecl blArrayRemoveIndex(BLArrayCore* self, size_t index) ;
-__declspec(dllimport) BLResult __cdecl blArrayRemoveRange(BLArrayCore* self, const BLRange* range) ;
-__declspec(dllimport) _Bool     __cdecl blArrayEquals(const BLArrayCore* a, const BLArrayCore* b) ;
+__declspec(dllimport) BLResult __cdecl blArrayRemoveRange(BLArrayCore* self, size_t rStart, size_t rEnd) ;
+__declspec(dllimport) _Bool __cdecl blArrayEquals(const BLArrayCore* a, const BLArrayCore* b)  ;
 __declspec(dllimport) BLResult __cdecl blContextInit(BLContextCore* self) ;
 __declspec(dllimport) BLResult __cdecl blContextInitAs(BLContextCore* self, BLImageCore* image, const BLContextCreateInfo* options) ;
 __declspec(dllimport) BLResult __cdecl blContextReset(BLContextCore* self) ;
@@ -400,7 +400,7 @@ __declspec(dllimport) BLResult __cdecl blFontInit(BLFontCore* self) ;
 __declspec(dllimport) BLResult __cdecl blFontReset(BLFontCore* self) ;
 __declspec(dllimport) BLResult __cdecl blFontAssignMove(BLFontCore* self, BLFontCore* other) ;
 __declspec(dllimport) BLResult __cdecl blFontAssignWeak(BLFontCore* self, const BLFontCore* other) ;
-__declspec(dllimport) _Bool     __cdecl blFontEquals(const BLFontCore* a, const BLFontCore* b) ;
+__declspec(dllimport) _Bool __cdecl blFontEquals(const BLFontCore* a, const BLFontCore* b) ;
 __declspec(dllimport) BLResult __cdecl blFontCreateFromFace(BLFontCore* self, const BLFontFaceCore* face, float size) ;
 __declspec(dllimport) BLResult __cdecl blFontShape(const BLFontCore* self, BLGlyphBufferCore* gb) ;
 __declspec(dllimport) BLResult __cdecl blFontMapTextToGlyphs(const BLFontCore* self, BLGlyphBufferCore* gb, BLGlyphMappingState* stateOut) ;
@@ -417,36 +417,38 @@ __declspec(dllimport) BLResult __cdecl blFontGetGlyphAdvances(const BLFontCore* 
 __declspec(dllimport) BLResult __cdecl blFontGetGlyphOutlines(const BLFontCore* self, uint32_t glyphId, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
 __declspec(dllimport) BLResult __cdecl blFontGetGlyphRunOutlines(const BLFontCore* self, const BLGlyphRun* glyphRun, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
 __declspec(dllimport) BLResult __cdecl blFontDataInit(BLFontDataCore* self) ;
-__declspec(dllimport) BLResult __cdecl blFontDataInitFromLoader(BLFontDataCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
 __declspec(dllimport) BLResult __cdecl blFontDataReset(BLFontDataCore* self) ;
 __declspec(dllimport) BLResult __cdecl blFontDataAssignMove(BLFontDataCore* self, BLFontDataCore* other) ;
 __declspec(dllimport) BLResult __cdecl blFontDataAssignWeak(BLFontDataCore* self, const BLFontDataCore* other) ;
-__declspec(dllimport) BLResult __cdecl blFontDataCreateFromLoader(BLFontDataCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
-__declspec(dllimport) _Bool     __cdecl blFontDataEquals(const BLFontDataCore* a, const BLFontDataCore* b) ;
-__declspec(dllimport) BLResult __cdecl blFontDataListTags(const BLFontDataCore* self, BLArrayCore* dst) ;
-__declspec(dllimport) size_t   __cdecl blFontDataQueryTables(const BLFontDataCore* self, BLFontTable* dst, const BLTag* tags, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blFontDataCreateFromFile(BLFontDataCore* self, const char* fileName, uint32_t readFlags) ;
+__declspec(dllimport) BLResult __cdecl blFontDataCreateFromDataArray(BLFontDataCore* self, const BLArrayCore* dataArray) ;
+__declspec(dllimport) BLResult __cdecl blFontDataCreateFromData(BLFontDataCore* self, const void* data, size_t dataSize, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+__declspec(dllimport) _Bool __cdecl blFontDataEquals(const BLFontDataCore* a, const BLFontDataCore* b) ;
+__declspec(dllimport) BLResult __cdecl blFontDataListTags(const BLFontDataCore* self, uint32_t faceIndex, BLArrayCore* dst) ;
+__declspec(dllimport) size_t __cdecl blFontDataQueryTables(const BLFontDataCore* self, uint32_t faceIndex, BLFontTable* dst, const BLTag* tags, size_t count) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceInit(BLFontFaceCore* self) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceReset(BLFontFaceCore* self) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceAssignMove(BLFontFaceCore* self, BLFontFaceCore* other) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceAssignWeak(BLFontFaceCore* self, const BLFontFaceCore* other) ;
-__declspec(dllimport) _Bool     __cdecl blFontFaceEquals(const BLFontFaceCore* a, const BLFontFaceCore* b) ;
+__declspec(dllimport) _Bool __cdecl blFontFaceEquals(const BLFontFaceCore* a, const BLFontFaceCore* b) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceCreateFromFile(BLFontFaceCore* self, const char* fileName, uint32_t readFlags) ;
-__declspec(dllimport) BLResult __cdecl blFontFaceCreateFromLoader(BLFontFaceCore* self, const BLFontLoaderCore* loader, uint32_t faceIndex) ;
+__declspec(dllimport) BLResult __cdecl blFontFaceCreateFromData(BLFontFaceCore* self, const BLFontDataCore* fontData, uint32_t faceIndex) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceGetFaceInfo(const BLFontFaceCore* self, BLFontFaceInfo* out) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceGetDesignMetrics(const BLFontFaceCore* self, BLFontDesignMetrics* out) ;
 __declspec(dllimport) BLResult __cdecl blFontFaceGetUnicodeCoverage(const BLFontFaceCore* self, BLFontUnicodeCoverage* out) ;
-__declspec(dllimport) BLResult __cdecl blFontLoaderInit(BLFontLoaderCore* self) ;
-__declspec(dllimport) BLResult __cdecl blFontLoaderReset(BLFontLoaderCore* self) ;
-__declspec(dllimport) BLResult __cdecl blFontLoaderAssignMove(BLFontLoaderCore* self, BLFontLoaderCore* other) ;
-__declspec(dllimport) BLResult __cdecl blFontLoaderAssignWeak(BLFontLoaderCore* self, const BLFontLoaderCore* other) ;
-__declspec(dllimport) _Bool     __cdecl blFontLoaderEquals(const BLFontLoaderCore* a, const BLFontLoaderCore* b) ;
-__declspec(dllimport) BLResult __cdecl blFontLoaderCreateFromFile(BLFontLoaderCore* self, const char* fileName, uint32_t readFlags) ;
-__declspec(dllimport) BLResult __cdecl blFontLoaderCreateFromDataArray(BLFontLoaderCore* self, const BLArrayCore* dataArray) ;
-__declspec(dllimport) BLResult __cdecl blFontLoaderCreateFromData(BLFontLoaderCore* self, const void* data, size_t size, BLDestroyImplFunc destroyFunc, void* destroyData) ;
+__declspec(dllimport) BLResult __cdecl blFontManagerInit(BLFontManagerCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontManagerReset(BLFontManagerCore* self) ;
+__declspec(dllimport) BLResult __cdecl blFontManagerAssignMove(BLFontManagerCore* self, BLFontManagerCore* other) ;
+__declspec(dllimport) BLResult __cdecl blFontManagerAssignWeak(BLFontManagerCore* self, const BLFontManagerCore* other) ;
+__declspec(dllimport) _Bool __cdecl blFontManagerEquals(const BLFontManagerCore* a, const BLFontManagerCore* b) ;
 __declspec(dllimport) BLResult __cdecl blFormatInfoSanitize(BLFormatInfo* self) ;
 __declspec(dllimport) BLResult __cdecl blGlyphBufferInit(BLGlyphBufferCore* self) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferInitMove(BLGlyphBufferCore* self, BLGlyphBufferCore* other) ;
 __declspec(dllimport) BLResult __cdecl blGlyphBufferReset(BLGlyphBufferCore* self) ;
 __declspec(dllimport) BLResult __cdecl blGlyphBufferClear(BLGlyphBufferCore* self) ;
+__declspec(dllimport) size_t __cdecl blGlyphBufferGetSize(const BLGlyphBufferCore* self)  ;
+__declspec(dllimport) uint32_t __cdecl blGlyphBufferGetFlags(const BLGlyphBufferCore* self)  ;
+__declspec(dllimport) const BLGlyphRun* __cdecl blGlyphBufferGetGlyphRun(const BLGlyphBufferCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blGlyphBufferSetText(BLGlyphBufferCore* self, const void* data, size_t size, uint32_t encoding) ;
 __declspec(dllimport) BLResult __cdecl blGlyphBufferSetGlyphIds(BLGlyphBufferCore* self, const void* data, intptr_t advance, size_t size) ;
 __declspec(dllimport) BLResult __cdecl blGradientInit(BLGradientCore* self) ;
@@ -457,29 +459,29 @@ __declspec(dllimport) BLResult __cdecl blGradientAssignWeak(BLGradientCore* self
 __declspec(dllimport) BLResult __cdecl blGradientCreate(BLGradientCore* self, uint32_t type, const void* values, uint32_t extendMode, const BLGradientStop* stops, size_t n, const BLMatrix2D* m) ;
 __declspec(dllimport) BLResult __cdecl blGradientShrink(BLGradientCore* self) ;
 __declspec(dllimport) BLResult __cdecl blGradientReserve(BLGradientCore* self, size_t n) ;
-__declspec(dllimport) uint32_t __cdecl blGradientGetType(const BLGradientCore* self) ;
+__declspec(dllimport) uint32_t __cdecl blGradientGetType(const BLGradientCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blGradientSetType(BLGradientCore* self, uint32_t type) ;
-__declspec(dllimport) double   __cdecl blGradientGetValue(const BLGradientCore* self, size_t index) ;
+__declspec(dllimport) double __cdecl blGradientGetValue(const BLGradientCore* self, size_t index)  ;
 __declspec(dllimport) BLResult __cdecl blGradientSetValue(BLGradientCore* self, size_t index, double value) ;
 __declspec(dllimport) BLResult __cdecl blGradientSetValues(BLGradientCore* self, size_t index, const double* values, size_t n) ;
-__declspec(dllimport) uint32_t __cdecl blGradientGetExtendMode(BLGradientCore* self) ;
+__declspec(dllimport) uint32_t __cdecl blGradientGetExtendMode(BLGradientCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blGradientSetExtendMode(BLGradientCore* self, uint32_t extendMode) ;
-__declspec(dllimport) const BLGradientStop* __cdecl blGradientGetStops(const BLGradientCore* self) ;
-__declspec(dllimport) size_t __cdecl blGradientGetSize(const BLGradientCore* self) ;
-__declspec(dllimport) size_t __cdecl blGradientGetCapacity(const BLGradientCore* self) ;
+__declspec(dllimport) size_t __cdecl blGradientGetSize(const BLGradientCore* self)  ;
+__declspec(dllimport) size_t __cdecl blGradientGetCapacity(const BLGradientCore* self)  ;
+__declspec(dllimport) const BLGradientStop* __cdecl blGradientGetStops(const BLGradientCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blGradientResetStops(BLGradientCore* self) ;
 __declspec(dllimport) BLResult __cdecl blGradientAssignStops(BLGradientCore* self, const BLGradientStop* stops, size_t n) ;
 __declspec(dllimport) BLResult __cdecl blGradientAddStopRgba32(BLGradientCore* self, double offset, uint32_t argb32) ;
 __declspec(dllimport) BLResult __cdecl blGradientAddStopRgba64(BLGradientCore* self, double offset, uint64_t argb64) ;
 __declspec(dllimport) BLResult __cdecl blGradientRemoveStop(BLGradientCore* self, size_t index) ;
 __declspec(dllimport) BLResult __cdecl blGradientRemoveStopByOffset(BLGradientCore* self, double offset, uint32_t all) ;
-__declspec(dllimport) BLResult __cdecl blGradientRemoveStops(BLGradientCore* self, const BLRange* range) ;
+__declspec(dllimport) BLResult __cdecl blGradientRemoveStops(BLGradientCore* self, size_t rStart, size_t rEnd) ;
 __declspec(dllimport) BLResult __cdecl blGradientRemoveStopsFromTo(BLGradientCore* self, double offsetMin, double offsetMax) ;
 __declspec(dllimport) BLResult __cdecl blGradientReplaceStopRgba32(BLGradientCore* self, size_t index, double offset, uint32_t rgba32) ;
 __declspec(dllimport) BLResult __cdecl blGradientReplaceStopRgba64(BLGradientCore* self, size_t index, double offset, uint64_t rgba64) ;
-__declspec(dllimport) size_t   __cdecl blGradientIndexOfStop(const BLGradientCore* self, double offset) ;
+__declspec(dllimport) size_t __cdecl blGradientIndexOfStop(const BLGradientCore* self, double offset)  ;
 __declspec(dllimport) BLResult __cdecl blGradientApplyMatrixOp(BLGradientCore* self, uint32_t opType, const void* opData) ;
-__declspec(dllimport) _Bool     __cdecl blGradientEquals(const BLGradientCore* a, const BLGradientCore* b) ;
+__declspec(dllimport) _Bool __cdecl blGradientEquals(const BLGradientCore* a, const BLGradientCore* b)  ;
 __declspec(dllimport) BLResult __cdecl blImageInit(BLImageCore* self) ;
 __declspec(dllimport) BLResult __cdecl blImageInitAs(BLImageCore* self, int w, int h, uint32_t format) ;
 __declspec(dllimport) BLResult __cdecl blImageInitAsFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
@@ -491,7 +493,8 @@ __declspec(dllimport) BLResult __cdecl blImageCreate(BLImageCore* self, int w, i
 __declspec(dllimport) BLResult __cdecl blImageCreateFromData(BLImageCore* self, int w, int h, uint32_t format, void* pixelData, intptr_t stride, BLDestroyImplFunc destroyFunc, void* destroyData) ;
 __declspec(dllimport) BLResult __cdecl blImageGetData(const BLImageCore* self, BLImageData* dataOut) ;
 __declspec(dllimport) BLResult __cdecl blImageMakeMutable(BLImageCore* self, BLImageData* dataOut) ;
-__declspec(dllimport) _Bool     __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
+__declspec(dllimport) BLResult __cdecl blImageConvert(BLImageCore* self, uint32_t format) ;
+__declspec(dllimport) _Bool __cdecl blImageEquals(const BLImageCore* a, const BLImageCore* b) ;
 __declspec(dllimport) BLResult __cdecl blImageScale(BLImageCore* dst, const BLImageCore* src, const BLSizeI* size, uint32_t filter, const BLImageScaleOptions* options) ;
 __declspec(dllimport) BLResult __cdecl blImageReadFromFile(BLImageCore* self, const char* fileName, const BLArrayCore* codecs) ;
 __declspec(dllimport) BLResult __cdecl blImageReadFromData(BLImageCore* self, const void* data, size_t size, const BLArrayCore* codecs) ;
@@ -533,10 +536,10 @@ __declspec(dllimport) uint32_t __cdecl blMatrix2DGetType(const BLMatrix2D* self)
 __declspec(dllimport) BLResult __cdecl blMatrix2DMapPointDArray(const BLMatrix2D* self, BLPoint* dst, const BLPoint* src, size_t count) ;
 __declspec(dllimport) BLResult __cdecl blPathInit(BLPathCore* self) ;
 __declspec(dllimport) BLResult __cdecl blPathReset(BLPathCore* self) ;
-__declspec(dllimport) size_t   __cdecl blPathGetSize(const BLPathCore* self) ;
-__declspec(dllimport) size_t   __cdecl blPathGetCapacity(const BLPathCore* self) ;
-__declspec(dllimport) const uint8_t* __cdecl blPathGetCommandData(const BLPathCore* self) ;
-__declspec(dllimport) const BLPoint* __cdecl blPathGetVertexData(const BLPathCore* self) ;
+__declspec(dllimport) size_t __cdecl blPathGetSize(const BLPathCore* self)  ;
+__declspec(dllimport) size_t __cdecl blPathGetCapacity(const BLPathCore* self)  ;
+__declspec(dllimport) const uint8_t* __cdecl blPathGetCommandData(const BLPathCore* self)  ;
+__declspec(dllimport) const BLPoint* __cdecl blPathGetVertexData(const BLPathCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blPathClear(BLPathCore* self) ;
 __declspec(dllimport) BLResult __cdecl blPathShrink(BLPathCore* self) ;
 __declspec(dllimport) BLResult __cdecl blPathReserve(BLPathCore* self, size_t n) ;
@@ -554,7 +557,7 @@ __declspec(dllimport) BLResult __cdecl blPathSmoothQuadTo(BLPathCore* self, doub
 __declspec(dllimport) BLResult __cdecl blPathSmoothCubicTo(BLPathCore* self, double x2, double y2, double x3, double y3) ;
 __declspec(dllimport) BLResult __cdecl blPathArcTo(BLPathCore* self, double x, double y, double rx, double ry, double start, double sweep, _Bool forceMoveTo) ;
 __declspec(dllimport) BLResult __cdecl blPathArcQuadrantTo(BLPathCore* self, double x1, double y1, double x2, double y2) ;
-__declspec(dllimport) BLResult __cdecl blPathEllipticArcTo(BLPathCore* self, double rx, double ry, double xAxisRotation, bool largeArcFlag, bool sweepFlag, double x1, double y1) ;
+__declspec(dllimport) BLResult __cdecl blPathEllipticArcTo(BLPathCore* self, double rx, double ry, double xAxisRotation, _Bool largeArcFlag, _Bool sweepFlag, double x1, double y1) ;
 __declspec(dllimport) BLResult __cdecl blPathClose(BLPathCore* self) ;
 __declspec(dllimport) BLResult __cdecl blPathAddGeometry(BLPathCore* self, uint32_t geometryType, const void* geometryData, const BLMatrix2D* m, uint32_t dir) ;
 __declspec(dllimport) BLResult __cdecl blPathAddBoxI(BLPathCore* self, const BLBoxI* box, uint32_t dir) ;
@@ -593,17 +596,20 @@ __declspec(dllimport) BLResult __cdecl blPixelConverterInit(BLPixelConverterCore
 __declspec(dllimport) BLResult __cdecl blPixelConverterInitWeak(BLPixelConverterCore* self, const BLPixelConverterCore* other) ;
 __declspec(dllimport) BLResult __cdecl blPixelConverterReset(BLPixelConverterCore* self) ;
 __declspec(dllimport) BLResult __cdecl blPixelConverterAssign(BLPixelConverterCore* self, const BLPixelConverterCore* other) ;
-__declspec(dllimport) BLResult __cdecl blPixelConverterCreate(BLPixelConverterCore* self, const BLFormatInfo* dstInfo, const BLFormatInfo* srcInfo) ;
+__declspec(dllimport) BLResult __cdecl blPixelConverterCreate(BLPixelConverterCore* self, const BLFormatInfo* dstInfo, const BLFormatInfo* srcInfo, uint32_t createFlags) ;
 __declspec(dllimport) BLResult __cdecl blPixelConverterConvert(const BLPixelConverterCore* self,
   void* dstData, intptr_t dstStride,
   const void* srcData, intptr_t srcStride,
   uint32_t w, uint32_t h, const BLPixelConverterOptions* options) ;
-__declspec(dllimport) void     __cdecl blRandomReset(BLRandom* self, uint64_t seed) ;
+__declspec(dllimport) BLResult __cdecl blRandomReset(BLRandom* self, uint64_t seed) ;
 __declspec(dllimport) uint32_t __cdecl blRandomNextUInt32(BLRandom* self) ;
 __declspec(dllimport) uint64_t __cdecl blRandomNextUInt64(BLRandom* self) ;
 __declspec(dllimport) double   __cdecl blRandomNextDouble(BLRandom* self) ;
 __declspec(dllimport) BLResult __cdecl blRegionInit(BLRegionCore* self) ;
 __declspec(dllimport) BLResult __cdecl blRegionReset(BLRegionCore* self) ;
+__declspec(dllimport) size_t __cdecl blRegionGetSize(const BLRegionCore* self)  ;
+__declspec(dllimport) size_t __cdecl blRegionGetCapacity(const BLRegionCore* self)  ;
+__declspec(dllimport) const BLBoxI* __cdecl blRegionGetData(const BLRegionCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blRegionClear(BLRegionCore* self) ;
 __declspec(dllimport) BLResult __cdecl blRegionShrink(BLRegionCore* self) ;
 __declspec(dllimport) BLResult __cdecl blRegionReserve(BLRegionCore* self, size_t n) ;
@@ -614,10 +620,10 @@ __declspec(dllimport) BLResult __cdecl blRegionAssignBoxI(BLRegionCore* self, co
 __declspec(dllimport) BLResult __cdecl blRegionAssignBoxIArray(BLRegionCore* self, const BLBoxI* data, size_t n) ;
 __declspec(dllimport) BLResult __cdecl blRegionAssignRectI(BLRegionCore* self, const BLRectI* rect) ;
 __declspec(dllimport) BLResult __cdecl blRegionAssignRectIArray(BLRegionCore* self, const BLRectI* data, size_t n) ;
-__declspec(dllimport) BLResult __cdecl blRegionCombine(BLRegionCore* self, const BLRegionCore* a, const BLRegionCore* b, uint32_t op) ;
-__declspec(dllimport) BLResult __cdecl blRegionCombineRB(BLRegionCore* self, const BLRegionCore* a, const BLBoxI* b, uint32_t op) ;
-__declspec(dllimport) BLResult __cdecl blRegionCombineBR(BLRegionCore* self, const BLBoxI* a, const BLRegionCore* b, uint32_t op) ;
-__declspec(dllimport) BLResult __cdecl blRegionCombineBB(BLRegionCore* self, const BLBoxI* a, const BLBoxI* b, uint32_t op) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombine(BLRegionCore* self, const BLRegionCore* a, const BLRegionCore* b, uint32_t booleanOp) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombineRB(BLRegionCore* self, const BLRegionCore* a, const BLBoxI* b, uint32_t booleanOp) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombineBR(BLRegionCore* self, const BLBoxI* a, const BLRegionCore* b, uint32_t booleanOp) ;
+__declspec(dllimport) BLResult __cdecl blRegionCombineBB(BLRegionCore* self, const BLBoxI* a, const BLBoxI* b, uint32_t booleanOp) ;
 __declspec(dllimport) BLResult __cdecl blRegionTranslate(BLRegionCore* self, const BLRegionCore* r, const BLPointI* pt) ;
 __declspec(dllimport) BLResult __cdecl blRegionTranslateAndClip(BLRegionCore* self, const BLRegionCore* r, const BLPointI* pt, const BLBoxI* clipBox) ;
 __declspec(dllimport) BLResult __cdecl blRegionIntersectAndClip(BLRegionCore* self, const BLRegionCore* a, const BLRegionCore* b, const BLBoxI* clipBox) ;
@@ -637,9 +643,9 @@ __declspec(dllimport) __declspec(noreturn) void __cdecl blRuntimeAssertionFailur
 __declspec(dllimport) BLResult __cdecl blResultFromWinError(uint32_t e) ;
 __declspec(dllimport) BLResult __cdecl blStringInit(BLStringCore* self) ;
 __declspec(dllimport) BLResult __cdecl blStringReset(BLStringCore* self) ;
-__declspec(dllimport) size_t   __cdecl blStringGetSize(const BLStringCore* self) ;
-__declspec(dllimport) size_t   __cdecl blStringGetCapacity(const BLStringCore* self) ;
-__declspec(dllimport) const char* __cdecl blStringGetData(const BLStringCore* self) ;
+__declspec(dllimport) size_t __cdecl blStringGetSize(const BLStringCore* self)  ;
+__declspec(dllimport) size_t __cdecl blStringGetCapacity(const BLStringCore* self)  ;
+__declspec(dllimport) const char* __cdecl blStringGetData(const BLStringCore* self)  ;
 __declspec(dllimport) BLResult __cdecl blStringClear(BLStringCore* self) ;
 __declspec(dllimport) BLResult __cdecl blStringShrink(BLStringCore* self) ;
 __declspec(dllimport) BLResult __cdecl blStringReserve(BLStringCore* self, size_t n) ;
@@ -659,11 +665,11 @@ __declspec(dllimport) BLResult __cdecl blStringApplyOpFormatV(BLStringCore* self
 __declspec(dllimport) BLResult __cdecl blStringInsertChar(BLStringCore* self, size_t index, char c, size_t n) ;
 __declspec(dllimport) BLResult __cdecl blStringInsertData(BLStringCore* self, size_t index, const char* str, size_t n) ;
 __declspec(dllimport) BLResult __cdecl blStringInsertString(BLStringCore* self, size_t index, const BLStringCore* other) ;
-__declspec(dllimport) BLResult __cdecl blStringRemoveRange(BLStringCore* self, const BLRange* range) ;
-__declspec(dllimport) _Bool     __cdecl blStringEquals(const BLStringCore* self, const BLStringCore* other) ;
-__declspec(dllimport) _Bool     __cdecl blStringEqualsData(const BLStringCore* self, const char* str, size_t n) ;
-__declspec(dllimport) int      __cdecl blStringCompare(const BLStringCore* self, const BLStringCore* other) ;
-__declspec(dllimport) int      __cdecl blStringCompareData(const BLStringCore* self, const char* str, size_t n) ;
+__declspec(dllimport) BLResult __cdecl blStringRemoveRange(BLStringCore* self, size_t rStart, size_t rEnd) ;
+__declspec(dllimport) _Bool __cdecl blStringEquals(const BLStringCore* self, const BLStringCore* other)  ;
+__declspec(dllimport) _Bool __cdecl blStringEqualsData(const BLStringCore* self, const char* str, size_t n)  ;
+__declspec(dllimport) int __cdecl blStringCompare(const BLStringCore* self, const BLStringCore* other)  ;
+__declspec(dllimport) int __cdecl blStringCompareData(const BLStringCore* self, const char* str, size_t n)  ;
 __declspec(dllimport) BLResult __cdecl blStrokeOptionsInit(BLStrokeOptionsCore* self) ;
 __declspec(dllimport) BLResult __cdecl blStrokeOptionsInitMove(BLStrokeOptionsCore* self, BLStrokeOptionsCore* other) ;
 __declspec(dllimport) BLResult __cdecl blStrokeOptionsInitWeak(BLStrokeOptionsCore* self, const BLStrokeOptionsCore* other) ;
@@ -674,52 +680,53 @@ __declspec(dllimport) BLResult __cdecl blVariantInit(void* self) ;
 __declspec(dllimport) BLResult __cdecl blVariantInitMove(void* self, void* other) ;
 __declspec(dllimport) BLResult __cdecl blVariantInitWeak(void* self, const void* other) ;
 __declspec(dllimport) BLResult __cdecl blVariantReset(void* self) ;
-__declspec(dllimport) uint32_t __cdecl blVariantGetImplType(const void* self) ;
+__declspec(dllimport) uint32_t __cdecl blVariantGetImplType(const void* self)  ;
 __declspec(dllimport) BLResult __cdecl blVariantAssignMove(void* self, void* other) ;
 __declspec(dllimport) BLResult __cdecl blVariantAssignWeak(void* self, const void* other) ;
 __declspec(dllimport) _Bool     __cdecl blVariantEquals(const void* a, const void* b) ;
 enum BLImplType {
   BL_IMPL_TYPE_NULL = 0,
-  BL_IMPL_TYPE_BIT_ARRAY = 1,
-  BL_IMPL_TYPE_STRING = 2,
-  BL_IMPL_TYPE_ARRAY_VAR = 3,
-  BL_IMPL_TYPE_ARRAY_I8 = 4,
-  BL_IMPL_TYPE_ARRAY_U8 = 5,
-  BL_IMPL_TYPE_ARRAY_I16 = 6,
-  BL_IMPL_TYPE_ARRAY_U16 = 7,
-  BL_IMPL_TYPE_ARRAY_I32 = 8,
-  BL_IMPL_TYPE_ARRAY_U32 = 9,
-  BL_IMPL_TYPE_ARRAY_I64 = 10,
-  BL_IMPL_TYPE_ARRAY_U64 = 11,
-  BL_IMPL_TYPE_ARRAY_F32 = 12,
-  BL_IMPL_TYPE_ARRAY_F64 = 13,
-  BL_IMPL_TYPE_ARRAY_STRUCT_1 = 14,
-  BL_IMPL_TYPE_ARRAY_STRUCT_2 = 15,
-  BL_IMPL_TYPE_ARRAY_STRUCT_3 = 16,
-  BL_IMPL_TYPE_ARRAY_STRUCT_4 = 17,
-  BL_IMPL_TYPE_ARRAY_STRUCT_6 = 18,
-  BL_IMPL_TYPE_ARRAY_STRUCT_8 = 19,
-  BL_IMPL_TYPE_ARRAY_STRUCT_10 = 20,
-  BL_IMPL_TYPE_ARRAY_STRUCT_12 = 21,
-  BL_IMPL_TYPE_ARRAY_STRUCT_16 = 22,
-  BL_IMPL_TYPE_ARRAY_STRUCT_20 = 23,
-  BL_IMPL_TYPE_ARRAY_STRUCT_24 = 24,
-  BL_IMPL_TYPE_ARRAY_STRUCT_32 = 25,
-  BL_IMPL_TYPE_PATH = 32,
-  BL_IMPL_TYPE_REGION = 33,
-  BL_IMPL_TYPE_IMAGE = 34,
-  BL_IMPL_TYPE_IMAGE_CODEC = 35,
-  BL_IMPL_TYPE_IMAGE_DECODER = 36,
-  BL_IMPL_TYPE_IMAGE_ENCODER = 37,
-  BL_IMPL_TYPE_GRADIENT = 38,
-  BL_IMPL_TYPE_PATTERN = 39,
-  BL_IMPL_TYPE_CONTEXT = 40,
-  BL_IMPL_TYPE_FONT = 50,
-  BL_IMPL_TYPE_FONT_FACE = 51,
-  BL_IMPL_TYPE_FONT_DATA = 52,
-  BL_IMPL_TYPE_FONT_LOADER = 53,
-  BL_IMPL_TYPE_FONT_FEATURE_OPTIONS = 54,
-  BL_IMPL_TYPE_FONT_VARIATION_OPTIONS = 55,
+  BL_IMPL_TYPE_ARRAY_VAR = 1,
+  BL_IMPL_TYPE_ARRAY_I8 = 2,
+  BL_IMPL_TYPE_ARRAY_U8 = 3,
+  BL_IMPL_TYPE_ARRAY_I16 = 4,
+  BL_IMPL_TYPE_ARRAY_U16 = 5,
+  BL_IMPL_TYPE_ARRAY_I32 = 6,
+  BL_IMPL_TYPE_ARRAY_U32 = 7,
+  BL_IMPL_TYPE_ARRAY_I64 = 8,
+  BL_IMPL_TYPE_ARRAY_U64 = 9,
+  BL_IMPL_TYPE_ARRAY_F32 = 10,
+  BL_IMPL_TYPE_ARRAY_F64 = 11,
+  BL_IMPL_TYPE_ARRAY_STRUCT_1 = 12,
+  BL_IMPL_TYPE_ARRAY_STRUCT_2 = 13,
+  BL_IMPL_TYPE_ARRAY_STRUCT_3 = 14,
+  BL_IMPL_TYPE_ARRAY_STRUCT_4 = 15,
+  BL_IMPL_TYPE_ARRAY_STRUCT_6 = 16,
+  BL_IMPL_TYPE_ARRAY_STRUCT_8 = 17,
+  BL_IMPL_TYPE_ARRAY_STRUCT_10 = 18,
+  BL_IMPL_TYPE_ARRAY_STRUCT_12 = 19,
+  BL_IMPL_TYPE_ARRAY_STRUCT_16 = 20,
+  BL_IMPL_TYPE_ARRAY_STRUCT_20 = 21,
+  BL_IMPL_TYPE_ARRAY_STRUCT_24 = 22,
+  BL_IMPL_TYPE_ARRAY_STRUCT_32 = 23,
+  BL_IMPL_TYPE_BIT_ARRAY = 32,
+  BL_IMPL_TYPE_BIT_SET = 33,
+  BL_IMPL_TYPE_STRING = 39,
+  BL_IMPL_TYPE_PATH = 40,
+  BL_IMPL_TYPE_REGION = 43,
+  BL_IMPL_TYPE_IMAGE = 44,
+  BL_IMPL_TYPE_IMAGE_CODEC = 45,
+  BL_IMPL_TYPE_IMAGE_DECODER = 46,
+  BL_IMPL_TYPE_IMAGE_ENCODER = 47,
+  BL_IMPL_TYPE_GRADIENT = 48,
+  BL_IMPL_TYPE_PATTERN = 49,
+  BL_IMPL_TYPE_CONTEXT = 55,
+  BL_IMPL_TYPE_FONT = 56,
+  BL_IMPL_TYPE_FONT_FACE = 57,
+  BL_IMPL_TYPE_FONT_DATA = 58,
+  BL_IMPL_TYPE_FONT_MANAGER = 59,
+  BL_IMPL_TYPE_FONT_FEATURE_OPTIONS = 60,
+  BL_IMPL_TYPE_FONT_VARIATION_OPTIONS = 61,
   BL_IMPL_TYPE_COUNT = 64
 };
 enum BLImplTraits {
@@ -733,9 +740,13 @@ enum BLImplTraits {
 struct BLVariantImpl {
   union {
     
+    
     const void* virt;
     
-    uintptr_t header[3];
+    
+    
+    
+    uintptr_t unknownHeaderData;
   };
   volatile size_t refCount;
   uint8_t implType;
@@ -746,8 +757,16 @@ struct BLVariantImpl {
 struct BLVariantCore {
   BLVariantImpl* impl;
 };
-__declspec(dllimport) BLVariantCore blNone[BL_IMPL_TYPE_COUNT];
+extern __declspec(dllimport) BLVariantCore blNone[BL_IMPL_TYPE_COUNT];
 struct BLArrayImpl {
+  size_t capacity;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  uint8_t itemSize;
+  uint8_t dispatchType;
+  uint8_t reserved[2];
   union {
     struct {
       
@@ -758,14 +777,6 @@ struct BLArrayImpl {
     
     BLDataView view;
   };
-  size_t capacity;
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  uint8_t itemSize;
-  uint8_t dispatchType;
-  uint8_t reserved[2];
 };
 struct BLArrayCore {
   BLArrayImpl* impl;
@@ -895,6 +906,9 @@ enum BLGlyphRunFlags {
   BL_GLYPH_RUN_FLAG_UNDEFINED_GLYPHS          = 0x40000000u,
   BL_GLYPH_RUN_FLAG_INVALID_FONT_DATA         = 0x80000000u
 };
+enum BLFontDataFlags {
+  BL_FONT_DATA_FLAG_COLLECTION = 0x00000001u
+};
 enum BLFontFaceType {
   BL_FONT_FACE_TYPE_NONE = 0,
   BL_FONT_FACE_TYPE_OPENTYPE = 1,
@@ -909,10 +923,12 @@ enum BLFontFaceFlags {
   BL_FONT_FACE_FLAG_HORIZONTAL_KERNING        = 0x00000040u,
   BL_FONT_FACE_FLAG_VERTICAL_KERNING          = 0x00000080u,
   BL_FONT_FACE_FLAG_OPENTYPE_FEATURES         = 0x00000100u,
-  BL_FONT_FACE_FLAG_OPENTYPE_VARIATIONS       = 0x20000000u,
   BL_FONT_FACE_FLAG_PANOSE_DATA               = 0x00000200u,
   BL_FONT_FACE_FLAG_UNICODE_COVERAGE          = 0x00000400u,
+  BL_FONT_FACE_FLAG_BASELINE_Y_EQUALS_0       = 0x00001000u,
+  BL_FONT_FACE_FLAG_LSB_POINT_X_EQUALS_0      = 0x00002000u,
   BL_FONT_FACE_FLAG_VARIATION_SEQUENCES       = 0x10000000u,
+  BL_FONT_FACE_FLAG_OPENTYPE_VARIATIONS       = 0x20000000u,
   BL_FONT_FACE_FLAG_SYMBOL_FONT               = 0x40000000u,
   BL_FONT_FACE_FLAG_LAST_RESORT_FONT          = 0x80000000u
 };
@@ -927,74 +943,71 @@ enum BLFontFaceDiagFlags {
   BL_FONT_FACE_DIAG_WRONG_GPOS_DATA           = 0x00000400u,
   BL_FONT_FACE_DIAG_WRONG_GSUB_DATA           = 0x00001000u
 };
-enum BLFontLoaderFlags {
-  BL_FONT_LOADER_FLAG_COLLECTION              = 0x00000001u  
-};
 enum BLFontOutlineType {
-  BL_FONT_OUTLINE_TYPE_NONE                   = 0,
-  BL_FONT_OUTLINE_TYPE_TRUETYPE               = 1,
-  BL_FONT_OUTLINE_TYPE_CFF                    = 2,
-  BL_FONT_OUTLINE_TYPE_CFF2                   = 3
+  BL_FONT_OUTLINE_TYPE_NONE = 0,
+  BL_FONT_OUTLINE_TYPE_TRUETYPE = 1,
+  BL_FONT_OUTLINE_TYPE_CFF = 2,
+  BL_FONT_OUTLINE_TYPE_CFF2 = 3
 };
 enum BLFontStretch {
-  BL_FONT_STRETCH_ULTRA_CONDENSED             = 1,
-  BL_FONT_STRETCH_EXTRA_CONDENSED             = 2,
-  BL_FONT_STRETCH_CONDENSED                   = 3,
-  BL_FONT_STRETCH_SEMI_CONDENSED              = 4,
-  BL_FONT_STRETCH_NORMAL                      = 5,
-  BL_FONT_STRETCH_SEMI_EXPANDED               = 6,
-  BL_FONT_STRETCH_EXPANDED                    = 7,
-  BL_FONT_STRETCH_EXTRA_EXPANDED              = 8,
-  BL_FONT_STRETCH_ULTRA_EXPANDED              = 9
+  BL_FONT_STRETCH_ULTRA_CONDENSED = 1,
+  BL_FONT_STRETCH_EXTRA_CONDENSED = 2,
+  BL_FONT_STRETCH_CONDENSED = 3,
+  BL_FONT_STRETCH_SEMI_CONDENSED = 4,
+  BL_FONT_STRETCH_NORMAL = 5,
+  BL_FONT_STRETCH_SEMI_EXPANDED = 6,
+  BL_FONT_STRETCH_EXPANDED = 7,
+  BL_FONT_STRETCH_EXTRA_EXPANDED = 8,
+  BL_FONT_STRETCH_ULTRA_EXPANDED = 9
 };
 enum BLFontStyle {
-  BL_FONT_STYLE_NORMAL                        = 0,
-  BL_FONT_STYLE_OBLIQUE                       = 1,
-  BL_FONT_STYLE_ITALIC                        = 2,
-  BL_FONT_STYLE_COUNT                         = 3
+  BL_FONT_STYLE_NORMAL = 0,
+  BL_FONT_STYLE_OBLIQUE = 1,
+  BL_FONT_STYLE_ITALIC = 2,
+  BL_FONT_STYLE_COUNT = 3
 };
 enum BLFontWeight {
-  BL_FONT_WEIGHT_THIN                         = 100,
-  BL_FONT_WEIGHT_EXTRA_LIGHT                  = 200,
-  BL_FONT_WEIGHT_LIGHT                        = 300,
-  BL_FONT_WEIGHT_SEMI_LIGHT                   = 350,
-  BL_FONT_WEIGHT_NORMAL                       = 400,
-  BL_FONT_WEIGHT_MEDIUM                       = 500,
-  BL_FONT_WEIGHT_SEMI_BOLD                    = 600,
-  BL_FONT_WEIGHT_BOLD                         = 700,
-  BL_FONT_WEIGHT_EXTRA_BOLD                   = 800,
-  BL_FONT_WEIGHT_BLACK                        = 900,
-  BL_FONT_WEIGHT_EXTRA_BLACK                  = 950
+  BL_FONT_WEIGHT_THIN = 100,
+  BL_FONT_WEIGHT_EXTRA_LIGHT = 200,
+  BL_FONT_WEIGHT_LIGHT = 300,
+  BL_FONT_WEIGHT_SEMI_LIGHT = 350,
+  BL_FONT_WEIGHT_NORMAL = 400,
+  BL_FONT_WEIGHT_MEDIUM = 500,
+  BL_FONT_WEIGHT_SEMI_BOLD = 600,
+  BL_FONT_WEIGHT_BOLD = 700,
+  BL_FONT_WEIGHT_EXTRA_BOLD = 800,
+  BL_FONT_WEIGHT_BLACK = 900,
+  BL_FONT_WEIGHT_EXTRA_BLACK = 950
 };
 enum BLFontStringId {
-  BL_FONT_STRING_COPYRIGHT_NOTICE             = 0,
-  BL_FONT_STRING_FAMILY_NAME                  = 1,
-  BL_FONT_STRING_SUBFAMILY_NAME               = 2,
-  BL_FONT_STRING_UNIQUE_IDENTIFIER            = 3,
-  BL_FONT_STRING_FULL_NAME                    = 4,
-  BL_FONT_STRING_VERSION_STRING               = 5,
-  BL_FONT_STRING_POST_SCRIPT_NAME             = 6,
-  BL_FONT_STRING_TRADEMARK                    = 7,
-  BL_FONT_STRING_MANUFACTURER_NAME            = 8,
-  BL_FONT_STRING_DESIGNER_NAME                = 9,
-  BL_FONT_STRING_DESCRIPTION                  = 10,
-  BL_FONT_STRING_VENDOR_URL                   = 11,
-  BL_FONT_STRING_DESIGNER_URL                 = 12,
-  BL_FONT_STRING_LICENSE_DESCRIPTION          = 13,
-  BL_FONT_STRING_LICENSE_INFO_URL             = 14,
-  BL_FONT_STRING_RESERVED                     = 15,
-  BL_FONT_STRING_TYPOGRAPHIC_FAMILY_NAME      = 16,
-  BL_FONT_STRING_TYPOGRAPHIC_SUBFAMILY_NAME   = 17,
-  BL_FONT_STRING_COMPATIBLE_FULL_NAME         = 18,
-  BL_FONT_STRING_SAMPLE_TEXT                  = 19,
-  BL_FONT_STRING_POST_SCRIPT_CID_NAME         = 20,
-  BL_FONT_STRING_WWS_FAMILY_NAME              = 21,
-  BL_FONT_STRING_WWS_SUBFAMILY_NAME           = 22,
-  BL_FONT_STRING_LIGHT_BACKGROUND_PALETTE     = 23,
-  BL_FONT_STRING_DARK_BACKGROUND_PALETTE      = 24,
-  BL_FONT_STRING_VARIATIONS_POST_SCRIPT_PREFIX= 25,
-  BL_FONT_STRING_COMMON_COUNT                 = 26,
-  BL_FONT_STRING_CUSTOM_START_INDEX           = 255
+  BL_FONT_STRING_COPYRIGHT_NOTICE = 0,
+  BL_FONT_STRING_FAMILY_NAME = 1,
+  BL_FONT_STRING_SUBFAMILY_NAME = 2,
+  BL_FONT_STRING_UNIQUE_IDENTIFIER = 3,
+  BL_FONT_STRING_FULL_NAME = 4,
+  BL_FONT_STRING_VERSION_STRING = 5,
+  BL_FONT_STRING_POST_SCRIPT_NAME = 6,
+  BL_FONT_STRING_TRADEMARK = 7,
+  BL_FONT_STRING_MANUFACTURER_NAME = 8,
+  BL_FONT_STRING_DESIGNER_NAME = 9,
+  BL_FONT_STRING_DESCRIPTION = 10,
+  BL_FONT_STRING_VENDOR_URL = 11,
+  BL_FONT_STRING_DESIGNER_URL = 12,
+  BL_FONT_STRING_LICENSE_DESCRIPTION = 13,
+  BL_FONT_STRING_LICENSE_INFO_URL = 14,
+  BL_FONT_STRING_RESERVED = 15,
+  BL_FONT_STRING_TYPOGRAPHIC_FAMILY_NAME = 16,
+  BL_FONT_STRING_TYPOGRAPHIC_SUBFAMILY_NAME = 17,
+  BL_FONT_STRING_COMPATIBLE_FULL_NAME = 18,
+  BL_FONT_STRING_SAMPLE_TEXT = 19,
+  BL_FONT_STRING_POST_SCRIPT_CID_NAME = 20,
+  BL_FONT_STRING_WWS_FAMILY_NAME = 21,
+  BL_FONT_STRING_WWS_SUBFAMILY_NAME = 22,
+  BL_FONT_STRING_LIGHT_BACKGROUND_PALETTE = 23,
+  BL_FONT_STRING_DARK_BACKGROUND_PALETTE = 24,
+  BL_FONT_STRING_VARIATIONS_POST_SCRIPT_PREFIX = 25,
+  BL_FONT_STRING_COMMON_COUNT = 26,
+  BL_FONT_STRING_CUSTOM_START_INDEX = 255
 };
 enum BLFontUnicodeCoverageIndex {
   BL_FONT_UC_INDEX_BASIC_LATIN,                              
@@ -1224,9 +1237,11 @@ struct BLFontFaceInfo {
   uint8_t faceType;
   uint8_t outlineType;
   uint16_t glyphCount;
+  uint32_t revision;
   uint32_t faceIndex;
   uint32_t faceFlags;
   uint32_t diagFlags;
+  uint32_t reserved[3];
 };
 struct BLFontTable {
   const uint8_t* data;
@@ -1329,6 +1344,10 @@ struct BLFontMetrics {
   float lineGap;
   float xHeight;
   float capHeight;
+  float xMin;
+  float yMin;
+  float xMax;
+  float yMax;
   float underlinePosition;
   float underlineThickness;
   float strikethroughPosition;
@@ -1336,6 +1355,7 @@ struct BLFontMetrics {
 };
 struct BLFontDesignMetrics {
   int unitsPerEm;
+  int lowestPPEM;
   int lineGap;
   int xHeight;
   int capHeight;
@@ -1375,6 +1395,22 @@ struct BLFontDesignMetrics {
       int maxAdvanceByOrientation[2];
     };
   };
+  union {
+    
+    
+    
+    BLBoxI glyphBoundingBox;
+    struct {
+      
+      int xMin;
+      
+      int yMin;
+      
+      int xMax;
+      
+      int yMax;
+    };
+  };
   int underlinePosition;
   int underlineThickness;
   int strikethroughPosition;
@@ -1382,6 +1418,8 @@ struct BLFontDesignMetrics {
 };
 struct BLTextMetrics {
   BLPoint advance;
+  BLPoint leadingBearing;
+  BLPoint trailingBearing;
   BLBox boundingBox;
 };
 struct BLGlyphBufferImpl {
@@ -1475,7 +1513,7 @@ struct BLApproximationOptions {
   double simplifyTolerance;
   double offsetParameter;
 };
-__declspec(dllimport) const BLApproximationOptions blDefaultApproximationOptions;
+extern __declspec(dllimport) const BLApproximationOptions blDefaultApproximationOptions;
 struct BLStrokeOptionsCore {
   union {
     struct {
@@ -1499,6 +1537,12 @@ struct BLPathView {
   size_t size;
 };
 struct BLPathImpl {
+  size_t capacity;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  volatile uint32_t flags;
   union {
     struct {
       
@@ -1511,17 +1555,17 @@ struct BLPathImpl {
     
     BLPathView view;
   };
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  volatile uint32_t flags;
-  size_t capacity;
 };
 struct BLPathCore {
   BLPathImpl* impl;
 };
 struct BLStringImpl {
+  size_t capacity;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  uint32_t reserved;
   union {
     struct {
       
@@ -1532,60 +1576,34 @@ struct BLStringImpl {
     
     BLStringView view;
   };
-  size_t capacity;
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  uint8_t reserved[4];
 };
 struct BLStringCore {
   BLStringImpl* impl;
 };
 struct BLFontDataVirt {
   BLResult (__cdecl* destroy)(BLFontDataImpl* impl) ;
-  BLResult (__cdecl* listTags)(const BLFontDataImpl* impl, BLArrayCore* out) ;
-  size_t (__cdecl* queryTables)(const BLFontDataImpl* impl, BLFontTable* dst, const BLTag* tags, size_t n) ;
+  BLResult (__cdecl* listTags)(const BLFontDataImpl* impl, uint32_t faceIndex, BLArrayCore* out) ;
+  size_t (__cdecl* queryTables)(const BLFontDataImpl* impl, uint32_t faceIndex, BLFontTable* dst, const BLTag* tags, size_t n) ;
 };
 struct BLFontDataImpl {
   const BLFontDataVirt* virt;
-  void* data;
-  size_t size;
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  uint32_t flags;
-};
-struct BLFontDataCore {
-  BLFontDataImpl* impl;
-};
-struct BLFontLoaderVirt {
-  BLResult (__cdecl* destroy)(BLFontLoaderImpl* impl) ;
-  BLFontDataImpl* (__cdecl* dataByFaceIndex)(BLFontLoaderImpl* impl, uint32_t faceIndex) ;
-};
-struct BLFontLoaderImpl {
-  const BLFontLoaderVirt* virt;
-  void* data;
-  size_t size;
   volatile size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
   uint16_t memPoolData;
   uint8_t faceType;
+  uint8_t reserved[3];
   uint32_t faceCount;
-  uint32_t loaderFlags;
+  uint32_t flags;
 };
-struct BLFontLoaderCore {
-  BLFontLoaderImpl* impl;
+struct BLFontDataCore {
+  BLFontDataImpl* impl;
 };
 struct BLFontFaceVirt {
   BLResult (__cdecl* destroy)(BLFontFaceImpl* impl) ;
 };
 struct BLFontFaceImpl {
   const BLFontFaceVirt* virt;
-  BLFontDataCore data;
-  BLFontLoaderCore loader;
   volatile size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
@@ -1595,6 +1613,7 @@ struct BLFontFaceImpl {
   uint8_t style;
   BLFontFaceInfo faceInfo;
   uint64_t faceUniqueId;
+  BLFontDataCore data;
   BLStringCore fullName;
   BLStringCore familyName;
   BLStringCore subfamilyName;
@@ -1608,8 +1627,6 @@ struct BLFontFaceCore {
 };
 struct BLFontImpl {
   BLFontFaceCore face;
-  BLArrayCore features;
-  BLArrayCore variations;
   volatile size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
@@ -1617,6 +1634,8 @@ struct BLFontImpl {
   uint16_t weight;
   uint8_t stretch;
   uint8_t style;
+  BLArrayCore features;
+  BLArrayCore variations;
   BLFontMetrics metrics;
   BLFontMatrix matrix;
 };
@@ -1640,7 +1659,12 @@ enum BLFormatFlags {
   BL_FORMAT_FLAG_INDEXED = 0x00000010u,
   BL_FORMAT_FLAG_PREMULTIPLIED = 0x00000100u,
   BL_FORMAT_FLAG_BYTE_SWAP = 0x00000200u,
-  BL_FORMAT_FLAG_BYTE_ALIGNED = 0x00010000u
+  BL_FORMAT_FLAG_BYTE_ALIGNED = 0x00010000u,
+  BL_FORMAT_FLAG_UNDEFINED_BITS = 0x00020000u,
+  BL_FORMAT_FLAG_LE = (1234 == 1234) ? (uint32_t)0
+                                              : (uint32_t)BL_FORMAT_FLAG_BYTE_SWAP,
+  BL_FORMAT_FLAG_BE = (1234 == 4321) ? (uint32_t)0
+                                              : (uint32_t)BL_FORMAT_FLAG_BYTE_SWAP
 };
 struct BLFormatInfo {
   uint32_t depth;
@@ -1660,22 +1684,12 @@ struct BLFormatInfo {
       uint8_t bShift;
       uint8_t aShift;
     };
-    const BLRgba32* palette;
+    BLRgba32* palette;
   };
 };
-__declspec(dllimport) const BLFormatInfo blFormatInfo[BL_FORMAT_RESERVED_COUNT];
-enum BLImageCodecFeatures {
-  BL_IMAGE_CODEC_FEATURE_READ                 = 0x00000001u,
-  BL_IMAGE_CODEC_FEATURE_WRITE                = 0x00000002u,
-  BL_IMAGE_CODEC_FEATURE_LOSSLESS             = 0x00000004u,
-  BL_IMAGE_CODEC_FEATURE_LOSSY                = 0x00000008u,
-  BL_IMAGE_CODEC_FEATURE_MULTI_FRAME          = 0x00000010u,
-  BL_IMAGE_CODEC_FEATURE_IPTC                 = 0x10000000u,
-  BL_IMAGE_CODEC_FEATURE_EXIF                 = 0x20000000u,
-  BL_IMAGE_CODEC_FEATURE_XMP                  = 0x40000000u
-};
+extern __declspec(dllimport) const BLFormatInfo blFormatInfo[BL_FORMAT_RESERVED_COUNT];
 enum BLImageInfoFlags {
-  BL_IMAGE_INFO_FLAG_PROGRESSIVE              = 0x00000001u
+  BL_IMAGE_INFO_FLAG_PROGRESSIVE = 0x00000001u
 };
 enum BLImageScaleFilter {
   BL_IMAGE_SCALE_FILTER_NONE = 0,
@@ -1726,8 +1740,6 @@ struct BLImageScaleOptions {
 };
 struct BLImageImpl {
   void* pixelData;
-  intptr_t stride;
-  volatile void* writer;
   volatile size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
@@ -1736,71 +1748,10 @@ struct BLImageImpl {
   uint8_t flags;
   uint16_t depth;
   BLSizeI size;
+  intptr_t stride;
 };
 struct BLImageCore {
   BLImageImpl* impl;
-};
-struct BLImageCodecVirt {
-  BLResult (__cdecl* destroy)(BLImageCodecImpl* impl) ;
-  uint32_t (__cdecl* inspectData)(const BLImageCodecImpl* impl, const uint8_t* data, size_t size) ;
-  BLResult (__cdecl* createDecoder)(const BLImageCodecImpl* impl, BLImageDecoderCore* dst) ;
-  BLResult (__cdecl* createEncoder)(const BLImageCodecImpl* impl, BLImageEncoderCore* dst) ;
-};
-struct BLImageCodecImpl {
-  const BLImageCodecVirt* virt;
-  const char* name;
-  const char* vendor;
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  uint32_t features;
-  const char* mimeType;
-  const char* extensions;
-};
-struct BLImageCodecCore {
-  BLImageCodecImpl* impl;
-};
-struct BLImageDecoderVirt {
-  BLResult (__cdecl* destroy)(BLImageDecoderImpl* impl) ;
-  BLResult (__cdecl* restart)(BLImageDecoderImpl* impl) ;
-  BLResult (__cdecl* readInfo)(BLImageDecoderImpl* impl, BLImageInfo* infoOut, const uint8_t* data, size_t size) ;
-  BLResult (__cdecl* readFrame)(BLImageDecoderImpl* impl, BLImageCore* imageOut, const uint8_t* data, size_t size) ;
-};
-struct BLImageDecoderImpl {
-  const BLImageDecoderVirt* virt;
-  BLImageCodecCore codec;
-  void* handle;
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  BLResult lastResult;
-  uint64_t frameIndex;
-  size_t bufferIndex;
-};
-struct BLImageDecoderCore {
-  BLImageDecoderImpl* impl;
-};
-struct BLImageEncoderVirt {
-  BLResult (__cdecl* destroy)(BLImageEncoderImpl* impl) ;
-  BLResult (__cdecl* restart)(BLImageEncoderImpl* impl) ;
-  BLResult (__cdecl* writeFrame)(BLImageEncoderImpl* impl, BLArrayCore* dst, const BLImageCore* image) ;
-};
-struct BLImageEncoderImpl {
-  const BLImageEncoderVirt* virt;
-  BLImageCodecCore codec;
-  void* handle;
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  BLResult lastResult;
-  uint64_t frameIndex;
-  size_t bufferIndex;
-};
-struct BLImageEncoderCore {
-  BLImageEncoderImpl* impl;
 };
 typedef BLResult (__cdecl* BLMapPointDArrayFunc)(const void* ctx, BLPoint* dst, const BLPoint* src, size_t count) ;
 enum BLMatrix2DType {
@@ -1853,7 +1804,7 @@ struct BLMatrix2D {
     };
   };
 };
-__declspec(dllimport) BLMapPointDArrayFunc blMatrix2DMapPointDArrayFuncs[BL_MATRIX2D_TYPE_COUNT];
+extern __declspec(dllimport) BLMapPointDArrayFunc blMatrix2DMapPointDArrayFuncs[BL_MATRIX2D_TYPE_COUNT];
 struct BLRgba32 {
   union {
     uint32_t value;
@@ -1893,6 +1844,12 @@ enum BLRegionType {
   BL_REGION_TYPE_COUNT = 3
 };
 struct BLRegionImpl {
+  size_t capacity;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  uint8_t reserved[4];
   union {
     struct {
       
@@ -1903,12 +1860,6 @@ struct BLRegionImpl {
     
     BLRegionView view;
   };
-  size_t capacity;
-  volatile size_t refCount;
-  uint8_t implType;
-  uint8_t implTraits;
-  uint16_t memPoolData;
-  uint8_t reserved[4];
   BLBoxI boundingBox;
 };
 struct BLRegionCore {
@@ -2085,14 +2036,13 @@ struct BLContextVirt {
 };
 struct BLContextImpl {
   const BLContextVirt* virt;
-  const BLContextState* state;
-  void* reservedHeader;
   volatile size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
   uint16_t memPoolData;
   uint32_t contextType;
   BLSize targetSize;
+  const BLContextState* state;
 };
 struct BLContextCore {
   BLContextImpl* impl;
@@ -2123,6 +2073,20 @@ enum BLFileReadFlags {
 };
 struct BLFileCore {
   intptr_t handle;
+};
+struct BLFontManagerVirt {
+  BLResult (__cdecl* destroy)(BLFontManagerImpl* impl) ;
+};
+struct BLFontManagerImpl {
+  const BLFontManagerVirt* virt;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  uint8_t reserved[4];
+};
+struct BLFontManagerCore {
+  BLFontManagerImpl* impl;
 };
 enum BLGradientType {
   BL_GRADIENT_TYPE_LINEAR = 0,
@@ -2162,17 +2126,8 @@ struct BLConicalGradientValues {
   double angle;
 };
 struct BLGradientImpl {
-  union {
-    struct {
-      
-      BLGradientStop* stops;
-      
-      size_t size;
-    };
-    BLArrayView values;
-  };
   size_t capacity;
-  size_t refCount;
+  volatile size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
   uint16_t memPoolData;
@@ -2180,6 +2135,15 @@ struct BLGradientImpl {
   uint8_t extendMode;
   uint8_t matrixType;
   uint8_t reserved[1];
+  union {
+    struct {
+      
+      BLGradientStop* stops;
+      
+      size_t size;
+    };
+    
+  };
   BLMatrix2D matrix;
   union {
     
@@ -2195,9 +2159,80 @@ struct BLGradientImpl {
 struct BLGradientCore {
   BLGradientImpl* impl;
 };
+enum BLImageCodecFeatures {
+  BL_IMAGE_CODEC_FEATURE_READ = 0x00000001u,
+  BL_IMAGE_CODEC_FEATURE_WRITE = 0x00000002u,
+  BL_IMAGE_CODEC_FEATURE_LOSSLESS = 0x00000004u,
+  BL_IMAGE_CODEC_FEATURE_LOSSY = 0x00000008u,
+  BL_IMAGE_CODEC_FEATURE_MULTI_FRAME = 0x00000010u,
+  BL_IMAGE_CODEC_FEATURE_IPTC = 0x10000000u,
+  BL_IMAGE_CODEC_FEATURE_EXIF = 0x20000000u,
+  BL_IMAGE_CODEC_FEATURE_XMP = 0x40000000u
+};
+struct BLImageCodecVirt {
+  BLResult (__cdecl* destroy)(BLImageCodecImpl* impl) ;
+  uint32_t (__cdecl* inspectData)(const BLImageCodecImpl* impl, const uint8_t* data, size_t size) ;
+  BLResult (__cdecl* createDecoder)(const BLImageCodecImpl* impl, BLImageDecoderCore* dst) ;
+  BLResult (__cdecl* createEncoder)(const BLImageCodecImpl* impl, BLImageEncoderCore* dst) ;
+};
+struct BLImageCodecImpl {
+  const BLImageCodecVirt* virt;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  uint32_t features;
+  const char* name;
+  const char* vendor;
+  const char* mimeType;
+  const char* extensions;
+};
+struct BLImageCodecCore {
+  BLImageCodecImpl* impl;
+};
+struct BLImageDecoderVirt {
+  BLResult (__cdecl* destroy)(BLImageDecoderImpl* impl) ;
+  BLResult (__cdecl* restart)(BLImageDecoderImpl* impl) ;
+  BLResult (__cdecl* readInfo)(BLImageDecoderImpl* impl, BLImageInfo* infoOut, const uint8_t* data, size_t size) ;
+  BLResult (__cdecl* readFrame)(BLImageDecoderImpl* impl, BLImageCore* imageOut, const uint8_t* data, size_t size) ;
+};
+struct BLImageDecoderImpl {
+  const BLImageDecoderVirt* virt;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  BLResult lastResult;
+  BLImageCodecCore codec;
+  void* handle;
+  uint64_t frameIndex;
+  size_t bufferIndex;
+};
+struct BLImageDecoderCore {
+  BLImageDecoderImpl* impl;
+};
+struct BLImageEncoderVirt {
+  BLResult (__cdecl* destroy)(BLImageEncoderImpl* impl) ;
+  BLResult (__cdecl* restart)(BLImageEncoderImpl* impl) ;
+  BLResult (__cdecl* writeFrame)(BLImageEncoderImpl* impl, BLArrayCore* dst, const BLImageCore* image) ;
+};
+struct BLImageEncoderImpl {
+  const BLImageEncoderVirt* virt;
+  volatile size_t refCount;
+  uint8_t implType;
+  uint8_t implTraits;
+  uint16_t memPoolData;
+  BLResult lastResult;
+  BLImageCodecCore codec;
+  void* handle;
+  uint64_t frameIndex;
+  size_t bufferIndex;
+};
+struct BLImageEncoderCore {
+  BLImageEncoderImpl* impl;
+};
 struct BLPatternImpl {
   BLImageCore image;
-  void* reservedHeader[2];
   volatile size_t refCount;
   uint8_t implType;
   uint8_t implTraits;
@@ -2217,16 +2252,25 @@ typedef BLResult (__cdecl* BLPixelConverterFunc)(
   uint8_t* dstData, intptr_t dstStride,
   const uint8_t* srcData, intptr_t srcStride,
   uint32_t w, uint32_t h, const BLPixelConverterOptions* options) ;
+enum BLPixelConverterCreateFlags {
+  BL_PIXEL_CONVERTER_CREATE_FLAG_DONT_COPY_PALETTE = 0x00000001u,
+  BL_PIXEL_CONVERTER_CREATE_FLAG_ALTERABLE_PALETTE = 0x00000002u,
+  BL_PIXEL_CONVERTER_CREATE_FLAG_NO_MULTI_STEP = 0x00000004u
+};
 struct BLPixelConverterOptions {
   BLPointI origin;
   size_t gap;
 };
 struct BLPixelConverterCore {
-  BLPixelConverterFunc convertFunc;
   union {
-    uint8_t strategy;
+    struct {
+      
+      BLPixelConverterFunc convertFunc;
+      
+      uint8_t internalFlags;
+    };
     
-    uint8_t data[64];
+    uint8_t data[80];
   };
 };
 struct BLRandom {
