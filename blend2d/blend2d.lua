@@ -198,44 +198,6 @@ local BLFile_mt = {
 ffi.metatype(BLFile, BLFile_mt)
 
 
---[[
-    BLFontLoader
-]]
---[=[
-BLFontLoader = ffi.typeof("struct BLFontLoaderCore")
-BLFontLoader_mt = {
-  __gc = function(self)
-    blapi.blFontLoaderReset(self);
-  end;
-
-  __index = {
-    -- Meant to be called as: BLFontLoader:createFromFile(filename)
-    createFromFile = function(ct, filename)
-      local obj = ffi.new(ct);
-      local bResult = blapi.blFontLoaderInit(obj);
-      if bResult ~= C.BL_SUCCESS then
-        return nil, bResult
-      end
-
-      local readFlags =  C.BL_FILE_OPEN_READ
-      bResult = blapi.blFontLoaderCreateFromFile(obj, filename, readFlags) ;
-      if bResult ~= C.BL_SUCCESS then
-        return nil, bResult
-      end
-
-      return obj;
-    end;
-
-    dataByIndex = function(self, faceIndex)
-      --BLFontDataImpl* __cdecl blFontLoaderDataByFaceIndex(BLFontLoaderCore* self, uint32_t faceIndex) ;
-      local impl = blapi.blFontLoaderDataByFaceIndex(self, faceIndex) ;
-
-    end;
-  };
-}
-ffi.metatype(BLFontLoader, BLFontLoader_mt)
---]=]
-
 
 --[[
     BLFontFace

@@ -171,8 +171,8 @@ local function test_concat()
     print("SCALE(2,2)")
     print(m2)
     
-    print("CONCAT(m1,m4")
-    m1:concatenate(m2)
+    print("CONCAT(m1,m4)")
+    m1:concat(m2)
     print(m1)
 
 end

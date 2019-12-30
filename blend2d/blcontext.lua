@@ -412,7 +412,7 @@ local  BLContext = ffi.typeof("struct BLContextCore")
     
             return false, bResult;
           end;
-    
+
           clearRect = function(self, rect)
             local bResult = self.impl.virt.clearRectD(self.impl, rect);
             if bResult == C.BL_SUCCESS then

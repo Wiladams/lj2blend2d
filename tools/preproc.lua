@@ -13,30 +13,30 @@ then
     copy c:\repos\blendwsp\blend2d\src\blend2d\blapi.h blend2d
 
     Copy the rest of the interesting header files into that directory
-    blapi.h
-    blarray.
-    blbitarray.h
-    blcontext.h
-    blfilesystem.h
-    blfont.h
-    blfontdefs.h
+    api.h
+    array.h
+    bitarray.h
+    context.h
+    filesystem.h
+    font.h
+    fontdefs.h
     fontmanager.h
-    blformat.h
-    blgeometry.h
-    blglyphbuffer.h
-    blgradient.h
-    blimage.h
+    format.h
+    geometry.h
+    glyphbuffer.h
+    gradient.h
+    image.h
     imagecodec.h
-    blmatrix.h
-    blpath.h
-    blpattern.h
-    blpixelconverter.h
-    blrandom.h
-    blregion.h
-    blrgba.h
-    blruntime.h
-    blstring.h
-    blvariant.h
+    matrix.h
+    path.h
+    pattern.h
+    pixelconverter.h
+    random.h
+    region.h
+    rgba.h
+    runtime.h
+    string.h
+    variant.h
     
 -- cl /E blend2d.h > blend2d_ffi.txt
 

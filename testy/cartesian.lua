@@ -1,6 +1,7 @@
 --[[
     Representation of cartesian coordinate system
 ]]
+local sqrt = math.sqrt
 
 local vectypes = require("vectypes")
 local double2 = vectypes.double2

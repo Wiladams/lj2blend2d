@@ -27,6 +27,7 @@ local fontFiles = {
 
 
 local function test_class()
+    print("==== test_class ====")
     local f = BLFile()
     print("f:open(): ", f:open("texture.jpeg", BL_FILE_OPEN_READ))
     print("f:size(): ", f:size())
@@ -40,10 +41,12 @@ local function test_class()
 end
 
 local function test_API()
-    local f = ffi.new("BLFile")
+    print("==== test_API ====")
+    local f = ffi.new("struct BLFileCore")
 end
 
 local function test_readfonts()
+    print("==== test_readfonts ====")
     for _,fontname in ipairs(fontFiles) do
         local  f = BLFile()
         local fullName = fontDir..fontname
@@ -59,5 +62,5 @@ local function test_readfonts()
 end
 
 --test_class()
---test_API()
+test_API()
 test_readfonts()
