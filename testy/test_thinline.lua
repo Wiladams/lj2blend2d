@@ -6,18 +6,23 @@ local C = ffi.C
 
 local blapi = require("blend2d.blend2d")
 
-local function inch(c) return 72 * c end
+local DPI = 96
+
 local red = BLRgba32() red.r = 255; red.a = 255;
 local black = BLRgba32() black.a = 255;
 local white = BLRgba32() white.r = 255; white.g = 255; white.b = 255; white.a = 255;
 
+local function inch(c) return math.floor(DPI * c) end
+
+local pageWidth = inch(8.5)
+local pageHeight = inch(11)
 
 local function crosshair(ctx)
     local path = BLPath()
-    path:moveTo(-72,0)
-    path:lineTo(72, 0)
-    path:moveTo(0,72)
-    path:lineTo(0, -72)
+    path:moveTo(-inch(1),0)
+    path:lineTo(inch(1), 0)
+    path:moveTo(0,inch(1))
+    path:lineTo(0, -inch(1))
     
 
     ctx:setStrokeStyleRgba32(black.value)
@@ -26,11 +31,8 @@ local function crosshair(ctx)
     ctx:strokePathD(path)
 end
 
-
-
-
 local function main()
-    local img = BLImage(8.5*192,11*192)
+    local img = BLImage(inch(8.5),inch(11))
     local ctx = BLContext(img)
 
     -- fill with black initially
@@ -40,8 +42,7 @@ local function main()
 
     -- Create a red color for fill and stroke
 
-    ctx:translate(inch(4.25), inch(5.5))
-    --ctx:scale(inch(1), inch(1))
+    ctx:translate(pageWidth/2, pageHeight/2)
 
     crosshair(ctx)
 
