@@ -1,5 +1,4 @@
 local ffi = require("ffi")
-
 ffi.cdef[[
 typedef struct BLRange BLRange;
 typedef struct BLRandom BLRandom;
@@ -74,7 +73,6 @@ typedef struct BLContextState BLContextState;
 typedef struct BLGlyphBufferCore BLGlyphBufferCore;
 typedef struct BLGlyphBufferImpl BLGlyphBufferImpl;
 typedef struct BLGlyphInfo BLGlyphInfo;
-typedef struct BLGlyphItem BLGlyphItem;
 typedef struct BLGlyphMappingState BLGlyphMappingState;
 typedef struct BLGlyphOutlineSinkInfo BLGlyphOutlineSinkInfo;
 typedef struct BLGlyphPlacement BLGlyphPlacement;
@@ -106,7 +104,6 @@ typedef uintptr_t BLBitWord;
 typedef uint32_t BLTag;
 typedef void (__cdecl* BLDestroyImplFunc)(void* impl, void* destroyData) ;
 typedef BLResult (__cdecl* BLPathSinkFunc)(BLPathCore* path, const void* info, void* closure) ;
-typedef uint16_t BLGlyphId;
 enum BLResultCode {
   BL_SUCCESS = 0,
   BL_ERROR_START_INDEX = 0x00010000u,
@@ -316,7 +313,9 @@ __declspec(dllimport) BLResult __cdecl blContextInitAs(BLContextCore* self, BLIm
 __declspec(dllimport) BLResult __cdecl blContextReset(BLContextCore* self) ;
 __declspec(dllimport) BLResult __cdecl blContextAssignMove(BLContextCore* self, BLContextCore* other) ;
 __declspec(dllimport) BLResult __cdecl blContextAssignWeak(BLContextCore* self, const BLContextCore* other) ;
-__declspec(dllimport) BLResult __cdecl blContextGetType(const BLContextCore* self) ;
+__declspec(dllimport) uint32_t __cdecl blContextGetType(const BLContextCore* self) ;
+__declspec(dllimport) BLResult __cdecl blContextGetTargetSize(const BLContextCore* self, BLSize* targetSizeOut) ;
+__declspec(dllimport) BLImageCore* __cdecl blContextGetTargetImage(const BLContextCore* self) ;
 __declspec(dllimport) BLResult __cdecl blContextBegin(BLContextCore* self, BLImageCore* image, const BLContextCreateInfo* options) ;
 __declspec(dllimport) BLResult __cdecl blContextEnd(BLContextCore* self) ;
 __declspec(dllimport) BLResult __cdecl blContextFlush(BLContextCore* self, uint32_t flags) ;
@@ -412,8 +411,8 @@ __declspec(dllimport) BLResult __cdecl blFontGetMatrix(const BLFontCore* self, B
 __declspec(dllimport) BLResult __cdecl blFontGetMetrics(const BLFontCore* self, BLFontMetrics* out) ;
 __declspec(dllimport) BLResult __cdecl blFontGetDesignMetrics(const BLFontCore* self, BLFontDesignMetrics* out) ;
 __declspec(dllimport) BLResult __cdecl blFontGetTextMetrics(const BLFontCore* self, BLGlyphBufferCore* gb, BLTextMetrics* out) ;
-__declspec(dllimport) BLResult __cdecl blFontGetGlyphBounds(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLBoxI* out, size_t count) ;
-__declspec(dllimport) BLResult __cdecl blFontGetGlyphAdvances(const BLFontCore* self, const void* glyphIdData, intptr_t glyphIdAdvance, BLGlyphPlacement* out, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blFontGetGlyphBounds(const BLFontCore* self, const uint32_t* glyphData, intptr_t glyphAdvance, BLBoxI* out, size_t count) ;
+__declspec(dllimport) BLResult __cdecl blFontGetGlyphAdvances(const BLFontCore* self, const uint32_t* glyphData, intptr_t glyphAdvance, BLGlyphPlacement* out, size_t count) ;
 __declspec(dllimport) BLResult __cdecl blFontGetGlyphOutlines(const BLFontCore* self, uint32_t glyphId, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
 __declspec(dllimport) BLResult __cdecl blFontGetGlyphRunOutlines(const BLFontCore* self, const BLGlyphRun* glyphRun, const BLMatrix2D* userMatrix, BLPathCore* out, BLPathSinkFunc sink, void* closure) ;
 __declspec(dllimport) BLResult __cdecl blFontDataInit(BLFontDataCore* self) ;
@@ -441,6 +440,7 @@ __declspec(dllimport) BLResult __cdecl blFontManagerReset(BLFontManagerCore* sel
 __declspec(dllimport) BLResult __cdecl blFontManagerAssignMove(BLFontManagerCore* self, BLFontManagerCore* other) ;
 __declspec(dllimport) BLResult __cdecl blFontManagerAssignWeak(BLFontManagerCore* self, const BLFontManagerCore* other) ;
 __declspec(dllimport) _Bool __cdecl blFontManagerEquals(const BLFontManagerCore* a, const BLFontManagerCore* b) ;
+__declspec(dllimport) BLResult __cdecl blFormatInfoQuery(BLFormatInfo* self, uint32_t format) ;
 __declspec(dllimport) BLResult __cdecl blFormatInfoSanitize(BLFormatInfo* self) ;
 __declspec(dllimport) BLResult __cdecl blGlyphBufferInit(BLGlyphBufferCore* self) ;
 __declspec(dllimport) BLResult __cdecl blGlyphBufferInitMove(BLGlyphBufferCore* self, BLGlyphBufferCore* other) ;
@@ -449,8 +449,12 @@ __declspec(dllimport) BLResult __cdecl blGlyphBufferClear(BLGlyphBufferCore* sel
 __declspec(dllimport) size_t __cdecl blGlyphBufferGetSize(const BLGlyphBufferCore* self)  ;
 __declspec(dllimport) uint32_t __cdecl blGlyphBufferGetFlags(const BLGlyphBufferCore* self)  ;
 __declspec(dllimport) const BLGlyphRun* __cdecl blGlyphBufferGetGlyphRun(const BLGlyphBufferCore* self)  ;
-__declspec(dllimport) BLResult __cdecl blGlyphBufferSetText(BLGlyphBufferCore* self, const void* data, size_t size, uint32_t encoding) ;
-__declspec(dllimport) BLResult __cdecl blGlyphBufferSetGlyphIds(BLGlyphBufferCore* self, const void* data, intptr_t advance, size_t size) ;
+__declspec(dllimport) const uint32_t* __cdecl blGlyphBufferGetContent(const BLGlyphBufferCore* self)  ;
+__declspec(dllimport) const BLGlyphInfo* __cdecl blGlyphBufferGetInfoData(const BLGlyphBufferCore* self)  ;
+__declspec(dllimport) const BLGlyphPlacement* __cdecl blGlyphBufferGetPlacementData(const BLGlyphBufferCore* self)  ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferSetText(BLGlyphBufferCore* self, const void* textData, size_t size, uint32_t encoding) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferSetGlyphs(BLGlyphBufferCore* self, const uint32_t* glyphData, size_t size) ;
+__declspec(dllimport) BLResult __cdecl blGlyphBufferSetGlyphsFromStruct(BLGlyphBufferCore* self, const void* glyphData, size_t size, size_t glyphIdSize, intptr_t glyphIdAdvance) ;
 __declspec(dllimport) BLResult __cdecl blGradientInit(BLGradientCore* self) ;
 __declspec(dllimport) BLResult __cdecl blGradientInitAs(BLGradientCore* self, uint32_t type, const void* values, uint32_t extendMode, const BLGradientStop* stops, size_t n, const BLMatrix2D* m) ;
 __declspec(dllimport) BLResult __cdecl blGradientReset(BLGradientCore* self) ;
@@ -569,6 +573,7 @@ __declspec(dllimport) BLResult __cdecl blPathAddTranslatedPath(BLPathCore* self,
 __declspec(dllimport) BLResult __cdecl blPathAddTransformedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLMatrix2D* m) ;
 __declspec(dllimport) BLResult __cdecl blPathAddReversedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, uint32_t reverseMode) ;
 __declspec(dllimport) BLResult __cdecl blPathAddStrokedPath(BLPathCore* self, const BLPathCore* other, const BLRange* range, const BLStrokeOptionsCore* options, const BLApproximationOptions* approx) ;
+__declspec(dllimport) BLResult __cdecl blPathRemoveRange(BLPathCore* self, const BLRange* range) ;
 __declspec(dllimport) BLResult __cdecl blPathTranslate(BLPathCore* self, const BLRange* range, const BLPoint* p) ;
 __declspec(dllimport) BLResult __cdecl blPathTransform(BLPathCore* self, const BLRange* range, const BLMatrix2D* m) ;
 __declspec(dllimport) BLResult __cdecl blPathFitTo(BLPathCore* self, const BLRange* range, const BLRect* rect, uint32_t fitFlags) ;
@@ -890,9 +895,6 @@ struct BLArc {
   double start;
   double sweep;
 };
-enum BLGlyphItemFlags {
-  BL_GLYPH_ITEM_FLAG_MARK = 0x80000000u
-};
 enum BLGlyphPlacementType {
   BL_GLYPH_PLACEMENT_TYPE_NONE = 0,
   BL_GLYPH_PLACEMENT_TYPE_ADVANCE_OFFSET = 1,
@@ -901,10 +903,10 @@ enum BLGlyphPlacementType {
   BL_GLYPH_PLACEMENT_TYPE_ABSOLUTE_UNITS = 4
 };
 enum BLGlyphRunFlags {
-  BL_GLYPH_RUN_FLAG_UCS4_CONTENT              = 0x10000000u,
-  BL_GLYPH_RUN_FLAG_INVALID_TEXT              = 0x20000000u,
-  BL_GLYPH_RUN_FLAG_UNDEFINED_GLYPHS          = 0x40000000u,
-  BL_GLYPH_RUN_FLAG_INVALID_FONT_DATA         = 0x80000000u
+  BL_GLYPH_RUN_FLAG_UCS4_CONTENT = 0x10000000u,
+  BL_GLYPH_RUN_FLAG_INVALID_TEXT = 0x20000000u,
+  BL_GLYPH_RUN_FLAG_UNDEFINED_GLYPHS = 0x40000000u,
+  BL_GLYPH_RUN_FLAG_INVALID_FONT_DATA = 0x80000000u
 };
 enum BLFontDataFlags {
   BL_FONT_DATA_FLAG_COLLECTION = 0x00000001u
@@ -1195,17 +1197,6 @@ enum BLTextOrientation {
   BL_TEXT_ORIENTATION_VERTICAL = 1,
   BL_TEXT_ORIENTATION_COUNT = 2
 };
-struct BLGlyphItem {
-  union {
-    uint32_t value;
-    struct {
-    
-      BLGlyphId glyphId;
-      uint16_t reserved;
-    
-    };
-  };
-};
 struct BLGlyphInfo {
   uint32_t cluster;
   uint32_t reserved[2];
@@ -1224,12 +1215,12 @@ struct BLGlyphOutlineSinkInfo {
   size_t contourCount;
 };
 struct BLGlyphRun {
-  void* glyphIdData;
+  void* glyphData;
   void* placementData;
   size_t size;
-  uint8_t glyphIdSize;
+  uint8_t glyphSize;
   uint8_t placementType;
-  int8_t glyphIdAdvance;
+  int8_t glyphAdvance;
   int8_t placementAdvance;
   uint32_t flags;
 };
@@ -1426,7 +1417,7 @@ struct BLGlyphBufferImpl {
   union {
     struct {
       
-      BLGlyphItem* glyphItemData;
+      uint32_t* content;
       
       BLGlyphPlacement* placementData;
       
@@ -1437,9 +1428,15 @@ struct BLGlyphBufferImpl {
       uint32_t flags;
     };
     
+    
+    
+    
+    
+    
+    
     BLGlyphRun glyphRun;
   };
-  BLGlyphInfo* glyphInfoData;
+  BLGlyphInfo* infoData;
 };
 struct BLGlyphBufferCore {
   BLGlyphBufferImpl* impl;
@@ -1913,21 +1910,22 @@ enum BLCompOp {
   BL_COMP_OP_CLEAR = 11,
   BL_COMP_OP_PLUS = 12,
   BL_COMP_OP_MINUS = 13,
-  BL_COMP_OP_MULTIPLY = 14,
-  BL_COMP_OP_SCREEN = 15,
-  BL_COMP_OP_OVERLAY = 16,
-  BL_COMP_OP_DARKEN = 17,
-  BL_COMP_OP_LIGHTEN = 18,
-  BL_COMP_OP_COLOR_DODGE = 19,
-  BL_COMP_OP_COLOR_BURN = 20,
-  BL_COMP_OP_LINEAR_BURN = 21,
-  BL_COMP_OP_LINEAR_LIGHT = 22,
-  BL_COMP_OP_PIN_LIGHT = 23,
-  BL_COMP_OP_HARD_LIGHT = 24,
-  BL_COMP_OP_SOFT_LIGHT = 25,
-  BL_COMP_OP_DIFFERENCE = 26,
-  BL_COMP_OP_EXCLUSION = 27,
-  BL_COMP_OP_COUNT = 28
+  BL_COMP_OP_MODULATE = 14,
+  BL_COMP_OP_MULTIPLY = 15,
+  BL_COMP_OP_SCREEN = 16,
+  BL_COMP_OP_OVERLAY = 17,
+  BL_COMP_OP_DARKEN = 18,
+  BL_COMP_OP_LIGHTEN = 19,
+  BL_COMP_OP_COLOR_DODGE = 20,
+  BL_COMP_OP_COLOR_BURN = 21,
+  BL_COMP_OP_LINEAR_BURN = 22,
+  BL_COMP_OP_LINEAR_LIGHT = 23,
+  BL_COMP_OP_PIN_LIGHT = 24,
+  BL_COMP_OP_HARD_LIGHT = 25,
+  BL_COMP_OP_SOFT_LIGHT = 26,
+  BL_COMP_OP_DIFFERENCE = 27,
+  BL_COMP_OP_EXCLUSION = 28,
+  BL_COMP_OP_COUNT = 29
 };
 enum BLGradientQuality {
   BL_GRADIENT_QUALITY_NEAREST = 0,
@@ -1962,6 +1960,8 @@ struct BLContextHints {
   };
 };
 struct BLContextState {
+  BLImageCore targetImage;
+  BLSize targetSize;
   BLContextHints hints;
   uint8_t compOp;
   uint8_t fillRule;
@@ -1990,9 +1990,9 @@ struct BLContextVirt {
   BLResult (__cdecl* setCompOp              )(BLContextImpl* impl, uint32_t compOp) ;
   BLResult (__cdecl* setGlobalAlpha         )(BLContextImpl* impl, double alpha) ;
   BLResult (__cdecl* setStyleAlpha[2]       )(BLContextImpl* impl, double alpha) ;
-  BLResult (__cdecl* getStyle[2]            )(BLContextImpl* impl, void* object) ;
-  BLResult (__cdecl* getStyleRgba32[2]      )(BLContextImpl* impl, uint32_t* rgba32) ;
-  BLResult (__cdecl* getStyleRgba64[2]      )(BLContextImpl* impl, uint64_t* rgba64) ;
+  BLResult (__cdecl* getStyle[2]            )(const BLContextImpl* impl, void* object) ;
+  BLResult (__cdecl* getStyleRgba32[2]      )(const BLContextImpl* impl, uint32_t* rgba32) ;
+  BLResult (__cdecl* getStyleRgba64[2]      )(const BLContextImpl* impl, uint64_t* rgba64) ;
   BLResult (__cdecl* setStyle[2]            )(BLContextImpl* impl, const void* object) ;
   BLResult (__cdecl* setStyleRgba32[2]      )(BLContextImpl* impl, uint32_t rgba32) ;
   BLResult (__cdecl* setStyleRgba64[2]      )(BLContextImpl* impl, uint64_t rgba64) ;
@@ -2041,7 +2041,6 @@ struct BLContextImpl {
   uint8_t implTraits;
   uint16_t memPoolData;
   uint32_t contextType;
-  BLSize targetSize;
   const BLContextState* state;
 };
 struct BLContextCore {

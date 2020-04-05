@@ -1,7 +1,10 @@
+--[[
+  NOTE:  THIS IS NOT WORKING YET
+--]]
 local ffi = require("ffi")
 local C = ffi.C 
 
-local b2d = require("blend2d.blend2d")
+local b2d = require("blend2d.b2d")
 
 
 local function  main()

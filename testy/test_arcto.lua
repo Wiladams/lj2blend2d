@@ -120,4 +120,4 @@ _applyMatrixOpV(ctx, C.BL_MATRIX2D_OP_TRANSLATE, 36, 36)
 drawFill()
 drawStroke()
 
-BLImageCodec("BMP"):writeImageToFile(img, "output/test_flip.bmp")
+BLImageCodec("BMP"):writeImageToFile(img, "output/test_arcto.bmp")

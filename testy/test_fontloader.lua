@@ -4,7 +4,6 @@ local ffi = require("ffi")
 local C = ffi.C 
 
 local blapi = require("blend2d.blend2d")
-local errors = require("blerror")
 local fsys = require("filesystem")
 local FileSystem = fsys.FileSystem;
 local FileSystemItem = fsys.FileSystemItem;
@@ -69,12 +68,5 @@ local function test_fontloader()
     end 
 end
 
---[[
-local function test_errors()
-    for k,v in pairs(errors) do
-        print(k,v)
-    end
-end
---]]
 
 test_fontloader()

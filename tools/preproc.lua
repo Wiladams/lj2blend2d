@@ -5,12 +5,12 @@
 -- first do this
     copy the blend2d.h file into this directory
 
-    copy c:\repos\blendwsp\blend2d\src\blend2d.h .
+    copy d:\repos\blending\blend2d\src\blend2d.h .
 
 then
     mkdir blend2d
 
-    copy c:\repos\blendwsp\blend2d\src\blend2d\blapi.h blend2d
+    copy \repos\blending\blend2d\src\blend2d\api.h blend2d
 
     Copy the rest of the interesting header files into that directory
     api.h
