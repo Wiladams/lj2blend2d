@@ -3,7 +3,6 @@
 local ffi = require("ffi")
 local C = ffi.C 
 
-
 local b2d = require("blend2d.b2d")
 
 local function main()
@@ -33,9 +32,7 @@ local function main()
   ctx:fillRoundRect(BLRoundRect(40.0, 40.0, 400.0, 400.0, 45.5, 45.5));
   ctx:finish();
 
-
   BLImageCodec("BMP"):writeImageToFile(img, "output/bl-getting-started-2.bmp")
-
 end
 
 main()

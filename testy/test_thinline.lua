@@ -4,7 +4,7 @@ local ffi = require("ffi")
 local C = ffi.C 
 
 
-local blapi = require("blend2d.blend2d")
+local blapi = require("blend2d.b2d")
 
 local DPI = 96
 

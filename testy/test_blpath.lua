@@ -1,6 +1,6 @@
 package.path = "../?.lua;"..package.path;
 
-local b2d = require("blend2d.blend2d")
+local b2d = require("blend2d.b2d")
 
 local path, err = BLPath();
 print(path, err)

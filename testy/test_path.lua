@@ -4,7 +4,7 @@ local ffi = require("ffi")
 local C = ffi.C 
 
 
-local blapi = require("blend2d.blend2d")
+local blapi = require("blend2d.b2d")
 
 local function inch(c) return 72 * c end
 local red = BLRgba32() red.r = 255; red.a = 255;

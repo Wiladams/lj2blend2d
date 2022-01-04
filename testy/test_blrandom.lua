@@ -1,6 +1,6 @@
 package.path = "../?.lua;"..package.path;
 
-require("blend2d.blend2d")
+require("blend2d.b2d")
 
 local rnd = BLRandom();
 

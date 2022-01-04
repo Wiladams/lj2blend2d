@@ -164,9 +164,10 @@ local  BLContext = ffi.typeof("struct BLContextCore")
           end;
     
     
+          -- use this one when there is a single parameter
           _applyMatrixOp = function(self, opType, opData)
-            local bResult= self.impl.virt.matrixOp(self.impl, opType, opData);
-    
+            local bResult blContextMatrixOp(self, opType, opData);
+
             if bResult == C.BL_SUCCESS then
               return true;
             end
@@ -174,10 +175,13 @@ local  BLContext = ffi.typeof("struct BLContextCore")
             return false, bResult;
           end;
           
+          -- use this one when there's a variable list of parameters
           _applyMatrixOpV = function(self, opType, ...)
+            print("applyMatrixOpV: ", opType, ...);
+
             local opData = ffi.new("double[?]",select('#',...), {...});
-            local bResult self.impl.virt.matrixOp(self.impl, opType, opData);
-    
+            local bResult blContextMatrixOp(self, opType, opData);
+
             if bResult == C.BL_SUCCESS then
               return true;
             end
@@ -219,7 +223,9 @@ local  BLContext = ffi.typeof("struct BLContextCore")
     
           -- 3 values - an angle, and a point to rotate around
           rotateAroundPoint = function(self, rads, x, y)
-            return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
+            print("rotateAroundPoint: ",rads,x,y);
+            return true;
+            --return self:_applyMatrixOpV(C.BL_MATRIX2D_OP_ROTATE_PT,rads, x, y);
           end;
     
           -- overloaded rotate
@@ -405,7 +411,9 @@ local  BLContext = ffi.typeof("struct BLContextCore")
     
           -- Whole canvas drawing functions
           clearAll = function(self)
-            local bResult = self.impl.virt.clearAll(self.impl);
+            --local bResult = self.impl.virt.clearAll(self.impl);
+            local bResult = blapi.blContextClearAll(self);
+
             if bResult == C.BL_SUCCESS then
               return true;
             end
@@ -433,7 +441,8 @@ local  BLContext = ffi.typeof("struct BLContextCore")
     
           -- Geometry drawing functions
           fillGeometry = function(self, geometryType, geometryData)
-            local bResult = self.impl.virt.fillGeometry(self.impl, geometryType, geometryData);
+            --local bResult = self.impl.virt.fillGeometry(self.impl, geometryType, geometryData);
+            local bResult = blapi.blContextFillGeometry(self, geometryType, geometryData);
             if bResult == C.BL_SUCCESS then
               return true;
             end

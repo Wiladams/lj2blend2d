@@ -3,7 +3,7 @@ package.path = "../?.lua;"..package.path;
 local ffi = require("ffi")
 local C = ffi.C 
 
-local blapi = require("blend2d.blend2d")
+local blapi = require("blend2d.b2d")
 local fsys = require("filesystem")
 local FileSystem = fsys.FileSystem;
 local FileSystemItem = fsys.FileSystemItem;

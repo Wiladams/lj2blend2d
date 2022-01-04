@@ -29,7 +29,7 @@ local blapi = require("blend2d.blend2d_ffi")
 
 BLArrayView = ffi.typeof("BLArrayView")
 BLStringView = ffi.typeof("BLStringView")
-BLRegionView = ffi.typeof("BLRegionView")
+--BLRegionView = ffi.typeof("BLRegionView")
 BLDataView = BLArrayView
 
 
@@ -576,11 +576,14 @@ BLImage_mt = {
         -- width, height
         local width = select(1,...)
         local height = select(2,...)
-        bResult = blapi.blImageInitAs(obj, width, height, C.BL_FORMAT_PRGB32)
+        bResult = blapi.blImageInitAs(obj, width, height, ffi.C.BL_FORMAT_PRGB32)
         --print("BLImage.__new: ", bResult, width, height)
       elseif nargs == 3 then
         -- width, height, format
-        bResult = blapi.blImageInitAs(obj, select(1,...), select(2,...), select(3,...))
+        local w = select(1,...);
+        local h = select(2,...);
+        local f = select(3,...);
+        bResult = blapi.blImageInitAs(obj, w, h, ffi.C.BL_FORMAT_PRGB32);
       elseif nargs == 7 then
         -- w, h, format, pixelData, stride, destroyFunc, destroyData
         bResult = blapi.blImageInitAsFromData(obj, select(1,...), select(2,...), select(3,...), select(4,...), select(5,...), select(6,...), select(7,...))
@@ -809,6 +812,7 @@ local BLMatrix2D_mt = {
         end;
 
         rotateAroundPoint = function(self, radians, x, y)
+          print("b2d.rotateAroundPoint: ", radians, x, y)
         end;
 
         concat = function(self, other)
